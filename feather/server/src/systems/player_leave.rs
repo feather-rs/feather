@@ -12,6 +12,8 @@ use quill_common::components::{
 
 use crate::Server;
 use base::anvil::entity::{AnimalData, BaseEntityData};
+use quill_common::entities::Player;
+use quill_common::events::DisconnectEvent;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems
@@ -20,6 +22,10 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 }
 
 fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (_, event, &client)) in game.ecs.query::<(&Player, &DisconnectEvent, &ClientId)>().iter() {
+        server.clients.get(client).unwrap().disconnect((**event).clone());
+    }
+    
     let mut entities_to_remove = Vec::new();
     for (
         player,

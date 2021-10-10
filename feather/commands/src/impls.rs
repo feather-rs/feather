@@ -16,7 +16,7 @@ use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, CustomName, Gamemode, Name, PreviousGamemode, RealIp};
 use quill_common::entities::Player;
-use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent};
+use quill_common::events::{DisconnectEvent, GamemodeUpdateEvent, InventoryUpdateEvent};
 
 use crate::CommandCtx;
 
@@ -144,208 +144,14 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     let mut args = args.into_iter();
                     let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
 
-                    let entities = context.find_entities_by_selector(&selector);
-                    let mut count = 0;
-                    for entity in &entities {
-                        if clear_items(&mut context, *entity, None, None, &mut count).is_err() {
-                            return false;
-                        }
-                    }
-
-                    match (count, entities.len()) {
-                        (0, 1) => {
-                            context.send_message(
-                                Text::translate_with(
-                                    "clear.failed.single",
-                                    vec![(&***context
-                                        .game
-                                        .ecs
-                                        .get::<Name>(*entities.first().unwrap())
-                                        .unwrap())
-                                        .to_string()],
-                                )
-                                .red(),
-                            );
-                            false
-                        }
-                        (0, entities) => {
-                            context.send_message(
-                                Text::translate_with(
-                                    "clear.failed.multiple",
-                                    vec![entities.to_string()],
-                                )
-                                .red(),
-                            );
-                            false
-                        }
-                        (count, 1) => {
-                            context.send_message(Text::translate_with(
-                                "commands.clear.success.single",
-                                vec![
-                                    count.to_string(),
-                                    (&***context
-                                        .game
-                                        .ecs
-                                        .get::<Name>(*entities.first().unwrap())
-                                        .unwrap())
-                                        .to_string(),
-                                ],
-                            ));
-                            true
-                        }
-                        (count, entities) => {
-                            context.send_message(Text::translate_with(
-                                "commands.clear.success.multiple",
-                                vec![count.to_string(), entities.to_string()],
-                            ));
-                            false
-                        }
-                    }
-                })
-        })
-        .with(|command| {
-            command
-                .with_argument(
-                    "target",
-                    Box::new(EntityArgument::PLAYERS),
-                    CompletionType::Custom("entity".to_string()),
-                )
-                .with_argument(
-                    "item",
-                    Box::new(ItemPredicateArgument),
-                    CompletionType::Custom("item_predicate".to_string()),
-                )
-                .executes(|args, mut context| {
-                    let mut args = args.into_iter();
-                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
-                    let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
-
-                    let entities = context.find_entities_by_selector(&selector);
-                    let mut count = 0;
-                    for entity in &entities {
-                        if clear_items(&mut context, *entity, Some(&item), None, &mut count)
-                            .is_err()
-                        {
-                            return false;
-                        }
-                    }
-
-                    match (count, entities.len()) {
-                        (0, 1) => {
-                            context.send_message(
-                                Text::translate_with(
-                                    "clear.failed.single",
-                                    vec![(&***context
-                                        .game
-                                        .ecs
-                                        .get::<Name>(*entities.first().unwrap())
-                                        .unwrap())
-                                        .to_string()],
-                                )
-                                .red(),
-                            );
-                            false
-                        }
-                        (0, entities) => {
-                            context.send_message(
-                                Text::translate_with(
-                                    "clear.failed.multiple",
-                                    vec![entities.to_string()],
-                                )
-                                .red(),
-                            );
-                            false
-                        }
-                        (count, 1) => {
-                            context.send_message(Text::translate_with(
-                                "commands.clear.success.single",
-                                vec![
-                                    count.to_string(),
-                                    (&***context
-                                        .game
-                                        .ecs
-                                        .get::<Name>(*entities.first().unwrap())
-                                        .unwrap())
-                                        .to_string(),
-                                ],
-                            ));
-                            true
-                        }
-                        (count, entities) => {
-                            context.send_message(Text::translate_with(
-                                "commands.clear.success.multiple",
-                                vec![count.to_string(), entities.to_string()],
-                            ));
-                            false
-                        }
-                    }
-                })
-        })
-        .with(|command| {
-            command
-                .with_argument(
-                    "target",
-                    Box::new(EntityArgument::PLAYERS),
-                    CompletionType::Custom("entity".to_string()),
-                )
-                .with_argument(
-                    "item",
-                    Box::new(ItemPredicateArgument),
-                    CompletionType::Custom("item_predicate".to_string()),
-                )
-                .with_argument(
-                    "maxCount",
-                    Box::new(IntegerArgument::new(0..=i32::MAX)),
-                    CompletionType::Custom("none".to_string()),
-                )
-                .executes(|args, mut context| {
-                    let mut args = args.into_iter();
-                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
-                    let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
-                    let max_count = *args.next().unwrap().downcast::<i32>().unwrap();
-
-                    let entities = context.find_entities_by_selector(&selector);
-                    let mut count = 0;
-                    for entity in &entities {
-                        if clear_items(
-                            &mut context,
-                            *entity,
-                            Some(&item),
-                            Some(max_count),
-                            &mut count,
-                        )
-                        .is_err()
-                        {
-                            return false;
-                        }
-                    }
-
-                    if max_count == 0 {
-                        match (count, entities.len()) {
-                            (count, 1) => {
-                                context.send_message(Text::translate_with(
-                                    "commands.clear.test.single",
-                                    vec![
-                                        count.to_string(),
-                                        (&***context
-                                            .game
-                                            .ecs
-                                            .get::<Name>(*entities.first().unwrap())
-                                            .unwrap())
-                                            .to_string(),
-                                    ],
-                                ));
-                                true
-                            }
-                            (count, entities) => {
-                                context.send_message(Text::translate_with(
-                                    "commands.clear.test.multiple",
-                                    vec![count.to_string(), entities.to_string()],
-                                ));
-                                false
+                    if let Some(entities) = context.find_non_empty_entities_by_selector(&selector, true) {
+                        let mut count = 0;
+                        for entity in &entities {
+                            if clear_items(&mut context, *entity, None, None, &mut count).is_err() {
+                                return false;
                             }
                         }
-                    } else {
+
                         match (count, entities.len()) {
                             (0, 1) => {
                                 context.send_message(
@@ -395,6 +201,209 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                 false
                             }
                         }
+                    } else {
+                        false
+                    }
+                })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "target",
+                    Box::new(EntityArgument::PLAYERS),
+                    CompletionType::Custom("entity".to_string()),
+                )
+                .with_argument(
+                    "item",
+                    Box::new(ItemPredicateArgument),
+                    CompletionType::Custom("item_predicate".to_string()),
+                )
+                .executes(|args, mut context| {
+                    let mut args = args.into_iter();
+                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
+                    let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
+
+                    if let Some(entities) = context.find_non_empty_entities_by_selector(&selector, true) {
+                        let mut count = 0;
+                        for entity in &entities {
+                            if clear_items(&mut context, *entity, Some(&item), None, &mut count)
+                                .is_err()
+                            {
+                                return false;
+                            }
+                        }
+
+                        match (count, entities.len()) {
+                            (0, 1) => {
+                                context.send_message(
+                                    Text::translate_with(
+                                        "clear.failed.single",
+                                        vec![(&***context
+                                            .game
+                                            .ecs
+                                            .get::<Name>(*entities.first().unwrap())
+                                            .unwrap())
+                                            .to_string()],
+                                    )
+                                        .red(),
+                                );
+                                false
+                            }
+                            (0, entities) => {
+                                context.send_message(
+                                    Text::translate_with(
+                                        "clear.failed.multiple",
+                                        vec![entities.to_string()],
+                                    )
+                                        .red(),
+                                );
+                                false
+                            }
+                            (count, 1) => {
+                                context.send_message(Text::translate_with(
+                                    "commands.clear.success.single",
+                                    vec![
+                                        count.to_string(),
+                                        (&***context
+                                            .game
+                                            .ecs
+                                            .get::<Name>(*entities.first().unwrap())
+                                            .unwrap())
+                                            .to_string(),
+                                    ],
+                                ));
+                                true
+                            }
+                            (count, entities) => {
+                                context.send_message(Text::translate_with(
+                                    "commands.clear.success.multiple",
+                                    vec![count.to_string(), entities.to_string()],
+                                ));
+                                false
+                            }
+                        }
+                    } else {
+                        false
+                    }
+                })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "target",
+                    Box::new(EntityArgument::PLAYERS),
+                    CompletionType::Custom("entity".to_string()),
+                )
+                .with_argument(
+                    "item",
+                    Box::new(ItemPredicateArgument),
+                    CompletionType::Custom("item_predicate".to_string()),
+                )
+                .with_argument(
+                    "maxCount",
+                    Box::new(IntegerArgument::new(0..=i32::MAX)),
+                    CompletionType::Custom("none".to_string()),
+                )
+                .executes(|args, mut context| {
+                    let mut args = args.into_iter();
+                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
+                    let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
+                    let max_count = *args.next().unwrap().downcast::<i32>().unwrap();
+
+                    if let Some(entities) = context.find_non_empty_entities_by_selector(&selector, true) {
+                        let mut count = 0;
+                        for entity in &entities {
+                            if clear_items(
+                                &mut context,
+                                *entity,
+                                Some(&item),
+                                Some(max_count),
+                                &mut count,
+                            )
+                                .is_err()
+                            {
+                                return false;
+                            }
+                        }
+
+                        if max_count == 0 {
+                            match (count, entities.len()) {
+                                (count, 1) => {
+                                    context.send_message(Text::translate_with(
+                                        "commands.clear.test.single",
+                                        vec![
+                                            count.to_string(),
+                                            (&***context
+                                                .game
+                                                .ecs
+                                                .get::<Name>(*entities.first().unwrap())
+                                                .unwrap())
+                                                .to_string(),
+                                        ],
+                                    ));
+                                    true
+                                }
+                                (count, entities) => {
+                                    context.send_message(Text::translate_with(
+                                        "commands.clear.test.multiple",
+                                        vec![count.to_string(), entities.to_string()],
+                                    ));
+                                    false
+                                }
+                            }
+                        } else {
+                            match (count, entities.len()) {
+                                (0, 1) => {
+                                    context.send_message(
+                                        Text::translate_with(
+                                            "clear.failed.single",
+                                            vec![(&***context
+                                                .game
+                                                .ecs
+                                                .get::<Name>(*entities.first().unwrap())
+                                                .unwrap())
+                                                .to_string()],
+                                        )
+                                            .red(),
+                                    );
+                                    false
+                                }
+                                (0, entities) => {
+                                    context.send_message(
+                                        Text::translate_with(
+                                            "clear.failed.multiple",
+                                            vec![entities.to_string()],
+                                        )
+                                            .red(),
+                                    );
+                                    false
+                                }
+                                (count, 1) => {
+                                    context.send_message(Text::translate_with(
+                                        "commands.clear.success.single",
+                                        vec![
+                                            count.to_string(),
+                                            (&***context
+                                                .game
+                                                .ecs
+                                                .get::<Name>(*entities.first().unwrap())
+                                                .unwrap())
+                                                .to_string(),
+                                        ],
+                                    ));
+                                    true
+                                }
+                                (count, entities) => {
+                                    context.send_message(Text::translate_with(
+                                        "commands.clear.success.multiple",
+                                        vec![count.to_string(), entities.to_string()],
+                                    ));
+                                    false
+                                }
+                            }
+                        }
+                    } else {
+                        false
                     }
                 })
         });
@@ -476,12 +485,13 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .with(|command| {
             command.executes(|args, mut ctx| {
                 let mut args = args.into_iter();
-                let targets = ctx.find_entities_by_selector(
-                    &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
-                );
-
-                ban_players(&mut ctx, targets, BanReason::default());
-                true
+                if let Some(targets) = ctx.find_non_empty_entities_by_selector(
+                    &*args.next().unwrap().downcast::<EntitySelector>().unwrap(), true
+                ) {
+                    ban_players(&mut ctx, targets, BanReason::default())
+                } else {
+                    false
+                }
             })
         })
         .with(|command| {
@@ -493,44 +503,61 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 )
                 .executes(|args, mut ctx| {
                     let mut args = args.into_iter();
-                    let targets = ctx.find_entities_by_selector(
-                        &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
-                    );
-                    let reason = BanReason::new(
-                        &*args
-                            .next()
-                            .unwrap()
-                            .downcast::<Message>()
-                            .unwrap()
-                            .to_string(|s| get_entity_names(&ctx, s)),
-                    );
+                    if let Some(targets) = ctx.find_non_empty_entities_by_selector(
+                        &*args.next().unwrap().downcast::<EntitySelector>().unwrap(), true
+                    ) {
+                        let reason = BanReason::new(
+                            &*args
+                                .next()
+                                .unwrap()
+                                .downcast::<Message>()
+                                .unwrap()
+                                .to_string(|s| get_entity_names(&ctx, s)),
+                        );
 
-                    ban_players(&mut ctx, targets, reason);
-                    true
+                        ban_players(&mut ctx, targets, reason)
+                    } else {
+                        false
+                    }
                 })
         });
 
-    fn ban_players(ctx: &mut CommandCtx, players: Vec<Entity>, reason: BanReason) {
+    fn ban_players(ctx: &mut CommandCtx, players: Vec<Entity>, reason: BanReason) -> bool {
         let sender = ctx.sender;
         let source = ctx.game.ecs.get::<Name>(sender).map(|s| s.to_string()).ok();
-        for target in players {
-            // TODO ban offline players
-            let uuid = ctx.game.ecs.get::<Uuid>(target).unwrap().deref().clone();
-            let name = ctx.game.ecs.get::<Name>(target).unwrap().to_string();
-            if ctx.game.resources.get_mut::<BanList>().unwrap().ban(
-                uuid,
-                name.clone(),
-                source.clone(),
-                reason.clone(),
-                None,
-            ) {
-                ctx.send_message(Text::translate_with(
-                    "commands.ban.success",
-                    vec![name, reason.to_string()],
-                ));
-            } else {
-                ctx.send_message(Text::translate("commands.ban.failed").red());
+        if players.is_empty() {
+            false
+        } else {
+            for target in players {
+                // TODO ban offline players
+                let uuid = ctx.game.ecs.get::<Uuid>(target).unwrap().deref().clone();
+                let name = ctx.game.ecs.get::<Name>(target).unwrap().to_string();
+                if ctx.game.resources.get_mut::<BanList>().unwrap().ban(
+                    uuid,
+                    name.clone(),
+                    source.clone(),
+                    reason.clone(),
+                    None,
+                ) {
+                    ctx.send_message(Text::translate_with(
+                        "commands.ban.success",
+                        vec![name, reason.to_string()],
+                    ));
+                    ctx.game
+                        .ecs
+                        .insert_entity_event(
+                            target,
+                            DisconnectEvent::new(Text::translate_with(
+                                "multiplayer.disconnect.banned.reason",
+                                vec![reason.to_string()],
+                            )),
+                        )
+                        .unwrap();
+                } else {
+                    ctx.send_message(Text::translate("commands.ban.failed").red());
+                }
             }
+            true
         }
     }
 
@@ -538,7 +565,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .create_command("ban-ip")
         .unwrap()
         .with_argument(
-            "targets",
+            "target",
             Box::new(StringArgument::new(StringProperties::SingleWord)),
             CompletionType::Custom("player_names".to_string()),
         )
@@ -565,7 +592,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 )
                 .executes(|args, mut ctx| {
                     let mut args = args.into_iter();
-                    let targets = args
+                    let target = args
                         .next()
                         .unwrap()
                         .downcast::<String>()
@@ -580,7 +607,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                             .to_string(|s| get_entity_names(&ctx, s)),
                     );
 
-                    ban_ip(&mut ctx, targets, reason)
+                    ban_ip(&mut ctx, target, reason)
                 })
         });
 
@@ -599,6 +626,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         {
             ctx.game.ecs.get::<RealIp>(target).unwrap().0
         } else {
+            ctx.send_message(Text::translate("commands.banip.invalid").red());
             return false;
         };
 
@@ -612,10 +640,31 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 "commands.banip.success",
                 vec![ip.to_string(), reason.to_string()],
             ));
+            let targets = ctx
+                .game
+                .ecs
+                .query::<(&Player, &RealIp)>()
+                .iter()
+                .filter(|(_, (_, &addr))| *addr == ip)
+                .map(|(entity, _)| entity)
+                .collect::<Vec<_>>();
+            for target in targets {
+                ctx.game
+                    .ecs
+                    .insert_entity_event(
+                        target,
+                        DisconnectEvent::new(Text::translate_with(
+                            "multiplayer.disconnect.banned_ip.reason",
+                            vec![reason.to_string()],
+                        )),
+                    )
+                    .unwrap();
+            }
+            true
         } else {
             ctx.send_message(Text::translate("commands.banip.failed").red());
+            false
         }
-        true
     }
 
     fn get_entity_names(ctx: &CommandCtx, selector: Vec<EntitySelectorPredicate>) -> Vec<String> {

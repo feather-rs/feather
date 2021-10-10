@@ -208,6 +208,7 @@ host_component_enum! {
         BuildingAbilityChangeEvent = 1030,
         InvulnerabilityChangeEvent = 1031,
         RealIp = 1032,
+        DisconnectEvent = 1033,
 
 
     }
@@ -381,3 +382,4 @@ bincode_component_impl!(InstabreakChangeEvent);
 bincode_component_impl!(FlyingAbilityChangeEvent);
 bincode_component_impl!(BuildingAbilityChangeEvent);
 bincode_component_impl!(InvulnerabilityChangeEvent);
+bincode_component_impl!(DisconnectEvent);

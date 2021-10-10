@@ -69,6 +69,20 @@ impl CommandCtx {
             .unwrap()
             .send_system(message)
     }
+    /// Find entities by selector and report an error if no entities/players were found
+    pub fn find_non_empty_entities_by_selector(&self, selector: &EntitySelector, players_only: bool) -> Option<Vec<Entity>> {
+        let entities = self.find_entities_by_selector(selector);
+        if entities.is_empty() {
+            self.send_message(match (selector, players_only) {
+                (EntitySelector::Name(_), true) => Text::translate("argument.player.unknown").red(),
+                (_, true) => Text::translate("argument.entity.notfound.player").red(),
+                (_, false) => Text::translate("argument.entity.notfound.entity").red(),
+            });
+            None
+        } else {
+            Some(entities)
+        }
+    }
     pub fn find_entities_by_selector(&self, selector: &EntitySelector) -> Vec<Entity> {
         match selector {
             EntitySelector::Selector(selector) => {
