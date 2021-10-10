@@ -1,6 +1,5 @@
 //! The implementations of various commands.
 
-use std::net::{IpAddr, ToSocketAddrs};
 use std::ops::Deref;
 
 use commands::arguments::*;
@@ -15,7 +14,7 @@ use common::{Game, Window};
 use ecs::{Ecs, Entity};
 use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
-use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode, RealIp};
+use quill_common::components::{ChatBox, CustomName, Gamemode, Name, PreviousGamemode, RealIp};
 use quill_common::entities::Player;
 use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent};
 
@@ -489,7 +488,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             command
                 .with_argument(
                     "reason",
-                    Box::new(StringArgument::new(StringProperties::GreedyPhrase)),
+                    Box::new(MessageArgument),
                     CompletionType::Custom("none".to_string()),
                 )
                 .executes(|args, mut ctx| {
@@ -497,8 +496,14 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     let targets = ctx.find_entities_by_selector(
                         &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
                     );
-                    let reason =
-                        BanReason::new(&*args.next().unwrap().downcast::<String>().unwrap());
+                    let reason = BanReason::new(
+                        &*args
+                            .next()
+                            .unwrap()
+                            .downcast::<Message>()
+                            .unwrap()
+                            .to_string(|s| get_entity_names(&ctx, s)),
+                    );
 
                     ban_players(&mut ctx, targets, reason);
                     true
@@ -529,8 +534,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         }
     }
 
-    // TODO use Message arguments instead of string
-    // TODO use Ip and Name arguments instead of string (can't find Ip argument on wiki.vg)
     dispatcher
         .create_command("ban-ip")
         .unwrap()
@@ -557,7 +560,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             command
                 .with_argument(
                     "reason",
-                    Box::new(StringArgument::new(StringProperties::GreedyPhrase)),
+                    Box::new(MessageArgument),
                     CompletionType::Custom("none".to_string()),
                 )
                 .executes(|args, mut ctx| {
@@ -568,8 +571,14 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                         .downcast::<String>()
                         .unwrap()
                         .to_string();
-                    let reason =
-                        BanReason::new(&*args.next().unwrap().downcast::<String>().unwrap());
+                    let reason = BanReason::new(
+                        &*args
+                            .next()
+                            .unwrap()
+                            .downcast::<Message>()
+                            .unwrap()
+                            .to_string(|s| get_entity_names(&ctx, s)),
+                    );
 
                     ban_ip(&mut ctx, targets, reason)
                 })
@@ -607,6 +616,25 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             ctx.send_message(Text::translate("commands.banip.failed").red());
         }
         true
+    }
+
+    fn get_entity_names(ctx: &CommandCtx, selector: Vec<EntitySelectorPredicate>) -> Vec<String> {
+        ctx.find_entities_by_selector(&EntitySelector::Selector(selector))
+            .iter()
+            .filter_map(|&e| {
+                ctx.game
+                    .ecs
+                    .get::<Name>(e)
+                    .map(|n| n.as_str().to_string())
+                    .or_else(|_| {
+                        ctx.game
+                            .ecs
+                            .get::<CustomName>(e)
+                            .map(|n| n.as_str().to_string())
+                    })
+                    .ok()
+            })
+            .collect()
     }
 }
 
