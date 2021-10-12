@@ -76,6 +76,27 @@ impl BanList {
             .find(|entry| entry.value == *ip)
             .map(|entry| entry.reason.clone())
     }
+
+    /// Returns true if unbanned, false if the player is not banned
+    pub fn pardon_name(&mut self, name: &str) -> bool {
+        let old_len = self.banned_players.len();
+        self.banned_players.retain(|entry| entry.value.1 != *name);
+        old_len != self.banned_players.len()
+    }
+
+    /// Returns true if unbanned, false if the player is not banned
+    pub fn pardon_id(&mut self, id: &Uuid) -> bool {
+        let old_len = self.banned_players.len();
+        self.banned_players.retain(|entry| entry.value.0 != *id);
+        old_len != self.banned_players.len()
+    }
+
+    /// Returns true if unbanned, false if the ip is not banned
+    pub fn pardon_ip(&mut self, ip: &IpAddr) -> bool {
+        let old_len = self.banned_ips.len();
+        self.banned_ips.retain(|entry| entry.value != *ip);
+        old_len != self.banned_ips.len()
+    }
 }
 
 #[derive(Debug)]

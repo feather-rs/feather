@@ -70,7 +70,11 @@ impl CommandCtx {
             .send_system(message)
     }
     /// Find entities by selector and report an error if no entities/players were found
-    pub fn find_non_empty_entities_by_selector(&self, selector: &EntitySelector, players_only: bool) -> Option<Vec<Entity>> {
+    pub fn find_non_empty_entities_by_selector(
+        &self,
+        selector: &EntitySelector,
+        players_only: bool,
+    ) -> Option<Vec<Entity>> {
         let entities = self.find_entities_by_selector(selector);
         if entities.is_empty() {
             self.send_message(match (selector, players_only) {

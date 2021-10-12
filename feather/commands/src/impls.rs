@@ -144,7 +144,9 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     let mut args = args.into_iter();
                     let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
 
-                    if let Some(entities) = context.find_non_empty_entities_by_selector(&selector, true) {
+                    if let Some(entities) =
+                        context.find_non_empty_entities_by_selector(&selector, true)
+                    {
                         let mut count = 0;
                         for entity in &entities {
                             if clear_items(&mut context, *entity, None, None, &mut count).is_err() {
@@ -223,7 +225,9 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
                     let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
 
-                    if let Some(entities) = context.find_non_empty_entities_by_selector(&selector, true) {
+                    if let Some(entities) =
+                        context.find_non_empty_entities_by_selector(&selector, true)
+                    {
                         let mut count = 0;
                         for entity in &entities {
                             if clear_items(&mut context, *entity, Some(&item), None, &mut count)
@@ -245,7 +249,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                             .unwrap())
                                             .to_string()],
                                     )
-                                        .red(),
+                                    .red(),
                                 );
                                 false
                             }
@@ -255,7 +259,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                         "clear.failed.multiple",
                                         vec![entities.to_string()],
                                     )
-                                        .red(),
+                                    .red(),
                                 );
                                 false
                             }
@@ -310,7 +314,9 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
                     let max_count = *args.next().unwrap().downcast::<i32>().unwrap();
 
-                    if let Some(entities) = context.find_non_empty_entities_by_selector(&selector, true) {
+                    if let Some(entities) =
+                        context.find_non_empty_entities_by_selector(&selector, true)
+                    {
                         let mut count = 0;
                         for entity in &entities {
                             if clear_items(
@@ -320,7 +326,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                 Some(max_count),
                                 &mut count,
                             )
-                                .is_err()
+                            .is_err()
                             {
                                 return false;
                             }
@@ -364,7 +370,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                                 .unwrap())
                                                 .to_string()],
                                         )
-                                            .red(),
+                                        .red(),
                                     );
                                     false
                                 }
@@ -374,7 +380,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                             "clear.failed.multiple",
                                             vec![entities.to_string()],
                                         )
-                                            .red(),
+                                        .red(),
                                     );
                                     false
                                 }
@@ -473,7 +479,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         }
     }
 
-    // TODO use Message arguments instead of string
     dispatcher
         .create_command("ban")
         .unwrap()
@@ -486,7 +491,8 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             command.executes(|args, mut ctx| {
                 let mut args = args.into_iter();
                 if let Some(targets) = ctx.find_non_empty_entities_by_selector(
-                    &*args.next().unwrap().downcast::<EntitySelector>().unwrap(), true
+                    &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
+                    true,
                 ) {
                     ban_players(&mut ctx, targets, BanReason::default())
                 } else {
@@ -504,7 +510,8 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 .executes(|args, mut ctx| {
                     let mut args = args.into_iter();
                     if let Some(targets) = ctx.find_non_empty_entities_by_selector(
-                        &*args.next().unwrap().downcast::<EntitySelector>().unwrap(), true
+                        &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
+                        true,
                     ) {
                         let reason = BanReason::new(
                             &*args
@@ -685,6 +692,84 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             })
             .collect()
     }
+
+    dispatcher
+        .create_command("pardon")
+        .unwrap()
+        .with_argument(
+            "targets",
+            Box::new(EntityArgument::PLAYERS),
+            CompletionType::Custom("banned_players".to_string()),
+        )
+        .executes(|args, ctx| {
+            let mut args = args.into_iter();
+            let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
+            match selector {
+                EntitySelector::Selector(s) => {
+                    if let Some(_) =
+                        ctx.find_non_empty_entities_by_selector(&EntitySelector::Selector(s), true)
+                    {
+                        // If targets are online, then they're not banned
+                        ctx.send_message(Text::translate("commands.pardon.failed"));
+                    }
+                    false
+                }
+                EntitySelector::Name(name) => {
+                    let mut banlist = ctx.game.resources.get_mut::<BanList>().unwrap();
+                    if banlist.pardon_name(&name) {
+                        ctx.send_message(Text::translate_with(
+                            "commands.pardon.success",
+                            vec![name],
+                        ));
+                        true
+                    } else {
+                        ctx.send_message(Text::translate("commands.pardon.failed").red());
+                        false
+                    }
+                }
+                EntitySelector::Uuid(uuid) => {
+                    let mut banlist = ctx.game.resources.get_mut::<BanList>().unwrap();
+                    if banlist.pardon_id(&uuid) {
+                        ctx.send_message(Text::translate_with(
+                            "commands.pardon.success",
+                            vec![uuid.to_string()],
+                        ));
+                        true
+                    } else {
+                        ctx.send_message(Text::translate("commands.pardon.failed").red());
+                        false
+                    }
+                }
+            }
+        });
+
+    dispatcher
+        .create_command("pardon-ip")
+        .unwrap()
+        .with_argument(
+            "targets",
+            Box::new(StringArgument::new(StringProperties::SingleWord)),
+            CompletionType::Custom("banned_ips".to_string()),
+        )
+        .executes(|args, ctx| {
+            let mut args = args.into_iter();
+            if let Ok(ip) = args.next().unwrap().downcast::<String>().unwrap().parse() {
+                let mut banlist = ctx.game.resources.get_mut::<BanList>().unwrap();
+                if banlist.pardon_ip(&ip) {
+                    ctx.send_message(Text::translate_with(
+                        "commands.pardonip.success",
+                        vec![ip.to_string()],
+                    ));
+                    true
+                } else {
+                    ctx.send_message(Text::translate("commands.pardonip.failed").red());
+                    false
+                }
+            } else {
+                ctx.send_message(Text::translate("commands.pardonip.invalid").red());
+                false
+            }
+        });
 }
 
 // #[command(usage = "tp|teleport <destination>")]
