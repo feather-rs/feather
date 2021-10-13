@@ -1,7 +1,5 @@
 //! The implementations of various commands.
 
-use std::ops::Deref;
-
 use anyhow::bail;
 use commands::arguments::*;
 use commands::create_command::CreateCommand;
@@ -285,7 +283,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         for (index, slot) in inventory.inner().to_vec().into_iter().enumerate() {
             if let InventorySlot::Filled(mut stack) = slot {
                 if let Some(predicate) = item.as_ref() {
-                    if !item_matches(&ctx, &stack, predicate) {
+                    if !item_matches(ctx, &stack, predicate) {
                         continue;
                     }
                 }
@@ -366,7 +364,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             let mut count = 0;
             for target in players {
                 // TODO ban offline players
-                let uuid = ctx.ecs.get::<Uuid>(target).unwrap().deref().clone();
+                let uuid = *ctx.ecs.get::<Uuid>(target).unwrap();
                 let name = ctx.ecs.get::<Name>(target).unwrap().to_string();
                 if ctx.resources.get_mut::<BanList>().unwrap().ban(
                     uuid,
@@ -428,12 +426,12 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             bail!("Invalid IP")
         };
 
-        if ctx.resources.get_mut::<BanList>().unwrap().ban_ip(
-            ip,
-            source.clone(),
-            reason.clone(),
-            None,
-        ) {
+        if ctx
+            .resources
+            .get_mut::<BanList>()
+            .unwrap()
+            .ban_ip(ip, source, reason.clone(), None)
+        {
             ctx.send_message(Text::translate_with(
                 "commands.banip.success",
                 vec![ip.to_string(), reason.to_string()],
@@ -483,9 +481,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .executes(|ctx: CommandCtx, selector| {
             match selector {
                 EntitySelector::Selector(s) => {
-                    if let Some(_) =
-                        ctx.find_non_empty_entities_by_selector(&EntitySelector::Selector(s), true)
-                    {
+                    if ctx.find_non_empty_entities_by_selector(&EntitySelector::Selector(s), true).is_some() {
                         // If targets are online, then they're not banned
                         ctx.send_message(Text::translate("commands.pardon.failed"));
                     }

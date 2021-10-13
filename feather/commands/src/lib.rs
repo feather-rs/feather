@@ -138,14 +138,19 @@ impl CommandCtx {
                                 .unwrap_or(false),
                             EntitySelectorPredicate::Level(_) => todo!(),
                             EntitySelectorPredicate::Limit(_) => true,
-                            EntitySelectorPredicate::Name(name) => entity
-                                .get::<Name>()
-                                .map(|name| (***name).to_string())
-                                .or_else(|_| {
-                                    entity.get::<CustomName>().map(|name| (***name).to_string())
-                                })
-                                .map(|n| name.0 == (n == name.1))
-                                .unwrap_or(false),
+                            EntitySelectorPredicate::Name(name) => {
+                                macro_rules! name {
+                                    () => {
+                                        |name| (***name).to_string()
+                                    };
+                                }
+                                entity
+                                    .get::<Name>()
+                                    .map(name!())
+                                    .or_else(|_| entity.get::<CustomName>().map(name!()))
+                                    .map(|n| name.0 == (n == name.1))
+                                    .unwrap_or(false)
+                            }
                             EntitySelectorPredicate::Predicate(_) => todo!(),
                             EntitySelectorPredicate::Scores(_) => todo!(),
                             EntitySelectorPredicate::Sort(s) => {
@@ -168,7 +173,7 @@ impl CommandCtx {
                             }
                             EntitySelectorPredicate::XRotation(x_rot) => x_rot.contains(&pos.pitch),
                             EntitySelectorPredicate::YRotation(y_rot) => y_rot.contains(&pos.yaw),
-                            EntitySelectorPredicate::Sender => true,
+                            EntitySelectorPredicate::Sender => true, // already checked for this
                         } {
                             return false;
                         }
@@ -290,7 +295,7 @@ pub fn dispatch_command(
                 ctx.ecs
                     .get::<Name>(sender)
                     .map(|name| (***name).to_string())
-                    .unwrap_or("Console".to_owned()),
+                    .unwrap_or_else(|_| "Console".to_owned()),
                 command
             );
         }

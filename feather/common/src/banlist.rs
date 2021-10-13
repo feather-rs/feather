@@ -27,12 +27,12 @@ impl BanList {
         if self.banned_players.iter().any(|e| e.value.0 == uuid) {
             false
         } else {
-            let time = Local::now().into();
+            let time = Local::now();
             self.banned_players.push(BanEntry {
                 value: (uuid, name),
                 banned: time,
                 source: by,
-                expires: duration.into().map(|duration| time.clone().add(duration)),
+                expires: duration.into().map(|duration| time.add(duration)),
                 reason,
             });
             true
@@ -49,12 +49,12 @@ impl BanList {
         if self.banned_ips.iter().any(|e| e.value == ip) {
             false
         } else {
-            let time = Local::now().into();
+            let time = Local::now();
             self.banned_ips.push(BanEntry {
                 value: ip,
                 banned: time,
                 source: by,
-                expires: duration.into().map(|duration| time.clone().add(duration)),
+                expires: duration.into().map(|duration| time.add(duration)),
                 reason,
             });
             true
