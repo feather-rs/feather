@@ -195,14 +195,13 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                                 get_name(*entities.first().unwrap(), &context.ecs),
                             ],
                         ));
-                        Ok(count)
                     } else {
                         context.send_message(Text::translate_with(
                             "commands.clear.test.multiple",
                             vec![count.to_string(), entities.len().to_string()],
                         ));
-                        Ok(count)
                     }
+                    Ok(count)
                 } else {
                     send_clear_message(&context, count, entities)
                 }
