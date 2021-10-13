@@ -107,7 +107,7 @@ impl Plugin {
         mut context: CommandCtx,
     ) -> CommandOutput {
         let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
-        self.context.enter(&mut *context.game, || {
+        self.context.enter(&mut *context, || {
             let ctx = CommandContext {
                 game: quill::Game::new(),
                 caller,
@@ -128,7 +128,7 @@ impl Plugin {
         context: &mut CommandCtx,
     ) -> Vec<(String, Option<String>)> {
         let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
-        self.context.enter(&mut *context.game, || {
+        self.context.enter(context, || {
             let ctx = CommandContext {
                 game: quill::Game::new(),
                 caller,

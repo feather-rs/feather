@@ -64,7 +64,6 @@ pub fn modify_command_executor(
     for executor in executors.into_iter() {
         dispatcher.add_executor(move |args: Args, mut context: CommandCtx| {
             let plugin_manager = context
-                .game
                 .resources
                 .get::<Rc<RefCell<PluginManager>>>()
                 .unwrap();
@@ -84,7 +83,6 @@ pub fn modify_command_executor(
             &key,
             Box::new(move |text, context| {
                 let plugin_manager = context
-                    .game
                     .resources
                     .get::<Rc<RefCell<PluginManager>>>()
                     .unwrap();

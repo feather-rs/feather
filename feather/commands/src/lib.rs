@@ -17,34 +17,6 @@ use quill_common::components::{ChatBox, CustomName, Gamemode, Name};
 
 mod impls;
 
-/// Dumb workaround for a certain lifetime issue.
-///
-/// `CommandCtx` stores references to `Game`, and it
-/// is used as the `C` parameter for `CommandDispatcher`,
-/// This combination of lifetimes and storage in structs
-/// prevents a lifetime-based `CommandCtx` from being stored
-/// in `CommandState` without adding a lifetime parameter to `CommandDispatcher`.
-///
-/// Since `CommandCtx` is never actually _stored_ in `CommandDispatcher` (it's
-/// only passed into a function), we can (hopefully) soundly erase
-/// the lifetime parameters. FIXME: if someone has a better solution,
-/// a PR is welcome :)
-pub struct LifetimelessMut<T>(*mut T);
-
-impl<T> Deref for LifetimelessMut<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &mut *self.0 }
-    }
-}
-
-impl<T> DerefMut for LifetimelessMut<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *self.0 }
-    }
-}
-
 /// Context passed into a command. This value can be used
 /// for access to game and entity data, such as components.
 pub struct CommandCtx {
@@ -59,14 +31,35 @@ pub struct CommandCtx {
     /// Note that players and the console are not the only possible command senders,
     /// and command implementations should account for this.
     pub sender: Entity,
-    /// The game state.
-    pub game: LifetimelessMut<Game>,
+    /// The game state. We don't want CommandDispatcher to have a lifetime, so
+    /// raw pointers are here to elide the lifetime.
+    /// Since CommandCtx is not Send, it should be sound
+    game: *mut Game,
+}
+
+impl Deref for CommandCtx {
+    type Target = Game;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*self.game }
+    }
+}
+
+impl DerefMut for CommandCtx {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *self.game }
+    }
 }
 
 impl CommandCtx {
+    pub fn new(game: &mut Game, sender: Entity) -> CommandCtx {
+        CommandCtx {
+            game: game as *mut Game,
+            sender,
+        }
+    }
     pub fn send_message(&self, message: impl Into<Text>) {
-        self.game
-            .ecs
+        self.ecs
             .get_mut::<ChatBox>(self.sender)
             .unwrap()
             .send_system(message)
@@ -93,7 +86,6 @@ impl CommandCtx {
         match selector {
             EntitySelector::Selector(selector) => {
                 let sender_position = self
-                    .game
                     .ecs
                     .get::<Position>(self.sender)
                     .map(|pos| *pos)
@@ -102,15 +94,14 @@ impl CommandCtx {
                 let mut entities = if selector.contains(&EntitySelectorPredicate::Sender) {
                     vec![self.sender]
                 } else {
-                    self.game
-                        .ecs
+                    self.ecs
                         .query::<&EntityKind>()
                         .iter()
                         .map(|(e, _)| e)
                         .collect()
                 }
                 .into_iter()
-                .map(|entity_id| (entity_id, self.game.ecs.entity(entity_id).unwrap()))
+                .map(|entity_id| (entity_id, self.ecs.entity(entity_id).unwrap()))
                 .filter(|(_, entity)| {
                     let pos = entity.get::<Position>().unwrap();
 
@@ -245,7 +236,6 @@ impl CommandCtx {
                     .collect()
             }
             EntitySelector::Name(name) => self
-                .game
                 .ecs
                 .query::<&Name>()
                 .iter()
@@ -253,7 +243,6 @@ impl CommandCtx {
                 .map(|(e, _)| e)
                 .collect(),
             EntitySelector::Uuid(uuid) => self
-                .game
                 .ecs
                 .query::<&Uuid>()
                 .iter()
@@ -275,13 +264,10 @@ pub fn dispatch_command(
     command: &str,
     log: bool,
 ) -> Option<CommandOutput> {
-    let ctx = CommandCtx {
-        game: LifetimelessMut(game),
-        sender,
-    };
+    let ctx = CommandCtx::new(game, sender);
 
     if dispatcher.find_command(command).is_none() {
-        if let Ok(mut chat) = ctx.game.ecs.get_mut::<ChatBox>(sender) {
+        if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(sender) {
             chat.send_system(
                 Text::translate("command.unknown.command")
                     .push_extra(
@@ -301,8 +287,7 @@ pub fn dispatch_command(
         if log {
             info!(
                 "{} issued server command: /{}",
-                ctx.game
-                    .ecs
+                ctx.ecs
                     .get::<Name>(sender)
                     .map(|name| (***name).to_string())
                     .unwrap_or("Console".to_owned()),
@@ -326,12 +311,6 @@ pub fn tab_complete(
     prompt: &str,
 ) -> Vec<(String, Option<String>)> {
     dispatcher
-        .tab_complete(
-            prompt,
-            CommandCtx {
-                sender,
-                game: LifetimelessMut(game),
-            },
-        )
+        .tab_complete(prompt, CommandCtx::new(game, sender))
         .unwrap_or_default()
 }
