@@ -318,6 +318,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         }
     }
 
+    // /ban
     dispatcher
         .create_command("ban")
         .unwrap()
@@ -383,6 +384,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         }
     }
 
+    // /ban-ip
     dispatcher
         .create_command("ban-ip")
         .unwrap()
@@ -461,6 +463,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             .collect()
     }
 
+    // /pardon
     dispatcher
         .create_command("pardon")
         .unwrap()
@@ -503,6 +506,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             }
         });
 
+    // /pardon-ip
     dispatcher
         .create_command("pardon-ip")
         .unwrap()
@@ -524,6 +528,27 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 context.send_message(Text::translate("commands.pardonip.invalid").red());
                 bail!("Invalid IP")
             }
+        });
+
+    // /say
+    dispatcher
+        .create_command("say")
+        .unwrap()
+        .argument("message", MessageArgument, "none")
+        .executes(|context: CommandCtx, message: Message| {
+            let command_output = Text::translate_with(
+                "chat.type.announcement",
+                vec![
+                    get_name(context.sender, &context.ecs),
+                    message.to_string(|s| get_entity_names(&context, s)),
+                ],
+            );
+            context
+                .ecs
+                .query::<&mut ChatBox>()
+                .iter()
+                .for_each(|(_, chat_box)| chat_box.send_chat(command_output.clone()));
+            Ok(1)
         });
 }
 
