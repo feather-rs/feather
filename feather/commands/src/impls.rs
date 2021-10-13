@@ -53,6 +53,13 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             .subcommand(s)
             .executes(move |mut context: CommandCtx| {
                 update_gamemode(&mut context.game.ecs, gamemode, context.sender)?;
+                context.send_message(Text::translate_with(
+                    "commands.gamemode.success.self",
+                    vec![Text::translate(format!(
+                        "gameMode.{}",
+                        gamemode.to_string()
+                    ))],
+                ));
                 Ok(1)
             })
             .argument("target", EntityArgument::PLAYERS, "entity")
@@ -60,8 +67,26 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 let targets = context.find_entities_by_selector(&selector);
                 let mut len = 0;
                 for target in targets {
+                    let name = (***context.game.ecs.get::<Name>(target).unwrap()).to_string();
                     if update_gamemode(&mut context.game.ecs, gamemode, target).is_ok() {
                         len += 1;
+                        context.send_message(if target == context.sender {
+                            Text::translate_with(
+                                "commands.gamemode.success.self",
+                                vec![Text::translate(format!(
+                                    "gameMode.{}",
+                                    gamemode.to_string()
+                                ))],
+                            )
+                        } else {
+                            Text::translate_with(
+                                "commands.gamemode.success.other",
+                                vec![
+                                    name.into(),
+                                    Text::translate(format!("gameMode.{}", gamemode.to_string())),
+                                ],
+                            )
+                        });
                     }
                 }
                 Ok(len)
@@ -71,6 +96,9 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     fn update_gamemode(ecs: &mut Ecs, gamemode: Gamemode, entity: Entity) -> anyhow::Result<()> {
         let mut new_mut = ecs.get_mut::<Gamemode>(entity)?;
         let mut old_mut = ecs.get_mut::<PreviousGamemode>(entity)?;
+        if *new_mut == gamemode {
+            bail!("Already this gamemode")
+        }
 
         *old_mut = PreviousGamemode(Some(*new_mut));
         *new_mut = gamemode;
