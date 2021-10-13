@@ -2,7 +2,7 @@ use std::mem::ManuallyDrop;
 use std::{io::Write, sync::Arc};
 
 use anyhow::{bail, Context};
-use commands::dispatcher::Args;
+use commands::dispatcher::{Args, CommandOutput};
 use libloading::Library;
 use tempfile::{NamedTempFile, TempPath};
 
@@ -40,8 +40,8 @@ pub struct NativePlugin {
     /// 3. Arguments length
     /// 4. Pointer to the command context
     ///
-    /// Returns: command response (should be casted to bool)
-    run_command: unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8) -> u32,
+    /// Returns: command response (first: 0 = Ok(second), 1 = Err(_))
+    run_command: unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8) -> (u32, u64),
 
     /// The plugin's exported quill_run_command function.
     ///
@@ -132,11 +132,11 @@ impl NativePlugin {
         data_ptr: PluginPtrMut<u8>,
         mut args: Args,
         ctx: CommandContext<()>,
-    ) -> anyhow::Result<bool> {
+    ) -> CommandOutput {
         // SAFETY: we assume the plugin is sound.
         // Using ManuallyDrop because plugins should always drop args
-        Ok(
-            match unsafe {
+        unsafe {
+            match {
                 let args = ManuallyDrop::new(args);
                 (self.run_command)(
                     data_ptr.as_native(),
@@ -145,11 +145,22 @@ impl NativePlugin {
                     &ctx as *const _ as *mut _,
                 )
             } {
-                0 => false,
-                1 => true,
+                (0, result) => Ok(result as i32),
+                (1, error_ptr) => {
+                    // Reading string from a pointer
+                    const USIZE_SIZE: usize = std::mem::size_of::<usize>(); // 4 on wasm32, same as usize on native
+                    type USIZE = usize; // u32 on wasm32, usize on native
+
+                    let ptr = error_ptr as *const USIZE;
+                    let len = *ptr.add(1);
+                    let cap = *ptr.add(2);
+                    let s = String::from_raw_parts(USIZE::from(*ptr) as *mut u8, len, cap);
+
+                    bail!("Plugin command returned an error: {}", s)
+                }
                 _ => bail!("Invalid bool returned from function"),
-            },
-        )
+            }
+        }
     }
 
     pub fn run_command_completer(

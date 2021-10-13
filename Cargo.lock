@@ -269,6 +269,7 @@ checksum = "d9df67f7bf9ef8498769f994239c45613ef0c5899415fb58e9add412d2c1a538"
 name = "bungeecord-servers-plugin"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "commands",
  "quill",
 ]
@@ -472,7 +473,7 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
-source = "git+https://github.com/Iaiao/commands?rev=7d00c3b689c4c23be5a19398aeb34910eba0705d#7d00c3b689c4c23be5a19398aeb34910eba0705d"
+source = "git+https://github.com/Iaiao/commands?rev=1f1aa86adea68fc544c4d72b985457d79480d9c9#1f1aa86adea68fc544c4d72b985457d79480d9c9"
 dependencies = [
  "anyhow",
  "log",
@@ -845,6 +846,7 @@ dependencies = [
  "libcraft-core",
  "libcraft-items",
  "libcraft-text",
+ "log",
  "quill-common",
  "rand 0.7.3",
  "serde",

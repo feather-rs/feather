@@ -1,11 +1,11 @@
 use std::io::{Cursor, ErrorKind, Read, Write};
 
 use commands::arguments::*;
-use commands::command;
 
 use quill::entities::Player;
 use quill::events::PluginMessageReceiveEvent;
 use quill::{Caller, Game, Plugin, Setup, Text, TextComponentBuilder};
+use anyhow::bail;
 
 const BUNGEECORD: &str = "bungeecord:main";
 
@@ -36,13 +36,13 @@ impl Plugin for BungeecordServersPlugin {
                     .map(|s| (s.clone(), None))
                     .collect()
             }));
-            command!(dispatcher,
-                "test",
-                "server": StringArgument::new(StringProperties::GreedyPhrase), "bungeecord_servers:servers_without_this" => target_server: String,
-                context {
+            dispatcher.create_command("test").unwrap()
+                .argument("server", StringArgument::GREEDY_PHRASE, "bungeecord_servers:servers_without_this")
+                .executes(|context: CommandContext, target_server| {
                     let (server, servers) = (context.plugin.server.as_ref(), context.plugin.servers.as_ref());
                     if server.is_some() && *server.unwrap() == target_server {
                         context.caller.send_message(format!("You are already on {}", target_server));
+                        bail!("Already on this server")
                     } else if servers.is_some() && servers.unwrap().contains(&target_server) {
                         context.caller.send_message(format!("Sending you to {}", target_server));
                         if let Caller::Player(entity) = context.caller {
@@ -51,9 +51,11 @@ impl Plugin for BungeecordServersPlugin {
                                 write_str("Connect", &mut vec)?;
                                 write_str(&target_server, &mut vec)?;
                                 vec
-                            }[..])
+                            }[..]);
+                            Ok(1)
                         } else {
-                            context.caller.send_message("Why are you trying to execute this command from console?")
+                            context.caller.send_message(Text::translate("permissions.requires.player").red());
+                            bail!("Requires a player")
                         }
                     } else {
                         context.caller.send_message(
@@ -67,10 +69,9 @@ impl Plugin for BungeecordServersPlugin {
                                             .on_click_run_command(format!("/test {}", server)))
                                         .collect())
                                     .unwrap_or_else(|| vec![Text::of(" (not found any servers). Are you running a bungeecord server?")])));
+                        bail!("Server doesn't exist")
                     }
-                    Ok(())
-                }
-            );
+                });
         });
 
         plugin

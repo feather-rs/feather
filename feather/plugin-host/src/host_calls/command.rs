@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
 
+use commands::args::Func;
 use commands::dispatcher::{Args, CommandDispatcher, Completer};
 use commands::node::CommandNode;
 use commands::parser::ArgumentParser;
@@ -40,7 +41,7 @@ pub fn modify_command_executor(
             nodes_cap as usize,
         );
         let executors = Vec::from_raw_parts(
-            executors.as_native() as *mut Box<dyn Fn(Args, CommandContext<()>) -> bool>,
+            executors.as_native() as *mut Box<dyn Func<CommandContext<()>, ()>>,
             executors_len as usize,
             executors_cap as usize,
         );
@@ -61,7 +62,7 @@ pub fn modify_command_executor(
     dispatcher.add_nodes(nodes);
 
     for executor in executors.into_iter() {
-        dispatcher.add_executor(Box::new(move |args: Args, mut context: CommandCtx| {
+        dispatcher.add_executor(move |args: Args, mut context: CommandCtx| {
             let plugin_manager = context
                 .game
                 .resources
@@ -71,14 +72,12 @@ pub fn modify_command_executor(
             drop(plugin_manager);
             let plugin_manager = rc.borrow();
             let plugin = plugin_manager.plugin(id).unwrap();
-            plugin
-                .run_command(
-                    PluginPtrMut::from_native(&executor as *const _ as usize as i64),
-                    args,
-                    context,
-                )
-                .unwrap()
-        }));
+            plugin.run_command(
+                PluginPtrMut::from_native(&executor as *const _ as usize as i64),
+                args,
+                context,
+            )
+        });
     }
     for (key, complete) in tab_completers {
         dispatcher.register_tab_completion(

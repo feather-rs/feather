@@ -2,7 +2,7 @@ use std::mem::ManuallyDrop;
 use std::sync::Arc;
 
 use anyhow::bail;
-use commands::dispatcher::Args;
+use commands::dispatcher::{Args, CommandOutput};
 use wasmer::{
     ChainableNamedResolver, Features, Function, ImportObject, Instance, Module, NativeFunc, Store,
 };
@@ -31,7 +31,7 @@ pub struct WasmPlugin {
 
     /// Exported function to run a command executor given its data pointer, args, args length,
     /// command context pointer and return command execution result (should be casted to bool).
-    run_command: NativeFunc<(u32, u32, u32, u32), u32>,
+    run_command: NativeFunc<(u32, u32, u32, u32), (u32, u64)>,
 
     /// Exported function to run a command completer given its data pointer, text, text length,
     /// command context pointer and return command completions: Vec<(String, is_some, optional String)>.
@@ -96,7 +96,7 @@ impl WasmPlugin {
         data_ptr: PluginPtrMut<u8>,
         args: Args,
         ctx: CommandContext<()>,
-    ) -> anyhow::Result<bool> {
+    ) -> CommandOutput {
         // SAFETY: Arguments should be dropped on plugin side
         let args = ManuallyDrop::new(args);
         match self.run_command.call(
@@ -105,8 +105,21 @@ impl WasmPlugin {
             args.len() as u32,
             &ctx as *const _ as usize as u32,
         )? {
-            0 => Ok(false),
-            1 => Ok(true),
+            (0, result) => Ok(result as i32),
+            (1, error_ptr) => {
+                // Reading string from a pointer
+                const USIZE_SIZE: usize = 4; // 4 on wasm32, same as usize on native
+                type USIZE = u32; // u32 on wasm32, usize on native
+
+                unsafe {
+                    let ptr = error_ptr as *const USIZE;
+                    let len = *ptr.add(1);
+                    let cap = *ptr.add(2);
+                    let s = String::from_raw_parts(todo!(), len as usize, cap as usize);
+
+                    bail!("Plugin command returned an error: {}", s)
+                }
+            }
             _ => bail!("Invalid bool returned from function"),
         }
     }

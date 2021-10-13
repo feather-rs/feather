@@ -156,9 +156,12 @@ macro_rules! plugin {
             args: *mut u8,
             args_len: u32,
             ctx: *mut u8,
-        ) -> u32 {
+        ) -> (u32, u64) {
             let executor = &*data.cast::<Box<
-                dyn Fn($crate::commands::dispatcher::Args, $crate::CommandContext<$plugin>) -> bool,
+                dyn Fn(
+                    $crate::commands::dispatcher::Args,
+                    $crate::CommandContext<$plugin>,
+                ) -> $crate::commands::dispatcher::CommandOutput,
             >>();
             let ctx = &*ctx.cast::<$crate::CommandContext<()>>();
             let ctx = $crate::CommandContext {
@@ -171,7 +174,15 @@ macro_rules! plugin {
                 args_len as usize,
                 args_len as usize,
             );
-            executor(args, ctx) as u32
+            match executor(args, ctx) {
+                Ok(result) => (0, result as u64),
+                Err(err) => {
+                    let s = err.to_string();
+                    let ptr = &s as *const _ as u64;
+                    std::mem::forget(s); // dropped on host side
+                    (1, ptr)
+                }
+            }
         }
 
         #[no_mangle]

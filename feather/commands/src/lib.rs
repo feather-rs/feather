@@ -5,6 +5,8 @@ use std::ops::{Deref, DerefMut};
 
 use commands::arguments::{EntitySelector, EntitySelectorPredicate, EntitySelectorSorting};
 pub use commands::dispatcher::CommandDispatcher;
+use commands::dispatcher::CommandOutput;
+use log::{debug, info};
 use uuid::Uuid;
 
 use common::Game;
@@ -21,9 +23,9 @@ mod impls;
 /// is used as the `C` parameter for `CommandDispatcher`,
 /// This combination of lifetimes and storage in structs
 /// prevents a lifetime-based `CommandCtx` from being stored
-/// in `CommandState` without adding a lifetime parameter to `CommandState`.
+/// in `CommandState` without adding a lifetime parameter to `CommandDispatcher`.
 ///
-/// Since `CommandCtx` is never actually _stored_ in `CommandState` (it's
+/// Since `CommandCtx` is never actually _stored_ in `CommandDispatcher` (it's
 /// only passed into a function), we can (hopefully) soundly erase
 /// the lifetime parameters. FIXME: if someone has a better solution,
 /// a PR is welcome :)
@@ -271,7 +273,8 @@ pub fn dispatch_command(
     game: &mut Game,
     sender: Entity,
     command: &str,
-) -> bool {
+    log: bool,
+) -> Option<CommandOutput> {
     let ctx = CommandCtx {
         game: LifetimelessMut(game),
         sender,
@@ -292,9 +295,27 @@ pub fn dispatch_command(
                     .red(),
             );
         }
-        false
+        debug!("Unknown command: /{}", command);
+        None
     } else {
-        dispatcher.execute_command(command, ctx)
+        if log {
+            info!(
+                "{} issued server command: /{}",
+                ctx.game
+                    .ecs
+                    .get::<Name>(sender)
+                    .map(|name| (***name).to_string())
+                    .unwrap_or("Console".to_owned()),
+                command
+            );
+        }
+        let result = dispatcher.execute_command(command, ctx);
+        match &result {
+            Some(Ok(n)) => debug!("Command result: {:?}", n),
+            Some(Err(e)) => debug!("Command error: {}", e),
+            None => debug!("Command not found")
+        }
+        result
     }
 }
 

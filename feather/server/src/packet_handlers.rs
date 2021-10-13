@@ -147,7 +147,7 @@ fn handle_chat_message(
     packet: client::ChatMessage,
 ) -> SysResult {
     if packet.message.starts_with('/') {
-        commands::dispatch_command(
+        let _result = commands::dispatch_command(
             &*game
                 .resources()
                 .get::<CommandDispatcher<CommandCtx>>()
@@ -155,6 +155,7 @@ fn handle_chat_message(
             game,
             player_id,
             &packet.message[1..],
+            true
         );
     } else {
         let player = game.ecs.entity(player_id)?;
