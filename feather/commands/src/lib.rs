@@ -313,7 +313,7 @@ pub fn dispatch_command(
         match &result {
             Some(Ok(n)) => debug!("Command result: {:?}", n),
             Some(Err(e)) => debug!("Command error: {}", e),
-            None => debug!("Command not found")
+            None => debug!("Command not found"),
         }
         result
     }

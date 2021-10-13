@@ -2,10 +2,10 @@ use std::io::{Cursor, ErrorKind, Read, Write};
 
 use commands::arguments::*;
 
+use anyhow::bail;
 use quill::entities::Player;
 use quill::events::PluginMessageReceiveEvent;
 use quill::{Caller, Game, Plugin, Setup, Text, TextComponentBuilder};
-use anyhow::bail;
 
 const BUNGEECORD: &str = "bungeecord:main";
 

@@ -155,7 +155,7 @@ fn handle_chat_message(
             game,
             player_id,
             &packet.message[1..],
-            true
+            true,
         );
     } else {
         let player = game.ecs.entity(player_id)?;

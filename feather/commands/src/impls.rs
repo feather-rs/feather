@@ -51,25 +51,23 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     fn gamemode_command(command: CreateCommand<CommandCtx, ()>, s: &str, gamemode: Gamemode) {
         command
             .subcommand(s)
-            .with(|dispatcher| {
-                dispatcher
-                    .argument("target", EntityArgument::PLAYERS, "entity")
-                    .executes(move |mut context: CommandCtx, selector| {
-                        let targets = context.find_entities_by_selector(&selector);
-                        let mut len = 0;
-                        for target in targets {
-                            if update_gamemode(&mut context.game.ecs, gamemode, target).is_ok() {
-                                len += 1;
-                            }
-                        }
-                        Ok(len)
-                    });
-            })
             .executes(move |mut context: CommandCtx| {
                 update_gamemode(&mut context.game.ecs, gamemode, context.sender)?;
                 Ok(1)
+            })
+            .argument("target", EntityArgument::PLAYERS, "entity")
+            .executes(move |mut context: CommandCtx, selector| {
+                let targets = context.find_entities_by_selector(&selector);
+                let mut len = 0;
+                for target in targets {
+                    if update_gamemode(&mut context.game.ecs, gamemode, target).is_ok() {
+                        len += 1;
+                    }
+                }
+                Ok(len)
             });
     }
+
     fn update_gamemode(ecs: &mut Ecs, gamemode: Gamemode, entity: Entity) -> anyhow::Result<()> {
         let mut new_mut = ecs.get_mut::<Gamemode>(entity)?;
         let mut old_mut = ecs.get_mut::<PreviousGamemode>(entity)?;
@@ -320,33 +318,25 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .create_command("ban")
         .unwrap()
         .argument("targets", EntityArgument::PLAYERS, "entity")
-        .with(|mut command| {
-            command.executes(|mut ctx: CommandCtx, selector| {
+        .executes(|mut ctx: CommandCtx, selector| {
+            if let Some(targets) = ctx.find_non_empty_entities_by_selector(selector, true) {
+                Ok(ban_players(&mut ctx, targets, BanReason::default()) as i32)
+            } else {
+                bail!("No entities were found")
+            }
+        })
+        .argument("reason", MessageArgument, "none")
+        .executes(
+            |mut ctx: CommandCtx, selector: &EntitySelector, reason: Message| {
                 if let Some(targets) = ctx.find_non_empty_entities_by_selector(selector, true) {
-                    Ok(ban_players(&mut ctx, targets, BanReason::default()) as i32)
+                    let reason = BanReason::new(reason.to_string(|s| get_entity_names(&ctx, s)));
+
+                    Ok(ban_players(&mut ctx, targets, reason) as i32)
                 } else {
                     bail!("No entities were found")
                 }
-            });
-        })
-        .with(|command| {
-            command
-                .argument("reason", MessageArgument, "none")
-                .executes(
-                    |mut ctx: CommandCtx, selector: &EntitySelector, reason: Message| {
-                        if let Some(targets) =
-                            ctx.find_non_empty_entities_by_selector(selector, true)
-                        {
-                            let reason =
-                                BanReason::new(reason.to_string(|s| get_entity_names(&ctx, s)));
-
-                            Ok(ban_players(&mut ctx, targets, reason) as i32)
-                        } else {
-                            bail!("No entities were found")
-                        }
-                    },
-                );
-        });
+            },
+        );
 
     fn ban_players(ctx: &mut CommandCtx, players: Vec<Entity>, reason: BanReason) -> usize {
         let sender = ctx.sender;
@@ -393,22 +383,16 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .create_command("ban-ip")
         .unwrap()
         .argument("target", StringArgument::SINGLE_WORD, "player_names")
-        .with(|mut command| {
-            command.executes(|mut ctx, target| {
-                Ok(ban_ip(&mut ctx, target, BanReason::default()) as i32)
-            });
+        .executes(|mut ctx, target| {
+            ban_ip(&mut ctx, target, BanReason::default()).map(|n| n as i32)
         })
-        .with(|command| {
-            command
-                .argument("reason", MessageArgument, "none")
-                .executes(|mut ctx, target, reason: Message| {
-                    let reason = BanReason::new(reason.to_string(|s| get_entity_names(&ctx, s)));
-
-                    Ok(ban_ip(&mut ctx, target, reason) as i32)
-                });
+        .argument("reason", MessageArgument, "none")
+        .executes(|mut ctx, target, reason: Message| {
+            let reason = BanReason::new(reason.to_string(|s| get_entity_names(&ctx, s)));
+            ban_ip(&mut ctx, target, reason).map(|n| n as i32)
         });
 
-    fn ban_ip(ctx: &mut CommandCtx, ip: String, reason: BanReason) -> usize {
+    fn ban_ip(ctx: &mut CommandCtx, ip: String, reason: BanReason) -> anyhow::Result<usize> {
         let sender = ctx.sender;
         let source = ctx.game.ecs.get::<Name>(sender).map(|s| s.to_string()).ok();
         let ip = if let Ok(ip) = ip.parse() {
@@ -424,7 +408,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             ctx.game.ecs.get::<RealIp>(target).unwrap().0
         } else {
             ctx.send_message(Text::translate("commands.banip.invalid").red());
-            return 0;
+            bail!("Invalid IP")
         };
 
         if ctx.game.resources.get_mut::<BanList>().unwrap().ban_ip(
@@ -457,10 +441,10 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     )
                     .unwrap();
             }
-            1
+            Ok(1)
         } else {
             ctx.send_message(Text::translate("commands.banip.failed").red());
-            0
+            bail!("This IP is not banned")
         }
     }
 
