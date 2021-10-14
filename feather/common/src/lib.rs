@@ -6,7 +6,7 @@
 #![allow(clippy::unnecessary_wraps)] // systems are required to return Results
 
 use ecs::SystemExecutor;
-pub use game::Game;
+pub use game::{EntitySpawnCallback, Game};
 pub use tick_loop::TickLoop;
 pub use window::Window;
 pub use world::World;
@@ -35,5 +35,6 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     chunk::entities::register(systems);
     interactable::register(game);
 
+    game.insert_resource(Vec::<EntitySpawnCallback>::new());
     game.add_entity_spawn_callback(entities::add_entity_components);
 }

@@ -4,6 +4,7 @@
 //! components.
 
 use std::fmt::Display;
+use std::net::IpAddr;
 use std::sync::atomic::{AtomicI32, Ordering};
 
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,6 @@ use smartstring::{LazyCompact, SmartString};
 
 pub use libcraft_core::Gamemode;
 use libcraft_text::{Text, Title};
-use std::net::IpAddr;
 
 /// Whether an entity is touching the ground.
 #[derive(
@@ -433,3 +433,9 @@ pub enum ChatPreference {
 pub struct RealIp(pub IpAddr);
 
 bincode_component_impl!(RealIp);
+
+/// Marker component for the console entity.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Console;
+
+bincode_component_impl!(Console);

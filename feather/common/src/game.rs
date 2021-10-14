@@ -1,10 +1,9 @@
-use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
+use std::{mem, sync::Arc};
 
 use base::{BlockId, ChunkPosition, Position, Text, Title, ValidBlockPosition};
-use ecs::{
-    Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
-    SystemExecutor,
-};
+use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult};
+use quill_common::components::{ChatBox, ChatKind, ChatMessage};
+use quill_common::events::TimeUpdateEvent;
 use quill_common::{entities::Player, entity_init::EntityInit};
 
 use crate::{
@@ -12,10 +11,8 @@ use crate::{
     events::{BlockChangeEvent, EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
     World,
 };
-use quill_common::components::{ChatBox, ChatKind, ChatMessage};
-use quill_common::events::TimeUpdateEvent;
 
-type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
+pub type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -38,8 +35,6 @@ pub struct Game {
     pub world: World,
     /// Contains entities, including players.
     pub ecs: Ecs,
-    /// Contains systems.
-    pub system_executor: Rc<RefCell<SystemExecutor<Game>>>,
 
     /// User-defined resources.
     ///
@@ -51,8 +46,6 @@ pub struct Game {
 
     /// Total ticks elapsed since the server started.
     pub tick_count: u64,
-
-    entity_spawn_callbacks: Vec<EntitySpawnCallback>,
 
     entity_builder: EntityBuilder,
 }
@@ -69,11 +62,9 @@ impl Game {
         Self {
             world: World::new(),
             ecs: Ecs::new(),
-            system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
             resources: Arc::new(Resources::new()),
             chunk_entities: ChunkEntities::default(),
             tick_count: 0,
-            entity_spawn_callbacks: Vec::new(),
             entity_builder: EntityBuilder::new(),
         }
     }
@@ -102,7 +93,10 @@ impl Game {
         &mut self,
         callback: impl FnMut(&mut EntityBuilder, &EntityInit) + 'static,
     ) {
-        self.entity_spawn_callbacks.push(Box::new(callback));
+        self.resources
+            .get_mut::<Vec<EntitySpawnCallback>>()
+            .unwrap()
+            .push(Box::new(callback));
     }
 
     /// Creates an empty entity builder to create entities in
@@ -133,11 +127,14 @@ impl Game {
     }
 
     fn invoke_entity_spawn_callbacks(&mut self, builder: &mut EntityBuilder, init: EntityInit) {
-        let mut callbacks = mem::take(&mut self.entity_spawn_callbacks);
-        for callback in &mut callbacks {
+        let callbacks = &mut *self
+            .resources
+            .get_mut::<Vec<EntitySpawnCallback>>()
+            .unwrap();
+        for callback in callbacks {
             callback(builder, &init);
         }
-        self.entity_spawn_callbacks = callbacks;
+        //self.entity_spawn_callbacks = callbacks;
     }
 
     fn trigger_entity_spawn_events(&mut self, entity: Entity) {

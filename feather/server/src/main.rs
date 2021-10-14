@@ -1,10 +1,12 @@
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 
-use anyhow::Context;
+use parking_lot::Mutex;
+
 use base::anvil::level::SuperflatGeneratorOptions;
 use common::banlist::read_banlist;
 use common::{Game, TickLoop, World};
-use ecs::SystemExecutor;
+use ecs::{HasResources, SystemExecutor};
+use feather_server::console_input::{flush_stdout, ConsoleInput};
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
 use worldgen::{ComposableGenerator, SuperflatWorldGenerator, WorldGenerator};
@@ -19,20 +21,38 @@ async fn main() -> anyhow::Result<()> {
     let feather_server::config::ConfigContainer {
         config,
         was_config_created,
-    } = feather_server::config::load(CONFIG_PATH).context("failed to load configuration file")?;
-    logging::init(config.log.level);
+    } = feather_server::config::load(CONFIG_PATH).expect("failed to load configuration file");
+
+    let (stdout_tx, stdout_rx) = flume::unbounded();
+    logging::init(config.log.level, stdout_tx);
     if was_config_created {
         log::info!("Created default config");
     }
     log::info!("Loaded config");
 
     log::info!("Creating server");
+    flush_stdout(&stdout_rx, "");
     let options = config.to_options();
-    let server = Server::bind(options).await?;
-
-    let game = init_game(server, &config)?;
-
-    run(game);
+    match Server::bind(options).await {
+        Ok(server) => match init_game(server, &config) {
+            Ok(game) => {
+                let game = Arc::new(Mutex::new(game));
+                let console_input = ConsoleInput::new(stdout_rx, game.clone());
+                game.lock().insert_resource(console_input);
+                run(game);
+            }
+            Err(err) => {
+                log::error!("{}", err);
+                flush_stdout(&stdout_rx, "");
+                std::process::exit(1);
+            }
+        },
+        Err(err) => {
+            log::error!("{}", err);
+            flush_stdout(&stdout_rx, "");
+            std::process::exit(1);
+        }
+    }
 
     Ok(())
 }
@@ -57,7 +77,7 @@ fn init_systems(game: &mut Game, server: Server) {
 
     print_systems(&systems);
 
-    game.system_executor = Rc::new(RefCell::new(systems));
+    game.insert_resource(systems);
 }
 
 fn init_banlist(game: &mut Game) {
@@ -93,16 +113,19 @@ fn print_systems(systems: &SystemExecutor<Game>) {
     log::debug!("---SYSTEMS---\n{:#?}\n", systems);
 }
 
-fn run(game: Game) {
+fn run(game: Arc<Mutex<Game>>) {
     let tick_loop = create_tick_loop(game);
     log::debug!("Launching the game loop");
     tick_loop.run();
 }
 
-fn create_tick_loop(mut game: Game) -> TickLoop {
+fn create_tick_loop(game: Arc<Mutex<Game>>) -> TickLoop {
     TickLoop::new(move || {
-        let systems = Rc::clone(&game.system_executor);
-        systems.borrow_mut().run(&mut game);
+        let mut game = &mut *game.lock();
+        game.resources()
+            .get_mut::<SystemExecutor<Game>>()
+            .unwrap()
+            .run(game);
         game.tick_count += 1;
 
         false

@@ -1,7 +1,7 @@
 use base::{Position, Text};
-use commands::{CommandCtx, CommandDispatcher};
 use common::Game;
 use ecs::{Entity, EntityRef, HasResources, SysResult};
+use feather_commands::{CommandCtx, CommandDispatcher};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
@@ -147,7 +147,7 @@ fn handle_chat_message(
     packet: client::ChatMessage,
 ) -> SysResult {
     if packet.message.starts_with('/') {
-        let _result = commands::dispatch_command(
+        let _result = feather_commands::dispatch_command(
             &*game
                 .resources()
                 .get::<CommandDispatcher<CommandCtx>>()
@@ -185,7 +185,7 @@ fn handle_tab_complete(
     player_id: Entity,
     packet: client::TabComplete,
 ) -> SysResult {
-    let completions = commands::tab_complete(
+    let completions = feather_commands::tab_complete(
         &*game
             .resources()
             .get::<CommandDispatcher<CommandCtx>>()

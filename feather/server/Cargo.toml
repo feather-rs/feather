@@ -40,6 +40,7 @@ rand = "0.7"
 ring = "0.16"
 rsa = "0.3"
 rsa-der = "0.2"
+rustyline = "9"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 sha-1 = "0.9"
@@ -51,9 +52,11 @@ uuid = "0.8"
 slab = "0.4"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
+libcraft-text = { path = "../../libcraft/text" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 datapacks = { path = "../datapacks", package = "feather-datapacks" }
-commands = { path = "../commands", package = "feather-commands" }
+feather-commands = { path = "../commands" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "1f1aa86adea68fc544c4d72b985457d79480d9c9" }
 
 [features]
 default = [ "plugin-cranelift" ]

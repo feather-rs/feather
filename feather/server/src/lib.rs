@@ -10,18 +10,19 @@ pub use client::{Client, Clients};
 use common::player_count::PlayerCount;
 use common::Game;
 use ecs::SystemExecutor;
+use feather_commands::CommandDispatcher;
 use initial_handler::NewPlayer;
 pub use options::Options;
 use quill_common::components::ClientId;
 use systems::view::WaitingChunks;
 
 use crate::listener::Listener;
-use commands::CommandDispatcher;
 
 mod chunk_subscriptions;
 pub mod client;
 pub mod config;
 mod connection_worker;
+pub mod console_input;
 mod entities;
 pub mod favicon;
 mod initial_handler;
@@ -82,7 +83,7 @@ impl Server {
     /// to the server become part of this `Game`.
     pub fn link_with_game(self, game: &mut Game, systems: &mut SystemExecutor<Game>) {
         let mut dispatcher = CommandDispatcher::new();
-        commands::register_vanilla_commands(&mut dispatcher);
+        feather_commands::register_vanilla_commands(&mut dispatcher);
         systems::register(self, dispatcher, game, systems);
         game.add_entity_spawn_callback(entities::add_entity_components);
     }

@@ -13,8 +13,8 @@ use base::{
     BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
     ProfileProperty, Text, ValidBlockPosition,
 };
-use commands::{CommandCtx, CommandDispatcher};
 use common::world::WorldTime;
+use feather_commands::{CommandCtx, CommandDispatcher};
 use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{

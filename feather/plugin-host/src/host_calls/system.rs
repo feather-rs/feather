@@ -3,7 +3,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use feather_common::Game;
-use feather_ecs::{HasResources, SysResult};
+use feather_ecs::{HasResources, SysResult, SystemExecutor};
 use feather_plugin_host_macros::host_function;
 
 use crate::{
@@ -20,9 +20,10 @@ pub fn register_system(
 ) -> anyhow::Result<()> {
     let name = cx.read_string(name_ptr, name_len)?;
 
-    let game = cx.game_mut();
-    game.system_executor
-        .borrow_mut()
+    cx.game_mut()
+        .resources
+        .get_mut::<SystemExecutor<Game>>()
+        .unwrap()
         .add_system_with_name(plugin_system(cx.plugin_id(), data_ptr), &name);
 
     Ok(())

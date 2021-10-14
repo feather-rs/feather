@@ -3,9 +3,9 @@
 use std::time::{Duration, Instant};
 
 use crate::Server;
-use commands::{CommandCtx, CommandDispatcher};
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
+use feather_commands::{CommandCtx, CommandDispatcher};
 use quill_common::components::{ClientId, Name};
 
 mod block;
@@ -42,7 +42,7 @@ pub fn register(
     tablist::register(systems);
     block::register(systems);
     entity::register(game, systems);
-    chat::register(game, systems);
+    chat::register(systems);
     particle::register(systems);
     plugin_message::register(systems);
     gamemode::register(systems);

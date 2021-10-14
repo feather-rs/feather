@@ -10,13 +10,13 @@ use uuid::Uuid;
 use common::banlist::{BanList, BanReason};
 use common::{Game, Window};
 use ecs::{Ecs, Entity};
-use libcraft_core::EntityKind;
 use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
-use quill_common::components::{ChatBox, CustomName, Gamemode, Name, PreviousGamemode, RealIp};
+use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode, RealIp};
 use quill_common::entities::Player;
 use quill_common::events::{DisconnectEvent, GamemodeUpdateEvent, InventoryUpdateEvent};
 
+use crate::utils::*;
 use crate::CommandCtx;
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
@@ -28,7 +28,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .executes(|context: CommandCtx, action| {
             let command_output = Text::translate_with(
                 "chat.type.emote",
-                vec![get_name(context.sender, &context.ecs), action],
+                vec![get_entity_name(context.sender, &context.ecs), action],
             );
             context
                 .ecs
@@ -50,22 +50,27 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         command
             .subcommand(s)
             .executes(move |mut context: CommandCtx| {
-                update_gamemode(context.sender, &mut context.ecs, gamemode)?;
-                context.send_message(Text::translate_with(
-                    "commands.gamemode.success.self",
-                    vec![Text::translate(format!(
-                        "gameMode.{}",
-                        gamemode.to_string()
-                    ))],
-                ));
-                Ok(1)
+                if context.ecs.get::<Player>(context.sender).is_ok() {
+                    update_gamemode(context.sender, &mut context.ecs, gamemode)?;
+                    context.send_message(Text::translate_with(
+                        "commands.gamemode.success.self",
+                        vec![Text::translate(format!(
+                            "gameMode.{}",
+                            gamemode.to_string()
+                        ))],
+                    ));
+                    Ok(1)
+                } else {
+                    context.send_message(Text::translate("permissions.requires.player").red());
+                    bail!("Requires a player")
+                }
             })
             .argument("target", EntityArgument::PLAYERS, "entity")
             .executes(move |mut context: CommandCtx, selector| {
                 let targets = context.find_entities_by_selector(&selector);
                 let mut len = 0;
                 for target in targets {
-                    let name = get_name(target, &context.ecs);
+                    let name = get_entity_name(target, &context.ecs);
                     if update_gamemode(target, &mut context.ecs, gamemode).is_ok() {
                         len += 1;
                         context.send_message(if target == context.sender {
@@ -127,7 +132,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     context.send_message(
                         Text::translate_with(
                             "clear.failed.single",
-                            vec![get_name(context.sender, &context.ecs)],
+                            vec![get_entity_name(context.sender, &context.ecs)],
                         )
                         .red(),
                     );
@@ -137,11 +142,13 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 // "Removed {1} items from player {0}"
                 context.send_message(Text::translate_with(
                     "commands.clear.success.single",
-                    vec![count.to_string(), get_name(context.sender, &context.ecs)],
+                    vec![
+                        count.to_string(),
+                        get_entity_name(context.sender, &context.ecs),
+                    ],
                 ));
                 Ok(count)
             } else {
-                // TODO add this check to the dispatcher
                 context.send_message(Text::translate("permissions.requires.player").red());
                 bail!("Requires a player")
             }
@@ -192,7 +199,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                             "commands.clear.test.single",
                             vec![
                                 count.to_string(),
-                                get_name(*entities.first().unwrap(), &context.ecs),
+                                get_entity_name(*entities.first().unwrap(), &context.ecs),
                             ],
                         ));
                     } else {
@@ -220,7 +227,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 context.send_message(
                     Text::translate_with(
                         "clear.failed.single",
-                        vec![get_name(*entities.first().unwrap(), &context.ecs)],
+                        vec![get_entity_name(*entities.first().unwrap(), &context.ecs)],
                     )
                     .red(),
                 );
@@ -237,7 +244,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     "commands.clear.success.single",
                     vec![
                         count.to_string(),
-                        get_name(*entities.first().unwrap(), &context.ecs),
+                        get_entity_name(*entities.first().unwrap(), &context.ecs),
                     ],
                 ));
                 Ok(count)
@@ -323,28 +330,27 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .unwrap()
         .argument("targets", EntityArgument::PLAYERS, "entity")
         .executes(|mut context: CommandCtx, selector| {
-            if let Some(targets) = context.find_non_empty_entities_by_selector(selector, true) {
+            if let Some(targets) = context.find_non_empty_entities_by_selector(&selector, true) {
                 Ok(ban_players(&mut context, targets, BanReason::default()) as i32)
             } else {
                 bail!("No entities were found")
             }
         })
         .argument("reason", MessageArgument, "none")
-        .executes(
-            |mut context: CommandCtx, selector: &EntitySelector, reason: Message| {
-                if let Some(targets) = context.find_non_empty_entities_by_selector(selector, true) {
-                    let reason =
-                        BanReason::new(reason.to_string(|s| get_entity_names(&context, s)));
+        .executes(|mut context: CommandCtx, selector, reason: Message| {
+            if let Some(targets) = context.find_non_empty_entities_by_selector(&selector, true) {
+                let reason = BanReason::new(reason.to_string(|s| {
+                    get_entity_names(context.sender, &context, &EntitySelector::Selector(s))
+                }));
 
-                    Ok(ban_players(&mut context, targets, reason) as i32)
-                } else {
-                    bail!("No entities were found")
-                }
-            },
-        );
+                Ok(ban_players(&mut context, targets, reason) as i32)
+            } else {
+                bail!("No entities were found")
+            }
+        });
 
     fn ban_players(context: &mut CommandCtx, players: Vec<Entity>, reason: BanReason) -> usize {
-        let source = get_name(context.sender, &context.ecs);
+        let source = get_entity_name(context.sender, &context.ecs);
         if players.is_empty() {
             0
         } else {
@@ -352,7 +358,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             for target in players {
                 // TODO ban offline players
                 let uuid = *context.ecs.get::<Uuid>(target).unwrap();
-                let name = get_name(target, &context.ecs);
+                let name = get_entity_name(target, &context.ecs);
                 if context.resources.get_mut::<BanList>().unwrap().ban(
                     uuid,
                     name.clone(),
@@ -392,14 +398,16 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             ban_ip(&mut context, target, BanReason::default()).map(|n| n as i32)
         })
         .argument("reason", MessageArgument, "none")
-        .executes(|mut context, target, reason: Message| {
-            let reason = BanReason::new(reason.to_string(|s| get_entity_names(&context, s)));
+        .executes(|mut context: CommandCtx, target, reason: Message| {
+            let reason = BanReason::new(reason.to_string(|s| {
+                get_entity_names(context.sender, &context, &EntitySelector::Selector(s))
+            }));
             ban_ip(&mut context, target, reason).map(|n| n as i32)
         });
 
     fn ban_ip(context: &mut CommandCtx, ip: String, reason: BanReason) -> anyhow::Result<usize> {
         let sender = context.sender;
-        let source = get_name(sender, &context.ecs);
+        let source = get_entity_name(sender, &context.ecs);
         let ip = if let Ok(ip) = ip.parse() {
             ip
         } else if let Some(target) = context
@@ -449,17 +457,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             context.send_message(Text::translate("commands.banip.failed").red());
             bail!("This IP is not banned")
         }
-    }
-
-    fn get_entity_names(
-        context: &CommandCtx,
-        selector: Vec<EntitySelectorPredicate>,
-    ) -> Vec<String> {
-        context
-            .find_entities_by_selector(&EntitySelector::Selector(selector))
-            .iter()
-            .map(|&e| get_name(e, &context.ecs))
-            .collect()
     }
 
     // /pardon
@@ -538,8 +535,10 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             let command_output = Text::translate_with(
                 "chat.type.announcement",
                 vec![
-                    get_name(context.sender, &context.ecs),
-                    message.to_string(|s| get_entity_names(&context, s)),
+                    get_entity_name(context.sender, &context.ecs),
+                    message.to_string(|s| {
+                        get_entity_names(context.sender, &context, &EntitySelector::Selector(s))
+                    }),
                 ],
             );
             context
@@ -887,11 +886,3 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
 //     });
 //     context.world.time.set_time(time);
 // }
-
-fn get_name(e: Entity, ecs: &Ecs) -> String {
-    ecs.get::<Name>(e)
-        .map(|name| (***name).to_string())
-        .or_else(|_| ecs.get::<CustomName>(e).map(|name| (***name).to_string()))
-        .or_else(|_| ecs.get::<EntityKind>(e).map(|k| k.display_name().into()))
-        .unwrap()
-}

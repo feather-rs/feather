@@ -5,7 +5,7 @@ authors = ["Gijs de Jong <berichtaangijs@gmail.com>", "caelunshun <caelunshun@gm
 edition = "2018"
 
 [dependencies]
-hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+quartz_nbt = { version = "0.2.4", features = [ "serde" ] }
 nom = "5"
 nom_locate = "2"
 serde = { version = "1", features = [ "derive" ] }

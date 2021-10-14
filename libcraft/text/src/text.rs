@@ -1,9 +1,11 @@
 //! Implementation of the Minecraft chat component format.
 
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
+
+use quartz_nbt::NbtTag;
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use uuid::Uuid;
 
 pub mod markdown;
@@ -371,8 +373,31 @@ pub enum TextValue {
         keybind: Keybind,
     },
     Nbt {
-        nbt: nbt::Blob,
+        #[serde(with = "snbt")]
+        nbt: NbtTag,
     },
+}
+
+mod snbt {
+    use quartz_nbt::NbtTag;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(tag: &NbtTag, serialize: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serialize.serialize_str(&tag.to_snbt())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<NbtTag, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        quartz_nbt::snbt::parse(&s)
+            .map(NbtTag::Compound)
+            .or(Ok(NbtTag::String(s)))
+    }
 }
 
 impl<T> From<T> for TextValue
@@ -434,7 +459,7 @@ impl TextValue {
         }
     }
 
-    pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Self {
+    pub fn nbt<A: Into<NbtTag>>(nbt: A) -> Self {
         TextValue::Nbt { nbt: nbt.into() }
     }
 }
@@ -472,6 +497,86 @@ pub trait IntoTextComponent {
 impl TextComponent {
     pub fn empty() -> TextComponent {
         TextComponent::from("")
+    }
+
+    pub fn to_string<
+        T: Fn(&Translate, &Vec<String>) -> String,
+        C: Fn(&Color) -> String,
+        S: Fn(&Style) -> String,
+        S2: Fn(&str) -> String,
+    >(
+        &self,
+        display_translate: &T,
+        display_colors: &C,
+        display_styles: &S,
+        display_selector: &S2,
+        reset: &str,
+    ) -> String {
+        let mut style = String::new();
+        if let Some(color) = self.color.as_ref() {
+            style += reset;
+            style += &display_colors(color);
+        }
+        if self.bold == Some(true) {
+            style += &display_styles(&Style::Bold)
+        }
+        if self.italic == Some(true) {
+            style += &display_styles(&Style::Italic)
+        }
+        if self.underlined == Some(true) {
+            style += &display_styles(&Style::Underlined)
+        }
+        if self.strikethrough == Some(true) {
+            style += &display_styles(&Style::Strikethrough)
+        }
+        if self.obfuscated == Some(true) {
+            style += &display_styles(&Style::Obfuscated)
+        }
+
+        let mut s = String::new();
+        s += &style;
+        s += &match &self.value {
+            TextValue::Text { text } => text.to_string(),
+            TextValue::Translate { translate, with } => display_translate(
+                translate,
+                &with
+                    .iter()
+                    .map(|text| {
+                        text.clone().into_component().to_string(
+                            display_translate,
+                            display_colors,
+                            display_styles,
+                            display_selector,
+                            reset,
+                        )
+                    })
+                    .collect(),
+            ),
+            TextValue::Score { .. } => unimplemented!(),
+            TextValue::Selector { selector } => display_selector(&**selector),
+            TextValue::Keybind { keybind } => keybind.into(),
+            TextValue::Nbt { nbt } => match nbt {
+                NbtTag::String(s) => s.to_owned(),
+                other => other.to_snbt(),
+            },
+        };
+        s += reset;
+
+        if let Some(extra) = self.extra.as_ref() {
+            for text in extra {
+                s += &style;
+                s += &text.clone().into_component().to_string(
+                    display_translate,
+                    display_colors,
+                    display_styles,
+                    display_selector,
+                    reset,
+                );
+                s += reset;
+            }
+        }
+
+        s
     }
 }
 
@@ -970,7 +1075,7 @@ impl Text {
         Text::from(TextValue::keybind(keybind))
     }
 
-    pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Text {
+    pub fn nbt<A: Into<NbtTag>>(nbt: A) -> Text {
         Text::from(TextValue::nbt(nbt))
     }
 }
@@ -1112,8 +1217,9 @@ impl_operators!(TextRoot, Text, TextComponent);
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::error::Error;
+
+    use super::*;
 
     #[test]
     pub fn text_text_single() -> Result<(), Box<dyn Error>> {
