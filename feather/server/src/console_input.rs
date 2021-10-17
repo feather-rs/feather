@@ -25,7 +25,7 @@ use common::Game;
 use ecs::{Entity, HasResources};
 use feather_commands::CommandCtx;
 
-const PROMPT: &str = "/";
+const PROMPT: &str = "\x1B[1m/";
 const HISTORY_FILE: &str = ".feather_command_history";
 
 pub struct ConsoleInput {
@@ -208,7 +208,7 @@ impl Validator for CommandHelper {}
 
 impl Highlighter for CommandHelper {
     fn highlight<'l>(&self, line: &'l str, _pos: usize) -> Cow<'l, str> {
-        const RESET: &str = "\x1B[0m";
+        const RESET: &str = "\x1B[0;1m";
         const RED: &str = "\x1B[31;1m";
         const ARGUMENT_COLORS: [&str; 5] = [
             "\x1B[34;1m",
