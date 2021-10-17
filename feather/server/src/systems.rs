@@ -42,7 +42,7 @@ pub fn register(
     tablist::register(systems);
     block::register(systems);
     entity::register(game, systems);
-    chat::register(systems);
+    chat::register(game, systems);
     particle::register(systems);
     plugin_message::register(systems);
     gamemode::register(systems);

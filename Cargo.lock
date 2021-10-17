@@ -484,7 +484,7 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
-source = "git+https://github.com/Iaiao/commands?rev=1f1aa86adea68fc544c4d72b985457d79480d9c9#1f1aa86adea68fc544c4d72b985457d79480d9c9"
+source = "git+https://github.com/Iaiao/commands?rev=d00091d7a58423a9f995f8f85e7e4c64804f33b3#d00091d7a58423a9f995f8f85e7e4c64804f33b3"
 dependencies = [
  "anyhow",
  "log",

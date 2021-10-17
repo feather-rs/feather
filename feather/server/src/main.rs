@@ -1,7 +1,5 @@
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 
-use parking_lot::Mutex;
-
 use base::anvil::level::SuperflatGeneratorOptions;
 use common::banlist::read_banlist;
 use common::{Game, TickLoop, World};
@@ -35,10 +33,9 @@ async fn main() -> anyhow::Result<()> {
     let options = config.to_options();
     match Server::bind(options).await {
         Ok(server) => match init_game(server, &config) {
-            Ok(game) => {
-                let game = Arc::new(Mutex::new(game));
-                let console_input = ConsoleInput::new(stdout_rx, game.clone());
-                game.lock().insert_resource(console_input);
+            Ok(mut game) => {
+                let console_input = ConsoleInput::new(stdout_rx);
+                game.insert_resource(console_input);
                 run(game);
             }
             Err(err) => {
@@ -113,19 +110,18 @@ fn print_systems(systems: &SystemExecutor<Game>) {
     log::debug!("---SYSTEMS---\n{:#?}\n", systems);
 }
 
-fn run(game: Arc<Mutex<Game>>) {
+fn run(game: Game) {
     let tick_loop = create_tick_loop(game);
     log::debug!("Launching the game loop");
     tick_loop.run();
 }
 
-fn create_tick_loop(game: Arc<Mutex<Game>>) -> TickLoop {
+fn create_tick_loop(mut game: Game) -> TickLoop {
     TickLoop::new(move || {
-        let mut game = &mut *game.lock();
         game.resources()
             .get_mut::<SystemExecutor<Game>>()
             .unwrap()
-            .run(game);
+            .run(&mut game);
         game.tick_count += 1;
 
         false

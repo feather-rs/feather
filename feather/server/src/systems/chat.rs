@@ -1,19 +1,31 @@
 use commands::arguments::EntityArgument;
 
 use common::Game;
-use ecs::{HasResources, SysResult, SystemExecutor};
+use ecs::{EntityBuilder, HasResources, SysResult, SystemExecutor};
 use feather_commands::{CommandCtx, CommandDispatcher};
 use libcraft_text::text::{Color, IntoTextComponent, Style};
-use quill_common::components::{ChatBox, ClientId, Console};
+use quill_common::components::{ChatBox, ChatPreference, ClientId, Console, Name};
 
 use crate::console_input::ConsoleInput;
 use crate::Server;
 
-pub fn register(systems: &mut SystemExecutor<Game>) {
+pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
+    // Create the console entity so the console can receive messages
+    let mut console = EntityBuilder::new();
+    console
+        .add(Console)
+        .add(Name::new("Console"))
+        .add(ChatBox::new(ChatPreference::All));
+
+    // We can use the raw spawn method because
+    // the console isn't a "normal" entity.
+    game.ecs.spawn(console.build());
+
     systems
         .add_system(flush_console_chat_box)
         .add_system(flush_stdout)
         .add_system(flush_console_commands)
+        .add_system(tab_complete_console)
         .group::<Server>()
         .add_system(flush_chat_boxes)
         .add_system(flush_title_chat_boxes);
@@ -124,5 +136,16 @@ fn flush_title_chat_boxes(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn flush_stdout(game: &mut Game) -> SysResult {
     game.resources.get::<ConsoleInput>().unwrap().flush_stdout();
+    Ok(())
+}
+
+/// Prints chat messages to the console.
+fn tab_complete_console(game: &mut Game) -> SysResult {
+    let console = game.ecs.query::<&Console>().iter().next().unwrap().0;
+    game.resources()
+        .get::<ConsoleInput>()
+        .unwrap()
+        .tab_complete_if_needed(game, console);
+
     Ok(())
 }
