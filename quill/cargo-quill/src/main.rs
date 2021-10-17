@@ -2,6 +2,7 @@ use argh::FromArgs;
 
 mod build;
 mod new;
+mod testing;
 
 const WASM_TARGET_FEATURES: &str = "target-feature=+bulk-memory,+mutable-globals,+simd128";
 const WASM_TARGET: &str = "wasm32-wasi";
@@ -18,6 +19,7 @@ struct CargoQuill {
 enum Subcommand {
     Build(build::Build),
     New(new::New),
+    Test(testing::Testing),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -25,5 +27,6 @@ fn main() -> anyhow::Result<()> {
     match args.subcommand {
         Subcommand::Build(args) => build::build(args),
         Subcommand::New(args) => new::new_command(args),
+        Subcommand::Test(args) => testing::test_command(args),
     }
 }
