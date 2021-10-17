@@ -92,12 +92,12 @@ impl ConsoleInput {
             if let Ok(dispatcher) = game.resources().get::<CommandDispatcher<CommandCtx>>() {
                 let dispatcher = &*dispatcher;
                 let completions = feather_commands::tab_complete(dispatcher, game, console, &line);
-                if !completions.is_empty() {
-                    let n = line.rfind(' ').unwrap_or(0);
+                if !completions.2.is_empty() {
                     self.tab_completion_sender
                         .send((
-                            n,
+                            completions.0,
                             completions
+                                .2
                                 .into_iter()
                                 .map(|(completion, _tooltip)| completion)
                                 .collect(),

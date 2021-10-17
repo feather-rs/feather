@@ -10,7 +10,7 @@ anyhow = "1"
 bincode = "1"
 bumpalo = "3"
 bytemuck = "1"
-commands = { git = "https://github.com/Iaiao/commands", rev = "d00091d7a58423a9f995f8f85e7e4c64804f33b3" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "16180ee514ff401a0771de4043618048f724bb3e" }
 feather-base = { path = "../base" }
 feather-common = { path = "../common" }
 feather-ecs = { path = "../ecs" }

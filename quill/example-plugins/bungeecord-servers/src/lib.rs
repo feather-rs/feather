@@ -1,8 +1,8 @@
 use std::io::{Cursor, ErrorKind, Read, Write};
 
+use anyhow::bail;
 use commands::arguments::*;
 
-use anyhow::bail;
 use quill::entities::Player;
 use quill::events::PluginMessageReceiveEvent;
 use quill::{Caller, Game, Plugin, Setup, Text, TextComponentBuilder};
@@ -28,14 +28,18 @@ impl Plugin for BungeecordServersPlugin {
         setup.add_system(get_servers);
 
         setup.with_dispatcher(move |dispatcher| {
-            dispatcher.register_tab_completion("bungeecord_servers:servers_without_this", Box::new(move |text, context| {
-                context.plugin.servers
-                    .iter()
-                    .flatten()
-                    .filter(|&s| Some(s) != context.plugin.server.as_ref() && s.starts_with(text))
-                    .map(|s| (s.clone(), None))
-                    .collect()
-            }));
+            dispatcher.register_tab_completion("bungeecord_servers:servers_without_this", move |text, context| {
+                (
+                    0,
+                    text.len(),
+                    context.plugin.servers
+                       .iter()
+                       .flatten()
+                       .filter(|&s| Some(s) != context.plugin.server.as_ref() && s.starts_with(text))
+                       .map(|s| (s.clone(), None))
+                       .collect()
+                )
+            });
             dispatcher.create_command("test").unwrap()
                 .argument("server", StringArgument::GREEDY_PHRASE, "bungeecord_servers:servers_without_this")
                 .executes(|context: CommandContext, target_server| {

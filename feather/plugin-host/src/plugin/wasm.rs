@@ -2,7 +2,7 @@ use std::mem::ManuallyDrop;
 use std::sync::Arc;
 
 use anyhow::bail;
-use commands::dispatcher::{Args, CommandOutput};
+use commands::dispatcher::{Args, CommandOutput, TabCompletion};
 use wasmer::{
     ChainableNamedResolver, Features, Function, ImportObject, Instance, Module, NativeFunc, Store,
 };
@@ -35,7 +35,7 @@ pub struct WasmPlugin {
 
     /// Exported function to run a command completer given its data pointer, text, text length,
     /// command context pointer and return command completions: Vec<(String, is_some, optional String)>.
-    run_command_completer: NativeFunc<(u32, u32, u32, u32), (u32, u32, u32)>,
+    run_command_completer: NativeFunc<(u32, u32, u32, u32), (u32, u32, u32, u32, u32)>,
 }
 
 impl WasmPlugin {
@@ -129,11 +129,11 @@ impl WasmPlugin {
         data_ptr: PluginPtrMut<u8>,
         text: &str,
         ctx: CommandContext<()>,
-    ) -> anyhow::Result<Vec<(String, Option<String>)>> {
+    ) -> anyhow::Result<TabCompletion> {
         // SAFETY: Text should be dropped on plugin side
         let text = ManuallyDrop::new(text.to_string());
 
-        let (ptr, len, cap) = self.run_command_completer.call(
+        let (start, end, ptr, len, cap) = self.run_command_completer.call(
             data_ptr.ptr as u32,
             text.as_ptr() as usize as u32,
             text.len() as u32,
@@ -141,7 +141,7 @@ impl WasmPlugin {
         )?;
 
         // SAFETY: assuming plugin sent valid data
-        Ok(unsafe {
+        Ok((start as usize, end as usize, unsafe {
             Vec::from_raw_parts(
                 ptr as *mut ((*mut u8, u32, u32), bool, (*mut u8, u32, u32)),
                 len as usize,
@@ -165,7 +165,7 @@ impl WasmPlugin {
                 },
             )
             .collect()
-        })
+        }))
     }
 }
 

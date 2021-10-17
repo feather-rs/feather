@@ -2,7 +2,7 @@ use std::mem::ManuallyDrop;
 use std::{io::Write, sync::Arc};
 
 use anyhow::{bail, Context};
-use commands::dispatcher::{Args, CommandOutput};
+use commands::dispatcher::{Args, CommandOutput, TabCompletion};
 use libloading::Library;
 use tempfile::{NamedTempFile, TempPath};
 
@@ -52,7 +52,8 @@ pub struct NativePlugin {
     /// 4. Pointer to the command context
     ///
     /// Returns: command completions Vec<(String, is_some, optional String)>
-    run_command_completer: unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8) -> (u32, u32, u32),
+    run_command_completer:
+        unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8) -> (u32, u32, u32, u32, u32),
 }
 
 impl NativePlugin {
@@ -168,12 +169,12 @@ impl NativePlugin {
         data_ptr: PluginPtrMut<u8>,
         text: &str,
         ctx: CommandContext<()>,
-    ) -> anyhow::Result<Vec<(String, Option<String>)>> {
+    ) -> anyhow::Result<TabCompletion> {
         // SAFETY: Text should be dropped on plugin side
         let mut text = ManuallyDrop::new(text.to_string());
 
         // SAFETY: we assume the plugin is sound.
-        let (ptr, len, cap) = unsafe {
+        let (start, end, ptr, len, cap) = unsafe {
             (self.run_command_completer)(
                 data_ptr.as_native(),
                 text.as_mut_ptr(),
@@ -183,7 +184,7 @@ impl NativePlugin {
         };
 
         // SAFETY: assuming plugin sent valid data
-        Ok(unsafe {
+        Ok((start as usize, end as usize, unsafe {
             Vec::from_raw_parts(
                 ptr as *mut ((*mut u8, u32, u32), bool, (*mut u8, u32, u32)),
                 len as usize,
@@ -207,6 +208,6 @@ impl NativePlugin {
                 },
             )
             .collect()
-        })
+        }))
     }
 }

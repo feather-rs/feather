@@ -201,9 +201,9 @@ fn handle_tab_complete(
         .unwrap()
         .send_tab_completions(
             packet.transaction_id,
-            completions,
-            packet.text.rfind(' ').unwrap_or(1) + 1,
-            packet.text.len() - packet.text.rfind(' ').unwrap_or(1) - 1,
+            completions.2,
+            completions.0,
+            completions.1 + 1, // with "/" symbol
         );
     Ok(())
 }

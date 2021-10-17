@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::bail;
-use commands::dispatcher::{Args, CommandOutput};
+use commands::dispatcher::{Args, CommandOutput, TabCompletion};
 
 use feather_commands::CommandCtx;
 use feather_common::Game;
@@ -126,7 +126,7 @@ impl Plugin {
         data: PluginPtrMut<u8>,
         text: &str,
         context: &mut CommandCtx,
-    ) -> Vec<(String, Option<String>)> {
+    ) -> TabCompletion {
         let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
         self.context.enter(context, || {
             let ctx = CommandContext {

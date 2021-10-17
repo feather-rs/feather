@@ -192,11 +192,13 @@ macro_rules! plugin {
             text: *mut u8,
             text_len: u32,
             ctx: *mut u8,
-        ) -> (u32, u32, u32) {
-            let complete =
-                &*data.cast::<Box<
-                    dyn Fn(&str, $crate::CommandContext<$plugin>) -> Vec<(String, Option<String>)>,
-                >>();
+        ) -> (u32, u32, u32, u32, u32) {
+            let complete = &*data.cast::<Box<
+                dyn Fn(
+                    &str,
+                    $crate::CommandContext<$plugin>,
+                ) -> $crate::commands::dispatcher::TabCompletion,
+            >>();
             let ctx = &*ctx.cast::<$crate::CommandContext<()>>();
             let ctx = $crate::CommandContext {
                 game: Game::new(),
@@ -204,7 +206,9 @@ macro_rules! plugin {
                 plugin: PLUGIN.as_mut().expect("quill_setup never called"),
             };
             let text = String::from_raw_parts(text, text_len as usize, text_len as usize);
-            let completions = complete(&text, ctx)
+            let completion = complete(&text, ctx);
+            let completions = completion
+                .2
                 .into_iter()
                 .map(|(c, t)| {
                     (
@@ -223,6 +227,8 @@ macro_rules! plugin {
                 })
                 .collect::<Vec<_>>();
             (
+                completion.0 as u32,
+                completion.1 as u32,
                 completions.as_ptr() as usize as u32,
                 completions.len() as u32,
                 completions.capacity() as u32,

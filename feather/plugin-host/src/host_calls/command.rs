@@ -79,24 +79,21 @@ pub fn modify_command_executor(
         });
     }
     for (key, complete) in tab_completers {
-        dispatcher.register_tab_completion(
-            &key,
-            Box::new(move |text, context| {
-                let plugin_manager = context
-                    .resources
-                    .get::<Rc<RefCell<PluginManager>>>()
-                    .unwrap();
-                let rc = plugin_manager.clone();
-                drop(plugin_manager);
-                let plugin_manager = rc.borrow();
-                let plugin = plugin_manager.plugin(id).unwrap();
-                plugin.run_command_completer(
-                    PluginPtrMut::from_native(&complete as *const _ as usize as i64),
-                    text,
-                    context,
-                )
-            }),
-        );
+        dispatcher.register_tab_completion(&key, move |text, context| {
+            let plugin_manager = context
+                .resources
+                .get::<Rc<RefCell<PluginManager>>>()
+                .unwrap();
+            let rc = plugin_manager.clone();
+            drop(plugin_manager);
+            let plugin_manager = rc.borrow();
+            let plugin = plugin_manager.plugin(id).unwrap();
+            plugin.run_command_completer(
+                PluginPtrMut::from_native(&complete as *const _ as usize as i64),
+                text,
+                context,
+            )
+        });
     }
     Ok(())
 }

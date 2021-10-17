@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut};
 
 use commands::arguments::EntitySelector;
 pub use commands::dispatcher::CommandDispatcher;
-use commands::dispatcher::CommandOutput;
+use commands::dispatcher::{CommandOutput, TabCompletion};
 use log::{debug, info};
 
 use common::Game;
@@ -142,7 +142,7 @@ pub fn tab_complete(
     game: &mut Game,
     sender: Entity,
     prompt: &str,
-) -> Vec<(String, Option<String>)> {
+) -> TabCompletion {
     dispatcher
         .tab_complete(prompt, CommandCtx::new(game, sender))
         .unwrap_or_default()
