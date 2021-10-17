@@ -26,6 +26,7 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         .add_system(flush_stdout)
         .add_system(flush_console_commands)
         .add_system(tab_complete_console)
+        .add_system(send_command_graph_to_console)
         .group::<Server>()
         .add_system(flush_chat_boxes)
         .add_system(flush_title_chat_boxes);
@@ -102,10 +103,10 @@ fn flush_console_chat_box(game: &mut Game) -> SysResult {
     Ok(())
 }
 
-/// Prints chat messages to the console.
+/// Executes commands from console
 fn flush_console_commands(game: &mut Game) -> SysResult {
     for command in game.resources().get::<ConsoleInput>().unwrap().try_iter() {
-        log::debug!("Command: {}", command);
+        log::debug!("Console command: {}", command);
         let console = game.ecs.query::<&Console>().iter().next().unwrap().0;
         let _result = feather_commands::dispatch_command(
             &*game
@@ -147,5 +148,20 @@ fn tab_complete_console(game: &mut Game) -> SysResult {
         .unwrap()
         .tab_complete_if_needed(game, console);
 
+    Ok(())
+}
+
+fn send_command_graph_to_console(game: &mut Game) -> SysResult {
+    if game.tick_count % (20 * 60) == 1 {
+        game.resources()
+            .get::<ConsoleInput>()
+            .unwrap()
+            .update_command_graph(
+                &*game
+                    .resources()
+                    .get::<CommandDispatcher<CommandCtx>>()
+                    .unwrap(),
+            )
+    }
     Ok(())
 }

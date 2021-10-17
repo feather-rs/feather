@@ -67,32 +67,39 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             })
             .argument("target", EntityArgument::PLAYERS, "entity")
             .executes(move |mut context: CommandCtx, selector| {
-                let targets = context.find_entities_by_selector(&selector);
-                let mut len = 0;
-                for target in targets {
-                    let name = get_entity_name(target, &context.ecs);
-                    if update_gamemode(target, &mut context.ecs, gamemode).is_ok() {
-                        len += 1;
-                        context.send_message(if target == context.sender {
-                            Text::translate_with(
-                                "commands.gamemode.success.self",
-                                vec![Text::translate(format!(
-                                    "gameMode.{}",
-                                    gamemode.to_string()
-                                ))],
-                            )
-                        } else {
-                            Text::translate_with(
-                                "commands.gamemode.success.other",
-                                vec![
-                                    name.into(),
-                                    Text::translate(format!("gameMode.{}", gamemode.to_string())),
-                                ],
-                            )
-                        });
+                if let Some(targets) = context.find_non_empty_entities_by_selector(&selector, true)
+                {
+                    let mut len = 0;
+                    for target in targets {
+                        let name = get_entity_name(target, &context.ecs);
+                        if update_gamemode(target, &mut context.ecs, gamemode).is_ok() {
+                            len += 1;
+                            context.send_message(if target == context.sender {
+                                Text::translate_with(
+                                    "commands.gamemode.success.self",
+                                    vec![Text::translate(format!(
+                                        "gameMode.{}",
+                                        gamemode.to_string()
+                                    ))],
+                                )
+                            } else {
+                                Text::translate_with(
+                                    "commands.gamemode.success.other",
+                                    vec![
+                                        name.into(),
+                                        Text::translate(format!(
+                                            "gameMode.{}",
+                                            gamemode.to_string()
+                                        )),
+                                    ],
+                                )
+                            });
+                        }
                     }
+                    Ok(len)
+                } else {
+                    bail!("No entities were found")
                 }
-                Ok(len)
             });
     }
 
