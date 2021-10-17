@@ -208,13 +208,14 @@ impl Validator for CommandHelper {}
 
 impl Highlighter for CommandHelper {
     fn highlight<'l>(&self, line: &'l str, _pos: usize) -> Cow<'l, str> {
-        const RESET: &str = "\x1B[0;1m";
+        const RESET: &str = "\x1B[0m";
+        const BOLD: &str = "\x1B[1m";
         const RED: &str = "\x1B[31;1m";
         const ARGUMENT_COLORS: [&str; 5] = [
             "\x1B[34;1m",
             "\x1B[33;1m",
             "\x1B[32;1m",
-            "\x1B[31;5m",
+            "\x1B[35;1m",
             "\x1B[33m",
         ];
 
@@ -270,6 +271,7 @@ impl Highlighter for CommandHelper {
                         i += 1;
                     } else {
                         result += RESET;
+                        result += BOLD;
                         result += &command[0..command.len() - s.len()];
                     }
                     node = commands.nodes().nth(*child).unwrap().1;

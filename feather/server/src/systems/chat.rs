@@ -65,7 +65,7 @@ fn flush_console_chat_box(game: &mut Game) -> SysResult {
                         Color::DarkAqua => "\x1B[36m".to_string(),
                         Color::DarkBlue => "\x1B[34m".to_string(),
                         Color::Blue => "\x1B[34;1m".to_string(),
-                        Color::LightPurple => "\x1B[31;5m".to_string(),
+                        Color::LightPurple => "\x1B[35;1m".to_string(),
                         Color::DarkPurple => "\x1B[35m".to_string(),
                         Color::White => "\x1B[37;1m".to_string(),
                         Color::Gray => "\x1B[37;1m".to_string(),
