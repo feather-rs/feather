@@ -141,11 +141,13 @@ impl ConsoleInput {
                             name,
                             children,
                             parent,
+                            redirect,
                         } => CommandNode::Literal {
                             execute: *execute,
                             name: name.clone(),
                             children: children.clone(),
                             parent: *parent,
+                            redirect: *redirect,
                         },
                         CommandNode::Argument {
                             execute,
@@ -154,6 +156,7 @@ impl ConsoleInput {
                             parser,
                             children,
                             parent,
+                            redirect,
                         } => CommandNode::Argument {
                             execute: *execute,
                             name: name.clone(),
@@ -161,6 +164,7 @@ impl ConsoleInput {
                             parser: parser.clone_boxed(),
                             children: children.clone(),
                             parent: *parent,
+                            redirect: *redirect,
                         },
                     },
                 )
@@ -224,13 +228,6 @@ impl Highlighter for CommandHelper {
             "\x1B[33m",
         ];
 
-        fn children(node: &CommandNode) -> &Vec<usize> {
-            match node {
-                CommandNode::Root { children }
-                | CommandNode::Literal { children, .. }
-                | CommandNode::Argument { children, .. } => children,
-            }
-        }
         fn matches<'a>(node: &CommandNode, s: &'a str) -> (bool, &'a str) {
             match node {
                 CommandNode::Root { .. } => unreachable!(),
@@ -267,7 +264,7 @@ impl Highlighter for CommandHelper {
         let mut command = line;
         let mut node = commands.nodes().next().unwrap().1; // root node is always first
         'next: loop {
-            for child in children(node) {
+            for child in node.children() {
                 let n = commands.nodes().nth(*child).unwrap().1;
                 if let (true, s) = matches(n, command) {
                     if matches!(n, CommandNode::Argument { .. }) {
