@@ -25,7 +25,7 @@ use common::Game;
 use ecs::{Entity, HasResources};
 use feather_commands::CommandCtx;
 
-const PROMPT: &str = "\x1B[1m/";
+const PROMPT: &str = "\x1B[1m/\x1B[0m";
 const HISTORY_FILE: &str = ".feather_command_history";
 
 pub struct ConsoleInput {
@@ -118,7 +118,7 @@ impl ConsoleInput {
                     return;
                 }
             }
-            self.tab_completion_sender.send((0, vec![])).unwrap();
+            let _ = self.tab_completion_sender.try_send((0, vec![]));
         }
     }
 
@@ -307,7 +307,7 @@ impl Completer for CommandHelper {
         pos: usize,
         _ctx: &Context<'_>,
     ) -> rustyline::Result<(usize, Vec<Self::Candidate>)> {
-        self.tab_sender.send(line[..pos].to_string()).unwrap();
+        let _ = self.tab_sender.try_send(line[..pos].to_string());
         let completions = self
             .tab_receiver
             .recv_timeout(Duration::from_secs(10))

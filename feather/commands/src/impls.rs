@@ -728,28 +728,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
 //     Ok(None)
 // }
 //
-// #[command(usage = "say <message>")]
-// pub fn say(context: &mut CommandCtx, message: TextArgument) -> anyhow::Result<Option<String>> {
-//     let name = context.ecs.get::<Name>(context.sender);
-//
-//     let sender_name = if let Ok(name) = &name {
-//         &***name
-//     } else {
-//         "Server"
-//     };
-//
-//     let command_output = Text::from(format!("[{}] {}", sender_name, message.0));
-//
-//     drop(name);
-//
-//     context.ecs
-//         .query::<&mut ChatBox>()
-//         .iter()
-//         .for_each(|(_, chat_box)| chat_box.send_chat(command_output.clone()));
-//
-//     Ok(None)
-// }
-//
 // #[derive(Debug, Error)]
 // pub enum KickError {
 //     #[error(
