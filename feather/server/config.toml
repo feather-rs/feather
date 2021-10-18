@@ -50,3 +50,7 @@ proxy_mode = "none"
 # For Velocity, you must specify the forwarding-secret from Velocity's
 # velocity.toml file.
 velocity_secret = ""
+
+[cli]
+completion_type = "list"
+edit_mode = "emacs"

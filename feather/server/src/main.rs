@@ -34,7 +34,8 @@ async fn main() -> anyhow::Result<()> {
     match Server::bind(options).await {
         Ok(server) => match init_game(server, &config) {
             Ok(mut game) => {
-                let console_input = ConsoleInput::new(stdout_rx);
+                let console_input =
+                    ConsoleInput::new(stdout_rx, config.cli.completion_type, config.cli.edit_mode);
                 game.insert_resource(console_input);
                 run(game);
             }

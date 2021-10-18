@@ -1,5 +1,6 @@
 use crate::favicon::Favicon;
 use base::Gamemode;
+use rustyline::{CompletionType, EditMode};
 
 /// Options for building a [`Server`](crate::Server).
 #[derive(Debug, Clone)]
@@ -34,6 +35,9 @@ pub struct Options {
 
     /// Packet size threshold at which to compress data
     pub compression_threshold: Option<usize>,
+
+    pub cli_tab_completion_type: CompletionType,
+    pub cli_mode: EditMode,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

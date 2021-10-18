@@ -16,7 +16,7 @@ use rustyline::highlight::Highlighter;
 use rustyline::hint::Hinter;
 use rustyline::validate::Validator;
 use rustyline::{
-    Cmd, CompletionType, ConditionalEventHandler, Context, Editor, Event, EventContext,
+    Cmd, CompletionType, ConditionalEventHandler, Context, EditMode, Editor, Event, EventContext,
     EventHandler, Helper, KeyCode, KeyEvent, RepeatCount,
 };
 use slab::Slab;
@@ -38,7 +38,11 @@ pub struct ConsoleInput {
 }
 
 impl ConsoleInput {
-    pub fn new(stdout: Receiver<u8>) -> ConsoleInput {
+    pub fn new(
+        stdout: Receiver<u8>,
+        completion_type: CompletionType,
+        edit_mode: EditMode,
+    ) -> ConsoleInput {
         let (command_sender, command_receiver) = flume::unbounded();
 
         let (tab_sender, tab_receiver) = flume::bounded(1);
@@ -55,7 +59,8 @@ impl ConsoleInput {
                 log::info!("No previous console command history.")
             }
             rl.set_auto_add_history(true);
-            rl.set_completion_type(CompletionType::List);
+            rl.set_completion_type(completion_type);
+            rl.set_edit_mode(edit_mode);
             rl.set_helper(Some(CommandHelper {
                 tab_sender,
                 tab_receiver: tab_receiver_2,
