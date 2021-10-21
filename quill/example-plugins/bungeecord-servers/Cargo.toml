@@ -10,4 +10,4 @@ crate-type = ["cdylib"]
 [dependencies]
 quill = { path = "../../api" }
 anyhow = "1.0.44"
-commands = { git = "https://github.com/Iaiao/commands", rev = "75f8a843d9382d7de981ab0628a557f8afb118f1" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "a64dcfaea6beff9ee8e01d4e6adadfd8a885b714" }

@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 
-commands = { git = "https://github.com/Iaiao/commands", rev = "75f8a843d9382d7de981ab0628a557f8afb118f1" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "a64dcfaea6beff9ee8e01d4e6adadfd8a885b714" }
 smallvec = "1.4"
 anyhow = "1.0"
 rand = "0.7"

@@ -639,6 +639,28 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                         bail!("No entities were found")
                     }
                 });
+        })
+        .with(|command| {
+            command
+                .subcommand("align")
+                .argument("positions", SwizzleArgument, "none")
+                .redirect(execute)
+                .fork(|args, mut context, mut f| {
+                    let arg = args.remove(0);
+                    let swizzle = arg.downcast_ref::<Swizzle>().unwrap();
+                    if let Some(pos) = context.position.as_mut() {
+                        if swizzle.x {
+                            pos.x = pos.x.floor();
+                        }
+                        if swizzle.y {
+                            pos.y = pos.y.floor();
+                        }
+                        if swizzle.z {
+                            pos.z = pos.z.floor();
+                        }
+                    }
+                    f(args, context)
+                });
         });
 }
 
