@@ -10,6 +10,7 @@ use log::{debug, info};
 
 use common::Game;
 use ecs::Entity;
+use libcraft_core::Position;
 use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, Name};
 
@@ -30,6 +31,9 @@ pub struct CommandCtx {
     /// Note that players and the console are not the only possible command senders,
     /// and command implementations should account for this.
     pub sender: Entity,
+    /// The position at which the command is executed.
+    /// This is not necessarily sender's location: it can be modified by /execute at
+    pub position: Option<Position>,
     /// The game state. We don't want CommandDispatcher to have a lifetime, so
     /// raw pointers are here to elide the lifetime.
     /// Since CommandCtx is not Send, it should be sound
@@ -51,10 +55,11 @@ impl DerefMut for CommandCtx {
 }
 
 impl CommandCtx {
-    pub fn new(game: &mut Game, sender: Entity) -> CommandCtx {
+    pub fn new(game: &mut Game, sender: Entity, position: Option<Position>) -> CommandCtx {
         CommandCtx {
             game: game as *mut Game,
             sender,
+            position,
         }
     }
     pub fn send_message(&self, message: impl Into<Text>) {
@@ -97,7 +102,11 @@ pub fn dispatch_command(
     command: &str,
     log: bool,
 ) -> Option<CommandOutput> {
-    let ctx = CommandCtx::new(game, sender);
+    let ctx = CommandCtx::new(
+        game,
+        sender,
+        game.ecs.get::<Position>(sender).ok().map(|pos| *pos),
+    );
 
     if dispatcher.find_command(command).is_none() {
         if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(sender) {
@@ -144,6 +153,13 @@ pub fn tab_complete(
     prompt: &str,
 ) -> TabCompletion {
     dispatcher
-        .tab_complete(prompt, CommandCtx::new(game, sender))
+        .tab_complete(
+            prompt,
+            CommandCtx::new(
+                game,
+                sender,
+                game.ecs.get::<Position>(sender).ok().map(|pos| *pos),
+            ),
+        )
         .unwrap_or_default()
 }

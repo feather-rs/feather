@@ -18,6 +18,7 @@ use quill_common::events::{DisconnectEvent, GamemodeUpdateEvent, InventoryUpdate
 
 use crate::utils::*;
 use crate::CommandCtx;
+use libcraft_core::Position;
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     // /me
@@ -594,11 +595,43 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     if let Some(entities) =
                         context.find_non_empty_entities_by_selector(selector, false)
                     {
+                        let position = context.position;
                         if entities.len() == 1 {
-                            f(args, CommandCtx::new(&mut *context, entities[0]))
+                            f(args, CommandCtx::new(&mut *context, entities[0], position))
                         } else {
                             for entity in entities {
-                                let _ = f(args, CommandCtx::new(&mut *context, entity));
+                                let _ = f(args, CommandCtx::new(&mut *context, entity, position));
+                            }
+                            Ok(0)
+                        }
+                    } else {
+                        bail!("No entities were found")
+                    }
+                });
+        })
+        .with(|command| {
+            command
+                .subcommand("at")
+                .argument("positions", EntityArgument::ENTITIES, "none")
+                .redirect(execute)
+                .fork(|args, mut context, mut f| {
+                    let arg = args.remove(0);
+                    let selector = arg.downcast_ref::<EntitySelector>().unwrap();
+                    if let Some(entities) =
+                        context.find_non_empty_entities_by_selector(selector, false)
+                    {
+                        let sender = context.sender;
+                        if entities.len() == 1 {
+                            let pos = context
+                                .ecs
+                                .get::<Position>(entities[0])
+                                .ok()
+                                .map(|pos| *pos);
+                            f(args, CommandCtx::new(&mut *context, sender, pos))
+                        } else {
+                            for entity in entities {
+                                let pos = context.ecs.get::<Position>(entity).ok().map(|pos| *pos);
+                                let _ = f(args, CommandCtx::new(&mut *context, sender, pos));
                             }
                             Ok(0)
                         }
