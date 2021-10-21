@@ -3,7 +3,7 @@
 
 use std::ops::{Deref, DerefMut};
 
-use commands::arguments::EntitySelector;
+use commands::arguments::{EntityAnchor, EntitySelector};
 pub use commands::dispatcher::CommandDispatcher;
 use commands::dispatcher::{CommandOutput, TabCompletion};
 use log::{debug, info};
@@ -34,6 +34,7 @@ pub struct CommandCtx {
     /// The position at which the command is executed.
     /// This is not necessarily sender's location: it can be modified by /execute at
     pub position: Option<Position>,
+    pub anchor: EntityAnchor,
     /// The game state. We don't want CommandDispatcher to have a lifetime, so
     /// raw pointers are here to elide the lifetime.
     /// Since CommandCtx is not Send, it should be sound
@@ -55,11 +56,17 @@ impl DerefMut for CommandCtx {
 }
 
 impl CommandCtx {
-    pub fn new(game: &mut Game, sender: Entity, position: Option<Position>) -> CommandCtx {
+    pub fn new(
+        game: &mut Game,
+        sender: Entity,
+        position: Option<Position>,
+        anchor: EntityAnchor,
+    ) -> CommandCtx {
         CommandCtx {
             game: game as *mut Game,
             sender,
             position,
+            anchor,
         }
     }
     pub fn send_message(&self, message: impl Into<Text>) {
@@ -106,6 +113,7 @@ pub fn dispatch_command(
         game,
         sender,
         game.ecs.get::<Position>(sender).ok().map(|pos| *pos),
+        EntityAnchor::default(),
     );
 
     if dispatcher.find_command(command).is_none() {
@@ -159,6 +167,7 @@ pub fn tab_complete(
                 game,
                 sender,
                 game.ecs.get::<Position>(sender).ok().map(|pos| *pos),
+                EntityAnchor::default(),
             ),
         )
         .unwrap_or_default()

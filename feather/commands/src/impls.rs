@@ -596,11 +596,23 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                         context.find_non_empty_entities_by_selector(selector, false)
                     {
                         let position = context.position;
+                        let anchor = context.anchor.clone();
                         if entities.len() == 1 {
-                            f(args, CommandCtx::new(&mut *context, entities[0], position))
+                            f(
+                                args,
+                                CommandCtx::new(&mut *context, entities[0], position, anchor),
+                            )
                         } else {
                             for entity in entities {
-                                let _ = f(args, CommandCtx::new(&mut *context, entity, position));
+                                let _ = f(
+                                    args,
+                                    CommandCtx::new(
+                                        &mut *context,
+                                        entity,
+                                        position,
+                                        anchor.clone(),
+                                    ),
+                                );
                             }
                             Ok(0)
                         }
@@ -621,17 +633,21 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                         context.find_non_empty_entities_by_selector(selector, false)
                     {
                         let sender = context.sender;
+                        let anchor = context.anchor.clone();
                         if entities.len() == 1 {
                             let pos = context
                                 .ecs
                                 .get::<Position>(entities[0])
                                 .ok()
                                 .map(|pos| *pos);
-                            f(args, CommandCtx::new(&mut *context, sender, pos))
+                            f(args, CommandCtx::new(&mut *context, sender, pos, anchor))
                         } else {
                             for entity in entities {
                                 let pos = context.ecs.get::<Position>(entity).ok().map(|pos| *pos);
-                                let _ = f(args, CommandCtx::new(&mut *context, sender, pos));
+                                let _ = f(
+                                    args,
+                                    CommandCtx::new(&mut *context, sender, pos, anchor.clone()),
+                                );
                             }
                             Ok(0)
                         }
@@ -659,6 +675,17 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                             pos.z = pos.z.floor();
                         }
                     }
+                    f(args, context)
+                });
+        })
+        .with(|command| {
+            command
+                .subcommand("anchored")
+                .argument("anchor", EntityAnchorArgument, "none")
+                .redirect(execute)
+                .fork(|args, mut context, mut f| {
+                    let arg = args.remove(0);
+                    context.anchor = arg.downcast_ref::<EntityAnchor>().unwrap().clone();
                     f(args, context)
                 });
         });

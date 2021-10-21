@@ -16,5 +16,5 @@ quill-common = { path = "../common" }
 thiserror = "1"
 uuid = "0.8"
 itertools = "0.10.0"
-commands = { git = "https://github.com/Iaiao/commands", rev = "a64dcfaea6beff9ee8e01d4e6adadfd8a885b714" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "0f89c266c55c733537f7332d49f2d15985e5a5b3" }
 
