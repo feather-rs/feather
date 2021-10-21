@@ -80,11 +80,12 @@ pub fn modify_command_executor(
             drop(plugin_manager);
             let plugin_manager = rc.borrow();
             let plugin = plugin_manager.plugin(id).unwrap();
-            plugin.run_command(
+            let b = plugin.run_command(
                 PluginPtrMut::from_native(&executor as *const _ as i64),
                 args,
                 context,
-            )
+            );
+            b
         });
     }
 

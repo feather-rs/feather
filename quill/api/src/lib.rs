@@ -169,11 +169,11 @@ macro_rules! plugin {
                 caller: ctx.caller.clone(),
                 plugin: PLUGIN.as_mut().expect("quill_setup never called"),
             };
-            let mut args = Vec::from_raw_parts(
+            let mut args = std::mem::ManuallyDrop::new(Vec::from_raw_parts(
                 args as *mut Box<dyn std::any::Any>,
                 args_len as usize,
                 args_len as usize,
-            );
+            ));
             match executor(&mut args, ctx) {
                 Ok(result) => (0, result as u64),
                 Err(err) => {

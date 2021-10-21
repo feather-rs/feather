@@ -6,10 +6,10 @@ use commands::dispatcher::{Args, CommandOutput, TabCompletion};
 use libloading::Library;
 use tempfile::{NamedTempFile, TempPath};
 
+use feather_base::Text;
 use quill::CommandContext;
 
 use crate::context::{PluginContext, PluginPtrMut};
-use feather_base::Text;
 
 /// A native plugin loaded from a shared library
 pub struct NativePlugin {
@@ -155,10 +155,11 @@ impl NativePlugin {
     ) -> CommandOutput {
         // SAFETY: we assume the plugin is sound.
         unsafe {
+            args.shrink_to_fit();
             match {
                 (self.run_command)(
                     data_ptr.as_native(),
-                    args.as_mut_ptr() as *const _ as *mut _,
+                    args.as_mut_ptr() as *mut _,
                     args.len() as u32,
                     &ctx as *const _ as *mut _,
                 )
