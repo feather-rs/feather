@@ -7,6 +7,7 @@ use quill_common::PointerMut;
 
 use crate::command::CommandContext;
 use crate::Game;
+use libcraft_text::Text;
 
 /// Struct passed to your plugin's `enable()` function.
 ///
@@ -46,7 +47,7 @@ impl<Plugin: crate::Plugin> Setup<Plugin> {
     /// Perform various actions on command dispatcher: Register commands, tab-completions, etc.
     pub fn with_dispatcher(
         &mut self,
-        f: impl FnOnce(&mut CommandDispatcher<CommandContext<Plugin>>),
+        f: impl FnOnce(&mut CommandDispatcher<CommandContext<Plugin>, Text>),
     ) -> &mut Self {
         let mut dispatcher = CommandDispatcher::new();
 

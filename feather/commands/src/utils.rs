@@ -1,11 +1,14 @@
-use commands::arguments::{EntitySelector, EntitySelectorPredicate, EntitySelectorSorting};
+use std::collections::HashMap;
 
-use ecs::{Ecs, Entity, EntityRef};
-use libcraft_core::{EntityKind, Position};
-use quill_common::components::{CustomName, Gamemode, Name};
+use commands::arguments::{EntitySelector, EntitySelectorPredicate, EntitySelectorSorting};
+use commands::dispatcher::TabCompletion;
+use uuid::Uuid;
 
 use common::Game;
-use uuid::Uuid;
+use ecs::{Ecs, Entity, EntityRef};
+use libcraft_core::{EntityKind, Position};
+use libcraft_text::Text;
+use quill_common::components::{CustomName, Gamemode, Name};
 
 pub fn get_entity_names(sender: Entity, game: &Game, selector: &EntitySelector) -> Vec<String> {
     find_entities_by_selector(sender, game, selector)
@@ -198,5 +201,45 @@ pub fn find_entities_by_selector(
             .filter(|(_, id)| *id == uuid)
             .map(|(e, _)| e)
             .collect(),
+    }
+}
+
+pub fn fixed_completion<T, U: AsRef<str>>(
+    completions: Vec<U>,
+) -> impl Fn(&str, &mut T) -> TabCompletion<Text> + 'static {
+    let completions = completions
+        .into_iter()
+        .map(|c| c.as_ref().to_string())
+        .collect::<Vec<_>>();
+    move |text, _ctx| {
+        (
+            0,
+            text.len(),
+            completions
+                .iter()
+                .filter(|c| c.starts_with(text))
+                .map(|c| (c.to_owned(), None))
+                .collect(),
+        )
+    }
+}
+
+pub fn fixed_completion_with_tooltip<T, U: AsRef<str>>(
+    completions: HashMap<U, Option<String>>,
+) -> impl Fn(&str, &mut T) -> TabCompletion<Text> + 'static {
+    let completions = completions
+        .into_iter()
+        .map(|(c, t)| (c.as_ref().to_string(), t))
+        .collect::<Vec<_>>();
+    move |text, _ctx| {
+        (
+            0,
+            text.len(),
+            completions
+                .iter()
+                .filter(|(c, _)| c.starts_with(text))
+                .map(|(c, t)| (c.to_owned(), t.as_ref().map(|t| t.clone().into())))
+                .collect(),
+        )
     }
 }

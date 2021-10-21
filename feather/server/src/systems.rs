@@ -6,6 +6,7 @@ use crate::Server;
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
 use feather_commands::{CommandCtx, CommandDispatcher};
+use libcraft_text::Text;
 use quill_common::components::{ClientId, Name};
 
 mod block;
@@ -24,7 +25,7 @@ pub mod view;
 /// Registers systems for a `Server` with a `Game`.
 pub fn register(
     server: Server,
-    dispatcher: CommandDispatcher<CommandCtx>,
+    dispatcher: CommandDispatcher<CommandCtx, Text>,
     game: &mut Game,
     systems: &mut SystemExecutor<Game>,
 ) {

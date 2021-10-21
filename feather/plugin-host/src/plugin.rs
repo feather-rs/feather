@@ -13,6 +13,7 @@ use crate::{
     context::{PluginContext, PluginPtrMut},
     PluginId, PluginManager,
 };
+use feather_base::Text;
 
 mod native;
 mod wasm;
@@ -148,7 +149,7 @@ impl Plugin {
         data: PluginPtrMut<u8>,
         text: &str,
         context: &mut CommandCtx,
-    ) -> TabCompletion {
+    ) -> TabCompletion<Text> {
         let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
         self.context.enter(context, || {
             let ctx = CommandContext {

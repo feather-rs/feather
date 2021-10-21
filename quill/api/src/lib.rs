@@ -234,7 +234,7 @@ macro_rules! plugin {
                 dyn Fn(
                     &str,
                     $crate::CommandContext<$plugin>,
-                ) -> $crate::commands::dispatcher::TabCompletion,
+                ) -> $crate::commands::dispatcher::TabCompletion<$crate::Text>,
             >>();
             let ctx = &*ctx.cast::<$crate::CommandContext<()>>();
             let ctx = $crate::CommandContext {
@@ -254,10 +254,11 @@ macro_rules! plugin {
                         if t.is_none() {
                             (0, 0, 0)
                         } else {
+                            let t = t.as_ref().unwrap().to_string();
                             (
-                                t.as_ref().unwrap().as_ptr() as usize as u32,
-                                t.as_ref().unwrap().len() as u32,
-                                t.as_ref().unwrap().capacity() as u32,
+                                t.as_ptr() as usize as u32,
+                                t.len() as u32,
+                                t.capacity() as u32,
                             )
                         },
                     )

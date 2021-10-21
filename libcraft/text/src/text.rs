@@ -1078,6 +1078,10 @@ impl Text {
     pub fn nbt<A: Into<NbtTag>>(nbt: A) -> Text {
         Text::from(TextValue::nbt(nbt))
     }
+
+    pub fn from_json<A: AsRef<str>>(json: A) -> Result<Text, serde_json::Error> {
+        serde_json::from_str(json.as_ref())
+    }
 }
 
 impl From<Text> for String {

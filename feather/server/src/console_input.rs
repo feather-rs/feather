@@ -20,6 +20,7 @@ use slab::Slab;
 use common::Game;
 use ecs::{Entity, HasResources};
 use feather_commands::CommandCtx;
+use libcraft_text::Text;
 use rustyline::{CompletionType, Context, EditMode, Editor, Helper};
 
 const PROMPT: &str = "\x1B[1m/\x1B[0m";
@@ -99,7 +100,10 @@ impl ConsoleInput {
     }
     pub fn tab_complete_if_needed(&self, game: &mut Game, console: Entity) {
         while let Ok(line) = self.tab_completion_receiver.try_recv() {
-            if let Ok(dispatcher) = game.resources().get::<CommandDispatcher<CommandCtx>>() {
+            if let Ok(dispatcher) = game
+                .resources()
+                .get::<CommandDispatcher<CommandCtx, Text>>()
+            {
                 let dispatcher = &*dispatcher;
                 let completions = feather_commands::tab_complete(dispatcher, game, console, &line);
                 if !completions.2.is_empty() {
@@ -120,7 +124,7 @@ impl ConsoleInput {
         }
     }
 
-    pub fn update_command_graph(&self, graph: &CommandDispatcher<CommandCtx>) {
+    pub fn update_command_graph(&self, graph: &CommandDispatcher<CommandCtx, Text>) {
         self.command_graph
             .send(Slab::from_iter(graph.nodes().map(|(i, node)| {
                 (
@@ -194,7 +198,7 @@ struct CommandHelper<T> {
     tab_receiver: Receiver<(usize, Vec<String>)>,
 
     /// a temporary copy of the server's command dispatcher (used for faster command highlighting)
-    command_graph: RefCell<CommandDispatcher<T>>,
+    command_graph: RefCell<CommandDispatcher<T, Text>>,
     command_graph_receiver: Receiver<Slab<CommandNode>>,
 
     line: Arc<Mutex<String>>,

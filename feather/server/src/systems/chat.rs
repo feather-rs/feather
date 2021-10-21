@@ -4,6 +4,7 @@ use common::Game;
 use ecs::{EntityBuilder, HasResources, SysResult, SystemExecutor};
 use feather_commands::{CommandCtx, CommandDispatcher};
 use libcraft_text::text::{Color, IntoTextComponent, Style};
+use libcraft_text::Text;
 use quill_common::components::{ChatBox, ChatPreference, ClientId, Console, Name};
 
 use crate::console_input::ConsoleInput;
@@ -89,7 +90,7 @@ fn flush_console_chat_box(game: &mut Game) -> SysResult {
                         let s = EntityArgument::ENTITIES.parse(selector, false);
                         if let Some((_, s)) = s {
                             feather_commands::utils::get_entity_names(console, game, &s).join(", ")
-                        // TODO gray commas
+                            // TODO gray commas
                         } else {
                             String::new()
                         }
@@ -111,7 +112,7 @@ fn flush_console_commands(game: &mut Game) -> SysResult {
         let _result = feather_commands::dispatch_command(
             &mut *game
                 .resources()
-                .get_mut::<CommandDispatcher<CommandCtx>>()
+                .get_mut::<CommandDispatcher<CommandCtx, Text>>()
                 .unwrap(),
             game,
             console,
@@ -159,7 +160,7 @@ fn send_command_graph_to_console(game: &mut Game) -> SysResult {
             .update_command_graph(
                 &*game
                     .resources()
-                    .get::<CommandDispatcher<CommandCtx>>()
+                    .get::<CommandDispatcher<CommandCtx, Text>>()
                     .unwrap(),
             )
     }

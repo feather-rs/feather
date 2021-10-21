@@ -10,6 +10,7 @@ use uuid::Uuid;
 use common::banlist::{BanList, BanReason};
 use common::{Game, Window};
 use ecs::{Ecs, Entity};
+use libcraft_core::Position;
 use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode, RealIp};
@@ -18,9 +19,8 @@ use quill_common::events::{DisconnectEvent, GamemodeUpdateEvent, InventoryUpdate
 
 use crate::utils::*;
 use crate::CommandCtx;
-use libcraft_core::Position;
 
-pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
+pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /me
     dispatcher
         .create_command("me")
@@ -50,7 +50,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .with(|command| gamemode_command(command, "creative", Gamemode::Creative))
         .with(|command| gamemode_command(command, "adventure", Gamemode::Adventure))
         .with(|command| gamemode_command(command, "spectator", Gamemode::Spectator));
-    fn gamemode_command(command: CreateCommand<CommandCtx, ()>, s: &str, gamemode: Gamemode) {
+    fn gamemode_command(command: CreateCommand<CommandCtx, Text, ()>, s: &str, gamemode: Gamemode) {
         command
             .subcommand(s)
             .executes(move |mut context: CommandCtx| {
@@ -69,7 +69,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     bail!("Requires a player")
                 }
             })
-            .argument("target", EntityArgument::PLAYERS, "entity")
+            .argument("target", EntityArgument::PLAYERS, "minecraft:entity")
             .executes(
                 move |mut context: CommandCtx, selector: &mut EntitySelector| {
                     if let Some(targets) =
@@ -167,7 +167,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 bail!("Requires a player")
             }
         })
-        .argument("target", EntityArgument::PLAYERS, "entity")
+        .argument("target", EntityArgument::PLAYERS, "minecraft:entity")
         .executes(|mut context: CommandCtx, selector: &mut EntitySelector| {
             if let Some(entities) = context.find_non_empty_entities_by_selector(selector, true) {
                 let mut count = 0;
@@ -180,7 +180,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 bail!("No entities were found")
             }
         })
-        .argument("item", ItemPredicateArgument, "item_predicate")
+        .argument("item", ItemPredicateArgument, "minecraft:item_predicate")
         .executes(
             |mut context: CommandCtx, selector: &mut EntitySelector, item: &mut ItemPredicate| {
                 if let Some(entities) = context.find_non_empty_entities_by_selector(selector, true)
@@ -351,7 +351,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     dispatcher
         .create_command("ban")
         .unwrap()
-        .argument("targets", EntityArgument::PLAYERS, "entity")
+        .argument("targets", EntityArgument::PLAYERS, "minecraft:entity")
         .executes(|mut context: CommandCtx, selector: &mut EntitySelector| {
             if let Some(targets) = context.find_non_empty_entities_by_selector(selector, true) {
                 Ok(ban_players(&mut context, targets, BanReason::default()) as i32)
@@ -490,7 +490,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     dispatcher
         .create_command("pardon")
         .unwrap()
-        .argument("targets", EntityArgument::PLAYERS, "banned_players")
+        .argument("targets", EntityArgument::PLAYERS, "minecraft:banned_players")
         .executes(|context: CommandCtx, selector: &mut EntitySelector| {
             match selector {
                 EntitySelector::Selector(_) => {
@@ -533,7 +533,11 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     dispatcher
         .create_command("pardon-ip")
         .unwrap()
-        .argument("targets", StringArgument::SINGLE_WORD, "banned_ips")
+        .argument(
+            "targets",
+            StringArgument::SINGLE_WORD,
+            "minecraft:banned_ips",
+        )
         .executes(|context: CommandCtx, ip: &mut String| {
             if let Ok(ip) = ip.parse() {
                 let mut banlist = context.resources.get_mut::<BanList>().unwrap();
@@ -587,7 +591,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .with(|command| {
             command
                 .subcommand("as")
-                .argument("executors", EntityArgument::ENTITIES, "none")
+                .argument("executors", EntityArgument::ENTITIES, "minecraft:entity")
                 .redirect(execute)
                 .fork(|args, mut context, mut f| {
                     let arg = args.remove(0);
@@ -624,7 +628,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .with(|command| {
             command
                 .subcommand("at")
-                .argument("positions", EntityArgument::ENTITIES, "none")
+                .argument("positions", EntityArgument::ENTITIES, "minecraft:entity")
                 .redirect(execute)
                 .fork(|args, mut context, mut f| {
                     let arg = args.remove(0);
@@ -681,7 +685,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         .with(|command| {
             command
                 .subcommand("anchored")
-                .argument("anchor", EntityAnchorArgument, "none")
+                .argument("anchor", EntityAnchorArgument, "minecraft:entity_anchor")
                 .redirect(execute)
                 .fork(|args, mut context, mut f| {
                     let arg = args.remove(0);
@@ -689,6 +693,146 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                     f(args, context)
                 });
         });
+
+    dispatcher.register_tab_completion(
+        "minecraft:entity_anchor",
+        fixed_completion(vec!["feet", "eyes"]),
+    );
+
+    dispatcher.register_tab_completion("minecraft:entity", |text, ctx| {
+        let players = ctx
+            .ecs
+            .query::<(&Player, &Name)>()
+            .iter()
+            .map(|(_, (_, name))| name.to_string())
+            .collect::<Vec<_>>();
+        if text.is_empty() {
+            let mut results = players
+                .into_iter()
+                .map(|name| (name, None))
+                .collect::<Vec<_>>();
+            results.extend([
+                (
+                    "@a".to_string(),
+                    Some(Text::translate("argument.entity.selector.allPlayers")),
+                ),
+                (
+                    "@e".to_string(),
+                    Some(Text::translate("argument.entity.selector.allEntities")),
+                ),
+                (
+                    "@p".to_string(),
+                    Some(Text::translate("argument.entity.selector.nearestPlayer")),
+                ),
+                (
+                    "@r".to_string(),
+                    Some(Text::translate("argument.entity.selector.randomPlayer")),
+                ),
+                (
+                    "@s".to_string(),
+                    Some(Text::translate("argument.entity.selector.self")),
+                ),
+            ]);
+            (0, 0, results)
+        } else if text == "@" {
+            (
+                0,
+                1,
+                vec![
+                    (
+                        "@a".to_string(),
+                        Some(Text::translate("argument.entity.selector.allPlayers")),
+                    ),
+                    (
+                        "@e".to_string(),
+                        Some(Text::translate("argument.entity.selector.allEntities")),
+                    ),
+                    (
+                        "@p".to_string(),
+                        Some(Text::translate("argument.entity.selector.nearestPlayer")),
+                    ),
+                    (
+                        "@r".to_string(),
+                        Some(Text::translate("argument.entity.selector.randomPlayer")),
+                    ),
+                    (
+                        "@s".to_string(),
+                        Some(Text::translate("argument.entity.selector.self")),
+                    ),
+                ],
+            )
+        } else if ["@a", "@e", "@p", "@r", "@s"].contains(&text) {
+            (2, 0, vec![("[".to_string(), None)])
+        } else if text.starts_with("@a[")
+            || text.starts_with("@e[")
+            || text.starts_with("@p[")
+            || text.starts_with("@r[")
+            || text.starts_with("@s[")
+        {
+            // TODO rewrite selector parser
+            (0, 0, Vec::new())
+        } else {
+            (
+                0,
+                text.len(),
+                players
+                    .into_iter()
+                    .filter(|name| name.starts_with(text))
+                    .map(|name| (name, None))
+                    .collect::<Vec<_>>(),
+            )
+        }
+    });
+
+    dispatcher.register_tab_completion("minecraft:item_predicate", |text, _ctx| {
+        #[allow(clippy::if_same_then_else)]
+        let items: Vec<String> = if text.starts_with('#') {
+            // TODO tags
+            vec![]
+        } else {
+            // TODO Item::values()
+            vec![]
+        };
+        if let Some(item) = items.into_iter().find(|item| item.starts_with(text)) {
+            if item == text {
+                (item.len(), 0, vec![("{".to_string(), None)])
+            } else {
+                (0, text.len(), vec![(item, None)])
+            }
+        } else {
+            (0, 0, Vec::new())
+        }
+    });
+
+    dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
+        (
+            0,
+            text.len(),
+            ctx.resources
+                .get::<BanList>()
+                .unwrap()
+                .players()
+                .into_iter()
+                .filter(|name| name.starts_with(text) && name != text)
+                .map(|name| (name, None))
+                .collect(),
+        )
+    });
+
+    dispatcher.register_tab_completion("minecraft:banned_ips", |text, ctx| {
+        (
+            0,
+            text.len(),
+            ctx.resources
+                .get::<BanList>()
+                .unwrap()
+                .ips()
+                .into_iter()
+                .filter(|ip| ip.starts_with(text) && ip != text)
+                .map(|ip| (ip, None))
+                .collect(),
+        )
+    });
 }
 
 // #[command(usage = "tp|teleport <destination>")]

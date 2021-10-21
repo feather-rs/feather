@@ -97,6 +97,20 @@ impl BanList {
         self.banned_ips.retain(|entry| entry.value != *ip);
         old_len != self.banned_ips.len()
     }
+
+    pub fn players(&self) -> Vec<String> {
+        self.banned_players
+            .iter()
+            .map(|e| e.value.1.to_string())
+            .collect()
+    }
+
+    pub fn ips(&self) -> Vec<String> {
+        self.banned_ips
+            .iter()
+            .map(|e| e.value.to_string())
+            .collect()
+    }
 }
 
 #[derive(Debug)]

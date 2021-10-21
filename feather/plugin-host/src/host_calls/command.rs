@@ -19,6 +19,7 @@ use quill_common::EntityId;
 
 use crate::context::{PluginContext, PluginPtr, PluginPtrMut};
 use crate::PluginManager;
+use feather_base::Text;
 
 #[host_function]
 pub fn modify_command_executor(
@@ -49,7 +50,7 @@ pub fn modify_command_executor(
             executors_cap as usize,
         );
         let tab_completers = Vec::from_raw_parts(
-            tab_completers.as_native() as *mut (String, Completer<CommandContext<()>>),
+            tab_completers.as_native() as *mut (String, Completer<CommandContext<()>, Text>),
             tab_completers_len as usize,
             tab_completers_cap as usize,
         );
@@ -63,7 +64,7 @@ pub fn modify_command_executor(
     let game = cx.game_mut();
     let mut dispatcher = game
         .resources
-        .get_mut::<CommandDispatcher<CommandCtx>>()
+        .get_mut::<CommandDispatcher<CommandCtx, Text>>()
         .unwrap();
     let id = cx.plugin_id();
 

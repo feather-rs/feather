@@ -150,7 +150,7 @@ fn handle_chat_message(
         let _result = feather_commands::dispatch_command(
             &mut *game
                 .resources()
-                .get_mut::<CommandDispatcher<CommandCtx>>()
+                .get_mut::<CommandDispatcher<CommandCtx, Text>>()
                 .unwrap(),
             game,
             player_id,
@@ -188,7 +188,7 @@ fn handle_tab_complete(
     let completions = feather_commands::tab_complete(
         &*game
             .resources()
-            .get::<CommandDispatcher<CommandCtx>>()
+            .get::<CommandDispatcher<CommandCtx, Text>>()
             .unwrap(),
         game,
         player_id,
@@ -202,8 +202,8 @@ fn handle_tab_complete(
         .send_tab_completions(
             packet.transaction_id,
             completions.2,
-            completions.0,
-            completions.1 + 1, // with "/" symbol
+            completions.0 + 1, // with "/" symbol
+            completions.1,
         );
     Ok(())
 }

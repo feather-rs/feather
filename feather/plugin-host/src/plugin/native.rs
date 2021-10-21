@@ -9,6 +9,7 @@ use tempfile::{NamedTempFile, TempPath};
 use quill::CommandContext;
 
 use crate::context::{PluginContext, PluginPtrMut};
+use feather_base::Text;
 
 /// A native plugin loaded from a shared library
 pub struct NativePlugin {
@@ -221,7 +222,7 @@ impl NativePlugin {
         data_ptr: PluginPtrMut<u8>,
         text: &str,
         ctx: CommandContext<()>,
-    ) -> anyhow::Result<TabCompletion> {
+    ) -> anyhow::Result<TabCompletion<Text>> {
         // SAFETY: Text should be dropped on plugin side
         let mut text = ManuallyDrop::new(text.to_string());
 
@@ -248,11 +249,14 @@ impl NativePlugin {
                     (
                         String::from_raw_parts(comp, comp_len as usize, comp_cap as usize),
                         if is_some {
-                            Some(String::from_raw_parts(
-                                tooltip,
-                                tooltip_len as usize,
-                                tooltip_cap as usize,
-                            ))
+                            Some(
+                                Text::from_json(String::from_raw_parts(
+                                    tooltip,
+                                    tooltip_len as usize,
+                                    tooltip_cap as usize,
+                                ))
+                                .unwrap(),
+                            )
                         } else {
                             None
                         },

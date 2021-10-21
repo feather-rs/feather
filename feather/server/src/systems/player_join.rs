@@ -83,7 +83,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     client.send_commands(
         &*game
             .resources
-            .get::<CommandDispatcher<CommandCtx>>()
+            .get::<CommandDispatcher<CommandCtx, Text>>()
             .unwrap(),
     );
 

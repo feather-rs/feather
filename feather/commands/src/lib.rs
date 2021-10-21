@@ -98,12 +98,12 @@ impl CommandCtx {
     }
 }
 
-pub fn register_vanilla_commands(dispatcher: &mut CommandDispatcher<CommandCtx>) {
+pub fn register_vanilla_commands(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     impls::register_all(dispatcher)
 }
 
 pub fn dispatch_command(
-    dispatcher: &mut CommandDispatcher<CommandCtx>,
+    dispatcher: &mut CommandDispatcher<CommandCtx, Text>,
     game: &mut Game,
     sender: Entity,
     command: &str,
@@ -155,11 +155,11 @@ pub fn dispatch_command(
 }
 
 pub fn tab_complete(
-    dispatcher: &CommandDispatcher<CommandCtx>,
+    dispatcher: &CommandDispatcher<CommandCtx, Text>,
     game: &mut Game,
     sender: Entity,
     prompt: &str,
-) -> TabCompletion {
+) -> TabCompletion<Text> {
     dispatcher
         .tab_complete(
             prompt,

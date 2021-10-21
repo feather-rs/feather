@@ -641,7 +641,7 @@ impl Client {
         })
     }
 
-    pub fn send_commands(&self, commands: &CommandDispatcher<CommandCtx>) {
+    pub fn send_commands(&self, commands: &CommandDispatcher<CommandCtx, Text>) {
         self.send_packet(DeclareCommands {
             __todo__: commands.packet().unwrap(),
         })
@@ -650,7 +650,7 @@ impl Client {
     pub fn send_tab_completions(
         &self,
         transaction_id: i32,
-        completions: Vec<(String, Option<String>)>,
+        completions: Vec<(String, Option<Text>)>,
         start: usize,
         length: usize,
     ) {
@@ -660,7 +660,10 @@ impl Client {
             length: length as i32,
             matches: completions
                 .into_iter()
-                .map(|(value, tooltip)| TabCompleteMatch { value, tooltip })
+                .map(|(value, tooltip)| TabCompleteMatch {
+                    value,
+                    tooltip: tooltip.map(|t| t.to_string()),
+                })
                 .collect(),
         })
     }
