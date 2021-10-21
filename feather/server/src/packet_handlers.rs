@@ -148,9 +148,9 @@ fn handle_chat_message(
 ) -> SysResult {
     if packet.message.starts_with('/') {
         let _result = feather_commands::dispatch_command(
-            &*game
+            &mut *game
                 .resources()
-                .get::<CommandDispatcher<CommandCtx>>()
+                .get_mut::<CommandDispatcher<CommandCtx>>()
                 .unwrap(),
             game,
             player_id,

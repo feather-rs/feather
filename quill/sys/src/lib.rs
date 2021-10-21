@@ -195,5 +195,8 @@ extern "C" {
         tab_completers_ptr: PointerMut<u8>,
         tab_completers_len: u32,
         tab_completers_cap: u32,
+        forks_ptr: PointerMut<u8>,
+        forks_len: u32,
+        forks_cap: u32,
     );
 }

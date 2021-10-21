@@ -52,15 +52,17 @@ impl<Plugin: crate::Plugin> Setup<Plugin> {
 
         f(&mut dispatcher);
 
-        let (nodes, executors, tab_completers) = dispatcher.into_parts();
+        let (nodes, executors, tab_completers, forks) = dispatcher.into_parts();
         let nodes: Vec<_> = nodes.into_iter().map(|(_, a)| a).collect();
         let executors: Vec<_> = executors.into_iter().map(|(_, a)| a).collect();
         let tab_completers: Vec<_> = tab_completers.into_iter().collect();
+        let forks: Vec<_> = forks.into_iter().map(|(_, a)| a).collect();
 
-        let (nodes, executors, tab_completers) = (
+        let (nodes, executors, tab_completers, forks) = (
             ManuallyDrop::new(nodes),
             ManuallyDrop::new(executors),
             ManuallyDrop::new(tab_completers),
+            ManuallyDrop::new(forks),
         );
         // SAFETY: passing raw vec data to recreate the vec on host
         unsafe {
@@ -74,6 +76,9 @@ impl<Plugin: crate::Plugin> Setup<Plugin> {
                 PointerMut::new(tab_completers.as_ptr() as *const _ as *mut _),
                 tab_completers.len() as u32,
                 tab_completers.capacity() as u32,
+                PointerMut::new(forks.as_ptr() as *const _ as *mut _),
+                forks.len() as u32,
+                forks.capacity() as u32,
             );
         }
         self

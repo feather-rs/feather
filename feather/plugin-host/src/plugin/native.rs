@@ -47,6 +47,18 @@ pub struct NativePlugin {
     ///
     /// Parameters:
     /// 1. Plugin data pointer for the command executor
+    /// 2. Arguments buffer pointer
+    /// 3. Arguments length
+    /// 4. Pointer to the command context
+    /// 5. Fork index
+    ///
+    /// Returns: command response (first: 0 = Ok(second), 1 = Err(_))
+    run_command_fork: unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8, u32) -> (u32, u64),
+
+    /// The plugin's exported quill_run_command function.
+    ///
+    /// Parameters:
+    /// 1. Plugin data pointer for the command executor
     /// 2. Text buffer pointer
     /// 3. Text length
     /// 4. Pointer to the command context
@@ -87,6 +99,11 @@ impl NativePlugin {
                 .get("quill_run_command".as_bytes())
                 .context("plugin is missing quill_run_command export")?
         };
+        let run_command_fork = unsafe {
+            *library
+                .get("quill_run_command_fork".as_bytes())
+                .context("plugin is missing quill_run_command_fork export")?
+        };
         let run_command_completer = unsafe {
             *library
                 .get("quill_run_command_completer".as_bytes())
@@ -99,6 +116,7 @@ impl NativePlugin {
             enable,
             run_system,
             run_command,
+            run_command_fork,
             run_command_completer,
         })
     }
@@ -131,19 +149,53 @@ impl NativePlugin {
     pub fn run_command(
         &self,
         data_ptr: PluginPtrMut<u8>,
-        mut args: Args,
+        args: &mut Args,
         ctx: CommandContext<()>,
     ) -> CommandOutput {
         // SAFETY: we assume the plugin is sound.
-        // Using ManuallyDrop because plugins should always drop args
         unsafe {
             match {
-                let args = ManuallyDrop::new(args);
                 (self.run_command)(
+                    data_ptr.as_native(),
+                    args.as_mut_ptr() as *const _ as *mut _,
+                    args.len() as u32,
+                    &ctx as *const _ as *mut _,
+                )
+            } {
+                (0, result) => Ok(result as i32),
+                (1, error_ptr) => {
+                    // Reading string from a pointer
+                    const USIZE_SIZE: usize = std::mem::size_of::<usize>(); // 4 on wasm32, same as usize on native
+                    type USIZE = usize; // u32 on wasm32, usize on native
+
+                    let ptr = error_ptr as *const USIZE;
+                    let len = *ptr.add(1);
+                    let cap = *ptr.add(2);
+                    let s = String::from_raw_parts(USIZE::from(*ptr) as *mut u8, len, cap);
+
+                    bail!("Plugin command returned an error: {}", s)
+                }
+                _ => bail!("Invalid bool returned from function"),
+            }
+        }
+    }
+
+    pub fn run_command_fork(
+        &self,
+        data_ptr: PluginPtrMut<u8>,
+        args: &mut Args,
+        ctx: CommandContext<()>,
+        f: u32,
+    ) -> CommandOutput {
+        // SAFETY: we assume the plugin is sound.
+        unsafe {
+            match {
+                (self.run_command_fork)(
                     data_ptr.as_native(),
                     args.as_ptr() as *const _ as *mut _,
                     args.len() as u32,
                     &ctx as *const _ as *mut _,
+                    f,
                 )
             } {
                 (0, result) => Ok(result as i32),

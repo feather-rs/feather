@@ -44,5 +44,15 @@ impl Caller {
 pub struct CommandContext<'a, Plugin> {
     pub game: Game,
     pub caller: Caller,
-    pub plugin: &'a Plugin,
+    pub plugin: &'a mut Plugin,
+}
+
+impl<'a, Plugin> CommandContext<'a, Plugin> {
+    pub fn new(game: Game, caller: Caller, plugin: &'a mut Plugin) -> CommandContext<'a, Plugin> {
+        CommandContext {
+            game,
+            caller,
+            plugin,
+        }
+    }
 }

@@ -103,7 +103,7 @@ impl Plugin {
     pub fn run_command(
         &self,
         data: PluginPtrMut<u8>,
-        args: Args,
+        args: &mut Args,
         mut context: CommandCtx,
     ) -> CommandOutput {
         let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
@@ -112,11 +112,33 @@ impl Plugin {
                 game: quill::Game::new(),
                 caller,
                 // Command context with the plugin will be created on the plugin side
-                plugin: &(),
+                plugin: &mut (),
             };
             match &self.inner {
                 Inner::Wasm(w) => w.run_command(data, args, ctx),
                 Inner::Native(n) => n.run_command(data, args, ctx),
+            }
+        })
+    }
+
+    pub fn run_command_fork(
+        &self,
+        data: PluginPtrMut<u8>,
+        args: &mut Args,
+        mut context: CommandCtx,
+        f: u32,
+    ) -> CommandOutput {
+        let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
+        self.context.enter(&mut *context, || {
+            let ctx = CommandContext {
+                game: quill::Game::new(),
+                caller,
+                // Command context with the plugin will be created on the plugin side
+                plugin: &mut (),
+            };
+            match &self.inner {
+                Inner::Wasm(w) => w.run_command_fork(data, args, ctx, f),
+                Inner::Native(n) => n.run_command_fork(data, args, ctx, f),
             }
         })
     }
@@ -133,7 +155,7 @@ impl Plugin {
                 game: quill::Game::new(),
                 caller,
                 // Command context with the plugin will be created on the plugin side
-                plugin: &(),
+                plugin: &mut (),
             };
             match &self.inner {
                 Inner::Wasm(w) => w.run_command_completer(data, text, ctx),

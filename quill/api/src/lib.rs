@@ -159,7 +159,7 @@ macro_rules! plugin {
         ) -> (u32, u64) {
             let executor = &*data.cast::<Box<
                 dyn Fn(
-                    $crate::commands::dispatcher::Args,
+                    &mut $crate::commands::dispatcher::Args,
                     $crate::CommandContext<$plugin>,
                 ) -> $crate::commands::dispatcher::CommandOutput,
             >>();
@@ -169,12 +169,49 @@ macro_rules! plugin {
                 caller: ctx.caller.clone(),
                 plugin: PLUGIN.as_mut().expect("quill_setup never called"),
             };
-            let args = Vec::from_raw_parts(
+            let mut args = Vec::from_raw_parts(
                 args as *mut Box<dyn std::any::Any>,
                 args_len as usize,
                 args_len as usize,
             );
-            match executor(args, ctx) {
+            match executor(&mut args, ctx) {
+                Ok(result) => (0, result as u64),
+                Err(err) => {
+                    let s = err.to_string();
+                    let ptr = &s as *const _ as u64;
+                    std::mem::forget(s); // dropped on host side
+                    (1, ptr)
+                }
+            }
+        }
+
+        #[no_mangle]
+        #[doc(hidden)]
+        pub unsafe extern "C" fn quill_run_command_fork(
+            data: *mut u8,
+            args: *mut u8,
+            args_len: u32,
+            ctx: *mut u8,
+            f: u32,
+        ) -> (u32, u64) {
+            let fork = &mut *data
+                .cast::<Box<$crate::commands::dispatcher::Fork<$crate::CommandContext<$plugin>>>>();
+            let ctx = &*ctx.cast::<$crate::CommandContext<()>>();
+            let ctx = $crate::CommandContext {
+                game: $crate::Game::new(),
+                caller: ctx.caller.clone(),
+                plugin: PLUGIN.as_mut().expect("quill_setup never called"),
+            };
+            let mut args = std::mem::ManuallyDrop::new(Vec::from_raw_parts(
+                args as *mut Box<dyn std::any::Any>,
+                args_len as usize,
+                args_len as usize,
+            ));
+            match fork(
+                &mut args,
+                ctx,
+                Box::new(&mut |args, context| todo!("create fork-callback host call")),
+            ) {
                 Ok(result) => (0, result as u64),
                 Err(err) => {
                     let s = err.to_string();

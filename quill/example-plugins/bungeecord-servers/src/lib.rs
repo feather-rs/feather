@@ -42,18 +42,18 @@ impl Plugin for BungeecordServersPlugin {
             });
             dispatcher.create_command("test").unwrap()
                 .argument("server", StringArgument::GREEDY_PHRASE, "bungeecord_servers:servers_without_this")
-                .executes(|context: CommandContext, target_server| {
+                .executes(|context: CommandContext, target_server: &mut String| {
                     let (server, servers) = (context.plugin.server.as_ref(), context.plugin.servers.as_ref());
-                    if server.is_some() && *server.unwrap() == target_server {
+                    if server.is_some() && *server.unwrap() == *target_server {
                         context.caller.send_message(format!("You are already on {}", target_server));
                         bail!("Already on this server")
-                    } else if servers.is_some() && servers.unwrap().contains(&target_server) {
+                    } else if servers.is_some() && servers.unwrap().contains(&target_server.to_string()) {
                         context.caller.send_message(format!("Sending you to {}", target_server));
                         if let Caller::Player(entity) = context.caller {
                             context.game.send_plugin_message(entity.id(), BUNGEECORD, &{
                                 let mut vec = Vec::new();
                                 write_str("Connect", &mut vec)?;
-                                write_str(&target_server, &mut vec)?;
+                                write_str(target_server, &mut vec)?;
                                 vec
                             }[..]);
                             Ok(1)

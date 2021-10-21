@@ -15,15 +15,12 @@ use rustyline::error::ReadlineError;
 use rustyline::highlight::Highlighter;
 use rustyline::hint::Hinter;
 use rustyline::validate::Validator;
-use rustyline::{
-    Cmd, CompletionType, ConditionalEventHandler, Context, EditMode, Editor, Event, EventContext,
-    EventHandler, Helper, KeyCode, KeyEvent, RepeatCount,
-};
 use slab::Slab;
 
 use common::Game;
 use ecs::{Entity, HasResources};
 use feather_commands::CommandCtx;
+use rustyline::{CompletionType, Context, EditMode, Editor, Helper};
 
 const PROMPT: &str = "\x1B[1m/\x1B[0m";
 const HISTORY_FILE: &str = ".feather_command_history";
@@ -38,7 +35,7 @@ pub struct ConsoleInput {
 }
 
 impl ConsoleInput {
-    pub fn new(
+    pub fn new<T>(
         stdout: Receiver<u8>,
         completion_type: CompletionType,
         edit_mode: EditMode,
@@ -54,7 +51,7 @@ impl ConsoleInput {
         let line1 = line.clone();
 
         tokio::spawn(async move {
-            let mut rl = Editor::<CommandHelper>::new();
+            let mut rl = Editor::<CommandHelper<T>>::new();
             if rl.load_history(HISTORY_FILE).is_err() {
                 log::info!("No previous console command history.")
             }
@@ -66,17 +63,13 @@ impl ConsoleInput {
                 tab_receiver: tab_receiver_2,
                 command_graph: Default::default(),
                 command_graph_receiver,
+                line: line1.clone(),
             }));
-            let line = line1;
-            rl.bind_sequence(
-                Event::Any,
-                EventHandler::Conditional(Box::new(AsyncHandler(line.clone()))),
-            );
             loop {
                 let s = rl.readline(PROMPT);
                 match s {
                     Ok(s) => {
-                        *line.lock() = String::new();
+                        *line1.lock() = String::new();
                         command_sender.send(s).unwrap();
                         rl.append_history(HISTORY_FILE).unwrap();
                     }
@@ -142,12 +135,14 @@ impl ConsoleInput {
                             children,
                             parent,
                             redirect,
+                            fork,
                         } => CommandNode::Literal {
                             execute: *execute,
                             name: name.clone(),
                             children: children.clone(),
                             parent: *parent,
                             redirect: *redirect,
+                            fork: *fork,
                         },
                         CommandNode::Argument {
                             execute,
@@ -157,6 +152,7 @@ impl ConsoleInput {
                             children,
                             parent,
                             redirect,
+                            fork,
                         } => CommandNode::Argument {
                             execute: *execute,
                             name: name.clone(),
@@ -165,6 +161,7 @@ impl ConsoleInput {
                             children: children.clone(),
                             parent: *parent,
                             redirect: *redirect,
+                            fork: *fork,
                         },
                     },
                 )
@@ -192,30 +189,20 @@ pub fn flush_stdout(queue: &Receiver<u8>, line: &str) {
     }
 }
 
-struct AsyncHandler(Arc<Mutex<String>>);
-
-impl ConditionalEventHandler for AsyncHandler {
-    fn handle(&self, evt: &Event, _: RepeatCount, _: bool, _: &EventContext) -> Option<Cmd> {
-        if let Some(KeyEvent(KeyCode::Char(c), _)) = evt.get(0) {
-            self.0.lock().push(*c);
-            None
-        } else {
-            None
-        }
-    }
-}
-
-struct CommandHelper {
+struct CommandHelper<T> {
     tab_sender: Sender<String>,
     tab_receiver: Receiver<(usize, Vec<String>)>,
+
     /// a temporary copy of the server's command dispatcher (used for faster command highlighting)
-    command_graph: RefCell<CommandDispatcher<()>>,
+    command_graph: RefCell<CommandDispatcher<T>>,
     command_graph_receiver: Receiver<Slab<CommandNode>>,
+
+    line: Arc<Mutex<String>>,
 }
 
-impl Validator for CommandHelper {}
+impl<T> Validator for CommandHelper<T> {}
 
-impl Highlighter for CommandHelper {
+impl<T> Highlighter for CommandHelper<T> {
     fn highlight<'l>(&self, line: &'l str, _pos: usize) -> Cow<'l, str> {
         const RESET: &str = "\x1B[0m";
         const BOLD: &str = "\x1B[1m";
@@ -242,7 +229,11 @@ impl Highlighter for CommandHelper {
                 }
                 CommandNode::Argument { parser, .. } => {
                     if let Some((i, _)) = parser.parse(s) {
-                        (true, &s[i..])
+                        if i == s.len() {
+                            (true, &s[i..])
+                        } else {
+                            (true, &s[i + 1..])
+                        }
                     } else {
                         (false, "")
                     }
@@ -264,8 +255,20 @@ impl Highlighter for CommandHelper {
         let mut command = line;
         let mut node = commands.nodes().next().unwrap().1; // root node is always first
         'next: loop {
-            for child in node.children() {
-                let n = commands.nodes().nth(*child).unwrap().1;
+            let mut children = node.children().clone();
+            match node {
+                CommandNode::Literal {
+                    redirect: Some(redirect),
+                    ..
+                }
+                | CommandNode::Argument {
+                    redirect: Some(redirect),
+                    ..
+                } => children.extend(commands.nodes().nth(*redirect).unwrap().1.children()),
+                _ => (),
+            }
+            for child in children {
+                let n = commands.nodes().nth(child).unwrap().1;
                 if let (true, s) = matches(n, command) {
                     if matches!(n, CommandNode::Argument { .. }) {
                         result += ARGUMENT_COLORS[i];
@@ -276,7 +279,13 @@ impl Highlighter for CommandHelper {
                         result += BOLD;
                         result += &command[0..command.len() - s.len()];
                     }
-                    node = commands.nodes().nth(*child).unwrap().1;
+                    if !node.children().contains(&child) {
+                        // if redirected, reset argument colors
+                        for color in ARGUMENT_COLORS {
+                            result = result.replace(color, "");
+                        }
+                    }
+                    node = commands.nodes().nth(child).unwrap().1;
                     command = s;
                     continue 'next;
                 }
@@ -289,18 +298,20 @@ impl Highlighter for CommandHelper {
         }
         result += RESET;
 
+        *self.line.lock() = result.clone();
+
         Cow::Owned(result)
     }
-    fn highlight_char(&self, line: &str, pos: usize) -> bool {
-        line.chars().nth(pos) != Some(' ')
+    fn highlight_char(&self, _line: &str, _pos: usize) -> bool {
+        true
     }
 }
 
-impl Hinter for CommandHelper {
+impl<T> Hinter for CommandHelper<T> {
     type Hint = String;
 }
 
-impl Completer for CommandHelper {
+impl<T> Completer for CommandHelper<T> {
     type Candidate = String;
 
     fn complete(
@@ -325,4 +336,4 @@ impl Completer for CommandHelper {
     }
 }
 
-impl Helper for CommandHelper {}
+impl<T> Helper for CommandHelper<T> {}

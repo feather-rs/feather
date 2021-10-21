@@ -91,7 +91,7 @@ pub fn register_vanilla_commands(dispatcher: &mut CommandDispatcher<CommandCtx>)
 }
 
 pub fn dispatch_command(
-    dispatcher: &CommandDispatcher<CommandCtx>,
+    dispatcher: &mut CommandDispatcher<CommandCtx>,
     game: &mut Game,
     sender: Entity,
     command: &str,

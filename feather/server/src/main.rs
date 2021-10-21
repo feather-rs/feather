@@ -4,6 +4,7 @@ use base::anvil::level::SuperflatGeneratorOptions;
 use common::banlist::read_banlist;
 use common::{Game, TickLoop, World};
 use ecs::{HasResources, SystemExecutor};
+use feather_commands::CommandCtx;
 use feather_server::console_input::{flush_stdout, ConsoleInput};
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
@@ -34,8 +35,11 @@ async fn main() -> anyhow::Result<()> {
     match Server::bind(options).await {
         Ok(server) => match init_game(server, &config) {
             Ok(mut game) => {
-                let console_input =
-                    ConsoleInput::new(stdout_rx, config.cli.completion_type, config.cli.edit_mode);
+                let console_input = ConsoleInput::new::<CommandCtx>(
+                    stdout_rx,
+                    config.cli.completion_type,
+                    config.cli.edit_mode,
+                );
                 game.insert_resource(console_input);
                 run(game);
             }

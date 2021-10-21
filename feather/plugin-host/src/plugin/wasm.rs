@@ -33,6 +33,10 @@ pub struct WasmPlugin {
     /// command context pointer and return command execution result (should be casted to bool).
     run_command: NativeFunc<(u32, u32, u32, u32), (u32, u64)>,
 
+    /// Exported function to run a command fork given its data pointer, args, args length,
+    /// command context pointer, fork index and return command execution result
+    run_command_fork: NativeFunc<(u32, u32, u32, u32, u32), (u32, u64)>,
+
     /// Exported function to run a command completer given its data pointer, text, text length,
     /// command context pointer and return command completions: Vec<(String, is_some, optional String)>.
     run_command_completer: NativeFunc<(u32, u32, u32, u32), (u32, u32, u32, u32, u32)>,
@@ -65,6 +69,11 @@ impl WasmPlugin {
             .get_function("quill_run_command")?
             .native()?
             .clone();
+        let run_command_fork = instance
+            .exports
+            .get_function("quill_run_command_fork")?
+            .native()?
+            .clone();
         let run_command_completer = instance
             .exports
             .get_function("quill_run_command_completer")?
@@ -77,6 +86,7 @@ impl WasmPlugin {
             enable,
             run_system,
             run_command,
+            run_command_fork,
             run_command_completer,
         })
     }
@@ -94,16 +104,47 @@ impl WasmPlugin {
     pub fn run_command(
         &self,
         data_ptr: PluginPtrMut<u8>,
-        args: Args,
+        args: &mut Args,
         ctx: CommandContext<()>,
     ) -> CommandOutput {
-        // SAFETY: Arguments should be dropped on plugin side
-        let args = ManuallyDrop::new(args);
         match self.run_command.call(
+            data_ptr.ptr as u32,
+            args.as_mut_ptr() as usize as u32,
+            args.len() as u32,
+            &ctx as *const _ as usize as u32,
+        )? {
+            (0, result) => Ok(result as i32),
+            (1, error_ptr) => {
+                // Reading string from a pointer
+                const USIZE_SIZE: usize = 4; // 4 on wasm32, same as usize on native
+                type USIZE = u32; // u32 on wasm32, usize on native
+
+                unsafe {
+                    let ptr = error_ptr as *const USIZE;
+                    let len = *ptr.add(1);
+                    let cap = *ptr.add(2);
+                    let s = String::from_raw_parts(todo!(), len as usize, cap as usize);
+
+                    bail!("Plugin command returned an error: {}", s)
+                }
+            }
+            _ => bail!("Invalid bool returned from function"),
+        }
+    }
+
+    pub fn run_command_fork(
+        &self,
+        data_ptr: PluginPtrMut<u8>,
+        args: &mut Args,
+        ctx: CommandContext<()>,
+        f: u32,
+    ) -> CommandOutput {
+        match self.run_command_fork.call(
             data_ptr.ptr as u32,
             args.as_ptr() as usize as u32,
             args.len() as u32,
             &ctx as *const _ as usize as u32,
+            f as u32,
         )? {
             (0, result) => Ok(result as i32),
             (1, error_ptr) => {

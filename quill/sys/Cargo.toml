@@ -8,4 +8,4 @@ edition = "2018"
 slab = "0.4.4"
 quill-common = { path = "../common" }
 quill-sys-macros = { path = "../sys-macros" }
-commands = { git = "https://github.com/Iaiao/commands", rev = "2d46d6807c9758b0b17182a2ecdcc8c1d476004d" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "75f8a843d9382d7de981ab0628a557f8afb118f1" }

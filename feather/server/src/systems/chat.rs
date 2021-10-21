@@ -109,9 +109,9 @@ fn flush_console_commands(game: &mut Game) -> SysResult {
         log::debug!("Console command: {}", command);
         let console = game.ecs.query::<&Console>().iter().next().unwrap().0;
         let _result = feather_commands::dispatch_command(
-            &*game
+            &mut *game
                 .resources()
-                .get::<CommandDispatcher<CommandCtx>>()
+                .get_mut::<CommandDispatcher<CommandCtx>>()
                 .unwrap(),
             game,
             console,
