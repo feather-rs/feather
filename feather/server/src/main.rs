@@ -1,13 +1,13 @@
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use base::anvil::level::SuperflatGeneratorOptions;
-use common::banlist::read_banlist;
 use common::{Game, TickLoop, World};
 use ecs::{HasResources, SystemExecutor};
-use feather_commands::CommandCtx;
+use feather_commands::{CommandCtx, CommandDispatcher};
 use feather_server::console_input::{flush_stdout, ConsoleInput};
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
+use quill_common::components::DefaultGamemode;
 use worldgen::{ComposableGenerator, SuperflatWorldGenerator, WorldGenerator};
 
 mod logging;
@@ -62,9 +62,10 @@ async fn main() -> anyhow::Result<()> {
 fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
-    init_banlist(&mut game);
     init_world_source(&mut game, config);
+    init_commands(&mut game);
     init_plugin_manager(&mut game)?;
+    init_config(&mut game, config);
     Ok(game)
 }
 
@@ -82,10 +83,6 @@ fn init_systems(game: &mut Game, server: Server) {
     game.insert_resource(systems);
 }
 
-fn init_banlist(game: &mut Game) {
-    game.insert_resource(read_banlist("."));
-}
-
 fn init_world_source(game: &mut Game, config: &Config) {
     // Load chunks from the world save first,
     // and fall back to generating a world otherwise.
@@ -101,6 +98,12 @@ fn init_world_source(game: &mut Game, config: &Config) {
     game.world = World::with_gen_and_path(generator, config.world.name.clone());
 }
 
+fn init_commands(game: &mut Game) {
+    let mut dispatcher = CommandDispatcher::new();
+    feather_commands::register_vanilla_commands(&mut dispatcher);
+    game.insert_resource(dispatcher);
+}
+
 fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let mut plugin_manager = PluginManager::new();
     plugin_manager.load_dir(game, PLUGINS_DIRECTORY)?;
@@ -108,6 +111,10 @@ fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
     game.insert_resource(plugin_manager_rc);
     Ok(())
+}
+
+fn init_config(game: &mut Game, config: &Config) {
+    game.insert_resource(DefaultGamemode::new(config.server.default_gamemode));
 }
 
 fn print_systems(systems: &SystemExecutor<Game>) {

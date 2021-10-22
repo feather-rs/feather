@@ -2,15 +2,14 @@ use log::debug;
 
 use base::anvil::player::PlayerAbilities;
 use base::{Gamemode, Inventory, ItemStack, Position, Text};
-use common::banlist::{BanEntry, BanList};
 use common::{entities::player::HotbarSlot, view::View, window::BackingWindow, Game, Window};
 use ecs::{SysResult, SystemExecutor};
 use feather_commands::{CommandCtx, CommandDispatcher};
 use libcraft_items::InventorySlot;
 use quill_common::components::{
     CanBuild, CanCreativeFly, ChatBox, ChatKind, ChatPreference, CreativeFlying,
-    CreativeFlyingSpeed, Health, Instabreak, Invulnerable, Name, PreviousGamemode, RealIp,
-    WalkSpeed,
+    CreativeFlyingSpeed, DefaultGamemode, Health, Instabreak, Invulnerable, Name, PreviousGamemode,
+    RealIp, WalkSpeed,
 };
 use quill_common::{
     components::{ClientId, NetworkId},
@@ -18,6 +17,7 @@ use quill_common::{
 };
 
 use crate::Server;
+use common::banlist::{BanEntry, BanList};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(poll_new_players);
@@ -72,7 +72,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let gamemode = player_data
         .as_ref()
         .map(|data| Gamemode::from_id(data.gamemode as u8).expect("Unsupported gamemode"))
-        .unwrap_or(server.options.default_gamemode);
+        .unwrap_or(**game.resources.get::<DefaultGamemode>().unwrap());
     let previous_gamemode = player_data
         .as_ref()
         .map(|data| PreviousGamemode::from_id(data.previous_gamemode as i8))

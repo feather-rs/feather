@@ -439,3 +439,26 @@ bincode_component_impl!(RealIp);
 pub struct Console;
 
 bincode_component_impl!(Console);
+
+/// A player's previous gamemode
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    derive_more::Deref,
+    derive_more::DerefMut,
+)]
+pub struct DefaultGamemode(Gamemode);
+
+impl DefaultGamemode {
+    pub fn new(gamemode: Gamemode) -> DefaultGamemode {
+        DefaultGamemode(gamemode)
+    }
+}
+
+bincode_component_impl!(DefaultGamemode);

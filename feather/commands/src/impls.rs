@@ -13,7 +13,9 @@ use ecs::{Ecs, Entity};
 use libcraft_core::Position;
 use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
-use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode, RealIp};
+use quill_common::components::{
+    ChatBox, DefaultGamemode, Gamemode, Name, PreviousGamemode, RealIp,
+};
 use quill_common::entities::Player;
 use quill_common::events::{DisconnectEvent, GamemodeUpdateEvent, InventoryUpdateEvent};
 
@@ -686,6 +688,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 });
         });
 
+    // /banlist
     dispatcher
         .create_command("banlist")
         .executes(|ctx: CommandCtx| {
@@ -730,38 +733,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
             }
         });
 
-    dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
-        (
-            0,
-            text.len(),
-            ctx.resources
-                .get::<BanList>()
-                .unwrap()
-                .players()
-                .into_iter()
-                .map(|entry| entry.value.1.clone())
-                .filter(|name| name.starts_with(text) && name != text)
-                .map(|name| (name, None))
-                .collect(),
-        )
-    });
-
-    dispatcher.register_tab_completion("minecraft:banned_ips", |text, ctx| {
-        (
-            0,
-            text.len(),
-            ctx.resources
-                .get::<BanList>()
-                .unwrap()
-                .ips()
-                .into_iter()
-                .map(|entry| entry.value.to_string())
-                .filter(|ip| ip.starts_with(text) && ip != text)
-                .map(|ip| (ip, None))
-                .collect(),
-        )
-    });
-
+    // /time
     dispatcher
         .create_command("time")
         .with(|command| {
@@ -824,6 +796,59 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                         .executes(|mut ctx| Ok(set_time(&mut ctx, 18000)));
                 });
         });
+
+    // /defaultgamemode
+    dispatcher
+        .create_command("defaultgamemode")
+        .with(|command| default_gamemode(command, "survival", Gamemode::Survival))
+        .with(|command| default_gamemode(command, "creative", Gamemode::Creative))
+        .with(|command| default_gamemode(command, "adventure", Gamemode::Adventure))
+        .with(|command| default_gamemode(command, "spectator", Gamemode::Spectator));
+    fn default_gamemode(command: CreateCommand<CommandCtx, Text, ()>, s: &str, gamemode: Gamemode) {
+        command.subcommand(s).executes(move |context: CommandCtx| {
+            **context.resources.get_mut::<DefaultGamemode>().unwrap() = gamemode;
+            context.send_message(Text::translate_with(
+                "commands.defaultgamemode.success",
+                vec![Text::translate(format!(
+                    "gameMode.{}",
+                    gamemode.to_string()
+                ))],
+            ));
+            Ok(0)
+        });
+    }
+
+    dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
+        (
+            0,
+            text.len(),
+            ctx.resources
+                .get::<BanList>()
+                .unwrap()
+                .players()
+                .into_iter()
+                .map(|entry| entry.value.1.clone())
+                .filter(|name| name.starts_with(text) && name != text)
+                .map(|name| (name, None))
+                .collect(),
+        )
+    });
+
+    dispatcher.register_tab_completion("minecraft:banned_ips", |text, ctx| {
+        (
+            0,
+            text.len(),
+            ctx.resources
+                .get::<BanList>()
+                .unwrap()
+                .ips()
+                .into_iter()
+                .map(|entry| entry.value.to_string())
+                .filter(|ip| ip.starts_with(text) && ip != text)
+                .map(|ip| (ip, None))
+                .collect(),
+        )
+    });
 
     fn time_to_ticks(time: &(TimeUnit, f32)) -> u64 {
         (time.1

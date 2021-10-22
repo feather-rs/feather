@@ -209,7 +209,8 @@ host_component_enum! {
         InvulnerabilityChangeEvent = 1031,
         RealIp = 1032,
         DisconnectEvent = 1033,
-        Console = 1034
+        Console = 1034,
+        DefaultGamemode = 1035,
 
 
     }

@@ -10,7 +10,6 @@ pub use client::{Client, Clients};
 use common::player_count::PlayerCount;
 use common::Game;
 use ecs::SystemExecutor;
-use feather_commands::CommandDispatcher;
 use initial_handler::NewPlayer;
 pub use options::Options;
 use quill_common::components::ClientId;
@@ -82,9 +81,7 @@ impl Server {
     /// Links this server with a `Game` so that players connecting
     /// to the server become part of this `Game`.
     pub fn link_with_game(self, game: &mut Game, systems: &mut SystemExecutor<Game>) {
-        let mut dispatcher = CommandDispatcher::new();
-        feather_commands::register_vanilla_commands(&mut dispatcher);
-        systems::register(self, dispatcher, game, systems);
+        systems::register(self, game, systems);
         game.add_entity_spawn_callback(entities::add_entity_components);
     }
 

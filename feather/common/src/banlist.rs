@@ -4,6 +4,7 @@ use std::net::IpAddr;
 use std::ops::{Add, Deref};
 use std::path::Path;
 
+use crate::Game;
 use chrono::{DateTime, Duration, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -238,4 +239,8 @@ pub fn read_banlist(server_dir: impl AsRef<Path>) -> BanList {
 pub fn write_banlist(_server_dir: impl AsRef<Path>) {
     // There's no shutdown yet
     unimplemented!()
+}
+
+pub fn register(game: &mut Game) {
+    game.insert_resource(read_banlist("."));
 }

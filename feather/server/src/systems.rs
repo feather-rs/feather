@@ -5,8 +5,6 @@ use std::time::{Duration, Instant};
 use crate::Server;
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
-use feather_commands::{CommandCtx, CommandDispatcher};
-use libcraft_text::Text;
 use quill_common::components::{ClientId, Name};
 
 mod block;
@@ -23,14 +21,8 @@ mod time;
 pub mod view;
 
 /// Registers systems for a `Server` with a `Game`.
-pub fn register(
-    server: Server,
-    dispatcher: CommandDispatcher<CommandCtx, Text>,
-    game: &mut Game,
-    systems: &mut SystemExecutor<Game>,
-) {
+pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Game>) {
     game.insert_resource(server);
-    game.insert_resource(dispatcher);
 
     player_join::register(systems);
     systems
