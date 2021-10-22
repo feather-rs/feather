@@ -694,6 +694,51 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 });
         });
 
+    dispatcher
+        .create_command("banlist")
+        .unwrap()
+        .executes(|ctx: CommandCtx| {
+            let banlist = ctx.resources.get::<BanList>().unwrap();
+            let bans = banlist.players().len() + banlist.ips().len();
+
+            if bans == 0 {
+                ctx.send_message(Text::translate("commands.banlist.none"));
+                Ok(0)
+            } else {
+                ctx.send_message(Text::translate_with(
+                    "commands.banlist.list",
+                    vec![bans.to_string()],
+                ));
+                for entry in banlist.players() {
+                    ctx.send_message(Text::translate_with(
+                        "commands.banlist.entry",
+                        vec![
+                            entry.value.1.clone(),
+                            entry
+                                .source
+                                .clone()
+                                .unwrap_or_else(|| "Console".to_string()),
+                            entry.reason.to_string(),
+                        ],
+                    ));
+                }
+                for entry in banlist.ips() {
+                    ctx.send_message(Text::translate_with(
+                        "commands.banlist.entry",
+                        vec![
+                            entry.value.to_string(),
+                            entry
+                                .source
+                                .clone()
+                                .unwrap_or_else(|| "Console".to_string()),
+                            entry.reason.to_string(),
+                        ],
+                    ));
+                }
+                Ok(bans as i32)
+            }
+        });
+
     dispatcher.register_tab_completion(
         "minecraft:entity_anchor",
         fixed_completion(vec!["feet", "eyes"]),
@@ -813,6 +858,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 .unwrap()
                 .players()
                 .into_iter()
+                .map(|entry| entry.value.1.clone())
                 .filter(|name| name.starts_with(text) && name != text)
                 .map(|name| (name, None))
                 .collect(),
@@ -828,6 +874,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 .unwrap()
                 .ips()
                 .into_iter()
+                .map(|entry| entry.value.to_string())
                 .filter(|ip| ip.starts_with(text) && ip != text)
                 .map(|ip| (ip, None))
                 .collect(),

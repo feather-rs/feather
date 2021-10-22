@@ -2,7 +2,7 @@ use log::debug;
 
 use base::anvil::player::PlayerAbilities;
 use base::{Gamemode, Inventory, ItemStack, Position, Text};
-use common::banlist::BanList;
+use common::banlist::{BanEntry, BanList};
 use common::{entities::player::HotbarSlot, view::View, window::BackingWindow, Game, Window};
 use ecs::{SysResult, SystemExecutor};
 use feather_commands::{CommandCtx, CommandDispatcher};
@@ -35,14 +35,14 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get_mut(client_id).unwrap();
     let banlist = game.resources.get::<BanList>().unwrap();
-    if let Some(reason) = banlist.get_ban_reason(&client.uuid()) {
+    if let Some(BanEntry { reason, .. }) = banlist.get_ban_entry(&client.uuid()) {
         client.disconnect(Text::translate_with(
             "multiplayer.disconnect.banned.reason",
             vec![reason.to_string()],
         ));
         return Ok(());
     }
-    if let Some(reason) = banlist.get_ip_ban_reason(&client.real_ip()) {
+    if let Some(BanEntry { reason, .. }) = banlist.get_ip_ban_entry(client.real_ip()) {
         client.disconnect(Text::translate_with(
             "multiplayer.disconnect.banned_ip.reason",
             vec![reason.to_string()],

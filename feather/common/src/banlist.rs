@@ -62,19 +62,15 @@ impl BanList {
     }
 
     /// Returns none if not banned
-    pub fn get_ban_reason(&self, uuid: &Uuid) -> Option<BanReason> {
+    pub fn get_ban_entry(&self, uuid: &Uuid) -> Option<&BanEntry<(Uuid, String)>> {
         self.banned_players
             .iter()
             .find(|entry| entry.value.0 == *uuid)
-            .map(|entry| entry.reason.clone())
     }
 
     /// Returns none if not banned
-    pub fn get_ip_ban_reason(&self, ip: &IpAddr) -> Option<BanReason> {
-        self.banned_ips
-            .iter()
-            .find(|entry| entry.value == *ip)
-            .map(|entry| entry.reason.clone())
+    pub fn get_ip_ban_entry(&self, ip: IpAddr) -> Option<&BanEntry<IpAddr>> {
+        self.banned_ips.iter().find(|entry| entry.value == ip)
     }
 
     /// Returns true if unbanned, false if the player is not banned
@@ -98,31 +94,25 @@ impl BanList {
         old_len != self.banned_ips.len()
     }
 
-    pub fn players(&self) -> Vec<String> {
-        self.banned_players
-            .iter()
-            .map(|e| e.value.1.to_string())
-            .collect()
+    pub fn players(&self) -> Vec<&BanEntry<(Uuid, String)>> {
+        self.banned_players.iter().collect()
     }
 
-    pub fn ips(&self) -> Vec<String> {
-        self.banned_ips
-            .iter()
-            .map(|e| e.value.to_string())
-            .collect()
+    pub fn ips(&self) -> Vec<&BanEntry<IpAddr>> {
+        self.banned_ips.iter().collect()
     }
 }
 
 #[derive(Debug)]
 pub struct BanEntry<T> {
-    value: T,
+    pub value: T,
     /// Timestamp when the player/ip was banned
-    banned: DateTime<Local>,
+    pub banned: DateTime<Local>,
     /// Some if banned by a player, None if banned by console
-    source: Option<String>,
+    pub source: Option<String>,
     /// Timestamp when the player/ip should be unbanned
-    expires: Option<DateTime<Local>>,
-    reason: BanReason,
+    pub expires: Option<DateTime<Local>>,
+    pub reason: BanReason,
 }
 
 #[derive(Clone, PartialEq)]
