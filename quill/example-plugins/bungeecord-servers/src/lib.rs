@@ -40,7 +40,7 @@ impl Plugin for BungeecordServersPlugin {
                        .collect()
                 )
             });
-            dispatcher.create_command("test").unwrap()
+            dispatcher.create_command("test")
                 .argument("server", StringArgument::GREEDY_PHRASE, "bungeecord_servers:servers_without_this")
                 .executes(|context: CommandContext, target_server: &mut String| {
                     let (server, servers) = (context.plugin.server.as_ref(), context.plugin.servers.as_ref());

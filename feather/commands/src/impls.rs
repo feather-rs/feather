@@ -24,8 +24,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /me
     dispatcher
         .create_command("me")
-        .unwrap()
-        .argument("text", StringArgument::GREEDY_PHRASE, "none")
+        .argument("text", StringArgument::GREEDY_PHRASE, None)
         .executes(|context: CommandCtx, action: &mut String| {
             let command_output = Text::translate_with(
                 "chat.type.emote",
@@ -45,7 +44,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /gamemode
     dispatcher
         .create_command("gamemode")
-        .unwrap()
         .with(|command| gamemode_command(command, "survival", Gamemode::Survival))
         .with(|command| gamemode_command(command, "creative", Gamemode::Creative))
         .with(|command| gamemode_command(command, "adventure", Gamemode::Adventure))
@@ -132,7 +130,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /clear
     dispatcher
         .create_command("clear")
-        .unwrap()
         .executes(|mut context: CommandCtx| {
             if context.ecs.get::<Player>(context.sender).is_ok() {
                 // Go through the player's inventory and set all the slots to no items.
@@ -196,7 +193,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 }
             },
         )
-        .argument("maxCount", IntegerArgument::new(0..=i32::MAX), "none")
+        .argument("maxCount", IntegerArgument::new(0..=i32::MAX), None)
         .executes(
             |mut context: CommandCtx,
              selector: &mut EntitySelector,
@@ -350,7 +347,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /ban
     dispatcher
         .create_command("ban")
-        .unwrap()
         .argument("targets", EntityArgument::PLAYERS, "minecraft:entity")
         .executes(|mut context: CommandCtx, selector: &mut EntitySelector| {
             if let Some(targets) = context.find_non_empty_entities_by_selector(selector, true) {
@@ -359,7 +355,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 bail!("No entities were found")
             }
         })
-        .argument("reason", MessageArgument, "none")
+        .argument("reason", MessageArgument, None)
         .executes(
             |mut context: CommandCtx, selector: &mut EntitySelector, reason: &mut Message| {
                 if let Some(targets) = context.find_non_empty_entities_by_selector(selector, true) {
@@ -417,12 +413,11 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /ban-ip
     dispatcher
         .create_command("ban-ip")
-        .unwrap()
         .argument("target", StringArgument::SINGLE_WORD, "player_names")
         .executes(|mut context, target: &mut String| {
             ban_ip(&mut context, target.to_owned(), BanReason::default()).map(|n| n as i32)
         })
-        .argument("reason", MessageArgument, "none")
+        .argument("reason", MessageArgument, None)
         .executes(
             |mut context: CommandCtx, target: &mut String, reason: &mut Message| {
                 let reason = BanReason::new(reason.to_string(|s| {
@@ -489,7 +484,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /pardon
     dispatcher
         .create_command("pardon")
-        .unwrap()
         .argument("targets", EntityArgument::PLAYERS, "minecraft:banned_players")
         .executes(|context: CommandCtx, selector: &mut EntitySelector| {
             match selector {
@@ -532,7 +526,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /pardon-ip
     dispatcher
         .create_command("pardon-ip")
-        .unwrap()
         .argument(
             "targets",
             StringArgument::SINGLE_WORD,
@@ -560,8 +553,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /say
     dispatcher
         .create_command("say")
-        .unwrap()
-        .argument("message", MessageArgument, "none")
+        .argument("message", MessageArgument, None)
         .executes(|context: CommandCtx, message: &mut Message| {
             let command_output = Text::translate_with(
                 "chat.type.announcement",
@@ -582,7 +574,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
 
     // /execute
     let root = 0;
-    let command = dispatcher.create_command("execute").unwrap();
+    let command = dispatcher.create_command("execute");
     let execute = command.current_node_id();
     command
         .with(|command| {
@@ -663,7 +655,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
         .with(|command| {
             command
                 .subcommand("align")
-                .argument("positions", SwizzleArgument, "none")
+                .argument("positions", SwizzleArgument, None)
                 .redirect(execute)
                 .fork(|args, mut context, mut f| {
                     let arg = args.remove(0);
@@ -696,7 +688,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
 
     dispatcher
         .create_command("banlist")
-        .unwrap()
         .executes(|ctx: CommandCtx| {
             let banlist = ctx.resources.get::<BanList>().unwrap();
             let bans = banlist.players().len() + banlist.ips().len();
