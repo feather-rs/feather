@@ -730,6 +730,128 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
             }
         });
 
+    dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
+        (
+            0,
+            text.len(),
+            ctx.resources
+                .get::<BanList>()
+                .unwrap()
+                .players()
+                .into_iter()
+                .map(|entry| entry.value.1.clone())
+                .filter(|name| name.starts_with(text) && name != text)
+                .map(|name| (name, None))
+                .collect(),
+        )
+    });
+
+    dispatcher.register_tab_completion("minecraft:banned_ips", |text, ctx| {
+        (
+            0,
+            text.len(),
+            ctx.resources
+                .get::<BanList>()
+                .unwrap()
+                .ips()
+                .into_iter()
+                .map(|entry| entry.value.to_string())
+                .filter(|ip| ip.starts_with(text) && ip != text)
+                .map(|ip| (ip, None))
+                .collect(),
+        )
+    });
+
+    dispatcher
+        .create_command("time")
+        .with(|command| {
+            command
+                .subcommand("query")
+                .with(|command| {
+                    command.subcommand("daytime").executes(|ctx: CommandCtx| {
+                        Ok(time_query(&ctx, ctx.world.time.time_of_day()))
+                    });
+                })
+                .with(|command| {
+                    command
+                        .subcommand("day")
+                        .executes(|ctx: CommandCtx| Ok(time_query(&ctx, ctx.world.time.days())));
+                })
+                .with(|command| {
+                    command.subcommand("gametime").executes(|ctx: CommandCtx| {
+                        Ok(time_query(&ctx, ctx.world.time.world_age()))
+                    });
+                });
+        })
+        .with(|command| {
+            command
+                .subcommand("add")
+                .argument("time", TimeArgument, "minecraft:time")
+                .executes(|mut ctx: CommandCtx, time: &mut (TimeUnit, f32)| {
+                    let time = ctx.world.time.time() + time_to_ticks(time);
+                    Ok(set_time(&mut ctx, time))
+                });
+        })
+        .with(|command| {
+            command
+                .subcommand("set")
+                .with(|command| {
+                    command
+                        .argument("time", TimeArgument, "minecraft:time")
+                        .executes(|mut ctx: CommandCtx, time: &mut (TimeUnit, f32)| {
+                            let time = time_to_ticks(time);
+                            Ok(set_time(&mut ctx, time))
+                        });
+                })
+                .with(|command| {
+                    command
+                        .subcommand("day")
+                        .executes(|mut ctx| Ok(set_time(&mut ctx, 1000)));
+                })
+                .with(|command| {
+                    command
+                        .subcommand("noon")
+                        .executes(|mut ctx| Ok(set_time(&mut ctx, 6000)));
+                })
+                .with(|command| {
+                    command
+                        .subcommand("night")
+                        .executes(|mut ctx| Ok(set_time(&mut ctx, 13000)));
+                })
+                .with(|command| {
+                    command
+                        .subcommand("midnight")
+                        .executes(|mut ctx| Ok(set_time(&mut ctx, 18000)));
+                });
+        });
+
+    fn time_to_ticks(time: &(TimeUnit, f32)) -> u64 {
+        (time.1
+            * match time.0 {
+                TimeUnit::Days => 24000.0,
+                TimeUnit::Seconds => 20.0,
+                TimeUnit::Ticks => 1.0,
+            }) as u64
+    }
+
+    fn time_query(context: &CommandCtx, time: u64) -> i32 {
+        context.send_message(Text::translate_with(
+            "commands.time.query",
+            vec![time.to_string()],
+        ));
+        time as i32
+    }
+
+    fn set_time(context: &mut CommandCtx, time: u64) -> i32 {
+        context.set_time(time);
+        let time_of_day = context.world.time.time_of_day();
+        context.send_message(Text::translate_with(
+            "commands.time.set",
+            vec![time_of_day.to_string()],
+        ));
+        time_of_day as i32
+    }
+
     dispatcher.register_tab_completion(
         "minecraft:entity_anchor",
         fixed_completion(vec!["feet", "eyes"]),
@@ -840,37 +962,21 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
         }
     });
 
-    dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
-        (
-            0,
-            text.len(),
-            ctx.resources
-                .get::<BanList>()
-                .unwrap()
-                .players()
-                .into_iter()
-                .map(|entry| entry.value.1.clone())
-                .filter(|name| name.starts_with(text) && name != text)
-                .map(|name| (name, None))
-                .collect(),
-        )
-    });
-
-    dispatcher.register_tab_completion("minecraft:banned_ips", |text, ctx| {
-        (
-            0,
-            text.len(),
-            ctx.resources
-                .get::<BanList>()
-                .unwrap()
-                .ips()
-                .into_iter()
-                .map(|entry| entry.value.to_string())
-                .filter(|ip| ip.starts_with(text) && ip != text)
-                .map(|ip| (ip, None))
-                .collect(),
-        )
-    });
+    dispatcher.register_tab_completion("minecraft:time", |text, _ctx| {
+        if text.parse::<f64>().is_ok() {
+            (
+                text.len(),
+                0,
+                vec![
+                    ("d".to_string(), None),
+                    ("s".to_string(), None),
+                    ("t".to_string(), None),
+                ],
+            )
+        } else {
+            (0, 0, Vec::new())
+        }
+    })
 }
 
 // #[command(usage = "tp|teleport <destination>")]
@@ -1131,59 +1237,4 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
 //         );
 //     }
 //     Ok(None)
-// }
-//
-// #[command(usage = "time query <info>")]
-// pub fn time_query(
-//     context: &mut CommandCtx,
-//     info: TimeQueryInformation,
-// ) -> anyhow::Result<Option<String>> {
-//     let time = match info {
-//         TimeQueryInformation::DayTime => context.world.time.time(),
-//         TimeQueryInformation::GameTime => context.world.time.world_age(),
-//         TimeQueryInformation::Day => context.world.time.days(),
-//     };
-//
-//     if let Ok(mut chat) = context.ecs.get_mut::<ChatBox>(context.sender) {
-//         let message =
-//             Text::translate_with("commands.time.query", vec![Text::from(time.to_string())]);
-//         chat.send_system(message);
-//     }
-//
-//     Ok(None)
-// }
-//
-// #[command(usage = "time add <time>")]
-// pub fn time_add(context: &mut CommandCtx, time: TimeArgument) -> anyhow::Result<Option<String>> {
-//     let time = context.world.time.time() + time.0;
-//     set_time(ctx, time);
-//     Ok(None)
-// }
-//
-// #[command(usage = "time set <time>")]
-// pub fn time_set_0(context: &mut CommandCtx, time: TimeArgument) -> anyhow::Result<Option<String>> {
-//     set_time(ctx, time.0);
-//     Ok(None)
-// }
-//
-// #[command(usage = "time set <time_spec>")]
-// pub fn time_set_1(context: &mut CommandCtx, time_spec: TimeSpec) -> anyhow::Result<Option<String>> {
-//     set_time(
-//         ctx,
-//         match time_spec {
-//             TimeSpec::Day => 1_000,
-//             TimeSpec::Noon => 6_000,
-//             TimeSpec::Night => 13_000,
-//             TimeSpec::Midnight => 18_000,
-//         },
-//     );
-//     Ok(None)
-// }
-//
-// fn set_time(context: &mut CommandCtx, time: u64) {
-//     context.ecs.insert_event(TimeUpdateEvent {
-//         old: context.world.time.time(),
-//         new: time,
-//     });
-//     context.world.time.set_time(time);
 // }

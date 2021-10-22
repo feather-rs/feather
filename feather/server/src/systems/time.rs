@@ -21,6 +21,10 @@ fn time_change(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn time_tick(game: &mut Game, _server: &mut Server) -> SysResult {
+    game.ecs.insert_event(TimeUpdateEvent {
+        old: game.world.time.time(),
+        new: game.world.time.time() + 1,
+    });
     game.world.time.increment();
     Ok(())
 }
