@@ -87,7 +87,19 @@ fn init_world_source(game: &mut Game, config: &Config) {
     // Load chunks from the world save first,
     // and fall back to generating a world otherwise.
 
-    let seed = 42; // FIXME: load from the level file
+    // FIXME: load from the level file if exists
+    let seed = config.world.seed.parse().unwrap_or_else(|_| {
+        if config.world.seed.is_empty() {
+            rand::random()
+        } else {
+            // Java String#hashCode
+            let mut hashcode = 0i32;
+            for c in config.world.seed.chars() {
+                hashcode = hashcode.overflowing_mul(31).0 + c as i32;
+            }
+            hashcode as u64
+        }
+    });
 
     let generator: Arc<dyn WorldGenerator> = match &config.world.generator[..] {
         "flat" => Arc::new(SuperflatWorldGenerator::new(
@@ -95,7 +107,7 @@ fn init_world_source(game: &mut Game, config: &Config) {
         )),
         _ => Arc::new(ComposableGenerator::default_with_seed(seed)),
     };
-    game.world = World::with_gen_and_path(generator, config.world.name.clone());
+    game.world = World::new(generator, config.world.name.clone(), seed);
 }
 
 fn init_commands(game: &mut Game) {

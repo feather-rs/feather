@@ -33,15 +33,17 @@ pub struct World {
     canceled_chunk_loads: AHashSet<ChunkPosition>,
     world_dir: PathBuf,
     pub time: WorldTime,
+    seed: u64,
 }
 
 impl Default for World {
     fn default() -> Self {
+        let seed = 0;
         Self {
             chunk_map: ChunkMap::new(),
             chunk_worker: ChunkWorker::new(
                 "world",
-                Arc::new(ComposableGenerator::default_with_seed(0)),
+                Arc::new(ComposableGenerator::default_with_seed(seed)),
             ),
             cache: ChunkCache::new(),
             loading_chunks: AHashSet::new(),
@@ -51,22 +53,21 @@ impl Default for World {
                 world_age: 0,
                 time: 0,
             },
+            seed,
         }
     }
 }
 
 impl World {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn with_gen_and_path(
+    pub fn new(
         generator: Arc<dyn WorldGenerator>,
         world_dir: impl Into<PathBuf> + Clone,
+        seed: u64,
     ) -> Self {
         Self {
             world_dir: world_dir.clone().into(),
             chunk_worker: ChunkWorker::new(world_dir, generator),
+            seed,
             ..Default::default()
         }
     }
@@ -174,6 +175,10 @@ impl World {
 
     pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
         base::anvil::player::save_player_data(&self.world_dir, uuid, data)
+    }
+
+    pub fn seed(&self) -> u64 {
+        self.seed
     }
 }
 
@@ -317,7 +322,7 @@ mod tests {
 
     #[test]
     fn world_out_of_bounds() {
-        let mut world = World::new();
+        let mut world = World::default();
         world
             .chunk_map_mut()
             .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));

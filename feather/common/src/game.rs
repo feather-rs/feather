@@ -60,7 +60,7 @@ impl Game {
     /// Creates a new, empty `Game`.
     pub fn new() -> Self {
         Self {
-            world: World::new(),
+            world: World::default(),
             ecs: Ecs::new(),
             resources: Arc::new(Resources::new()),
             chunk_entities: ChunkEntities::default(),

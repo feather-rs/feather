@@ -854,26 +854,26 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
         .argument("pos", BlockPosArgument, "minecraft:block_pos")
         .argument("block", BlockStateArgument, "minecraft:block_state")
         .executes(|context, pos: &mut BlockPos, block: &mut BlockState| {
-            set_block_replace(context, pos, block, SetBlockMode::default())
+            set_block(context, pos, block, SetBlockMode::default())
         })
         .with(|command| {
             command.subcommand("destroy").executes(
                 |context, pos: &mut BlockPos, block: &mut BlockState| {
-                    set_block_replace(context, pos, block, SetBlockMode::Destroy)
+                    set_block(context, pos, block, SetBlockMode::Destroy)
                 },
             );
         })
         .with(|command| {
             command.subcommand("keep").executes(
                 |context, pos: &mut BlockPos, block: &mut BlockState| {
-                    set_block_replace(context, pos, block, SetBlockMode::Keep)
+                    set_block(context, pos, block, SetBlockMode::Keep)
                 },
             );
         })
         .with(|command| {
             command.subcommand("replace").executes(
                 |context, pos: &mut BlockPos, block: &mut BlockState| {
-                    set_block_replace(context, pos, block, SetBlockMode::Replace)
+                    set_block(context, pos, block, SetBlockMode::Replace)
                 },
             );
         });
@@ -890,7 +890,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
         }
     }
 
-    fn set_block_replace(
+    fn set_block(
         mut context: CommandCtx,
         pos: &mut BlockPos,
         block: &mut BlockState,
@@ -968,6 +968,21 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
             }
         }
     }
+
+    // /seed
+    dispatcher
+        .create_command("seed")
+        .executes(|context: CommandCtx| {
+            context.send_message(
+                Text::from("Seed: [")
+                    + Text::from(context.world.seed().to_string())
+                        .green()
+                        .on_click_copy_to_clipboard(context.world.seed().to_string())
+                        .on_hover_show_text(Text::translate("chat.copy.click"))
+                    + Text::from("]"),
+            );
+            Ok(context.world.seed() as i32)
+        });
 
     dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
         (
@@ -1369,21 +1384,5 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
 //     //    .tx
 //     //    .try_send(())?;
 //
-//     Ok(None)
-// }
-//
-// #[command(usage = "seed")]
-// pub fn seed(context: &mut CommandCtx) -> anyhow::Result<Option<String>> {
-//     if let Ok(mut chat) = context.ecs.get_mut::<ChatBox>(context.sender) {
-//         let world_seed = "TODO";
-//         chat.send_system(
-//             Text::from("Seed: [")
-//                 + Text::from(world_seed.to_string())
-//                     .green()
-//                     .on_click_copy_to_clipboard(world_seed.to_string())
-//                     .on_hover_show_text(TextValue::translate("chat.copy.click"))
-//                 + Text::from("]"),
-//         );
-//     }
 //     Ok(None)
 // }
