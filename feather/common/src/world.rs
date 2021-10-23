@@ -33,7 +33,7 @@ pub struct World {
     canceled_chunk_loads: AHashSet<ChunkPosition>,
     world_dir: PathBuf,
     pub time: WorldTime,
-    seed: u64,
+    seed: i64,
 }
 
 impl Default for World {
@@ -62,7 +62,7 @@ impl World {
     pub fn new(
         generator: Arc<dyn WorldGenerator>,
         world_dir: impl Into<PathBuf> + Clone,
-        seed: u64,
+        seed: i64,
     ) -> Self {
         Self {
             world_dir: world_dir.clone().into(),
@@ -177,7 +177,7 @@ impl World {
         base::anvil::player::save_player_data(&self.world_dir, uuid, data)
     }
 
-    pub fn seed(&self) -> u64 {
+    pub fn seed(&self) -> i64 {
         self.seed
     }
 }

@@ -93,11 +93,12 @@ fn init_world_source(game: &mut Game, config: &Config) {
             rand::random()
         } else {
             // Java String#hashCode
-            let mut hashcode = 0i32;
-            for c in config.world.seed.chars() {
-                hashcode = hashcode.overflowing_mul(31).0 + c as i32;
-            }
-            hashcode as u64
+            config
+                .world
+                .seed
+                .chars()
+                .fold(0i32, |val, ch| val.wrapping_mul(31).wrapping_add(ch as i32))
+                as i64
         }
     });
 
