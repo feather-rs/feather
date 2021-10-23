@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 
-commands = { git = "https://github.com/Iaiao/commands", rev = "76a3b02340af32220fb377290e6a6d5ff27d2cc0" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "42bebd15e18cf511355aaf5f241fb4218031c4ee" }
 smallvec = "1.4"
 anyhow = "1.0"
 rand = "0.7"
@@ -22,3 +22,5 @@ libcraft-text = { path = "../../libcraft/text" }
 libcraft-items = { path = "../../libcraft/items" }
 libcraft-core = { path = "../../libcraft/core" }
 feather-datapacks = { path = "../datapacks" }
+feather-blocks = { path = "../blocks" }
+feather-base = { path = "../base" }

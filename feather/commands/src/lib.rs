@@ -1,18 +1,22 @@
 //! Implements the Feather command dispatching framework
 //! and vanilla commands not defined by plugins.
 
+use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
-use commands::arguments::{EntityAnchor, EntitySelector};
+use commands::arguments::{BlockPos, EntityAnchor, EntitySelector};
 pub use commands::dispatcher::CommandDispatcher;
 use commands::dispatcher::{CommandOutput, TabCompletion};
 use log::{debug, info};
 
+use common::events::BlockChangeEvent;
 use common::Game;
 use ecs::Entity;
-use libcraft_core::Position;
+use feather_base::ValidBlockPosition;
+use feather_blocks::BlockId;
+use libcraft_core::{BlockPosition, Position, Vec3d};
 use libcraft_text::{Text, TextComponentBuilder};
-use quill_common::components::{ChatBox, Name};
+use quill_common::components::{ChatBox, Name, Sneaking};
 
 mod impls;
 pub mod utils;
@@ -96,6 +100,75 @@ impl CommandCtx {
     pub fn find_entities_by_selector(&self, selector: &EntitySelector) -> Vec<Entity> {
         utils::find_entities_by_selector(self.sender, self, selector)
     }
+    pub fn block_pos(&self, pos: &BlockPos) -> Result<ValidBlockPosition, BlockPosError> {
+        const EYE_LEVEL: f64 = 1.27;
+        const EYE_LEVEL_SNEAKING: f64 = 1.62;
+
+        if self.position.is_none()
+            && matches!(
+                pos,
+                BlockPos::Local(..)
+                    | BlockPos::Relative { x: (true, _), .. }
+                    | BlockPos::Relative { y: (true, _), .. }
+                    | BlockPos::Relative { z: (true, _), .. }
+            )
+        {
+            Err(BlockPosError::NotAnEntity)
+        } else {
+            let pos = match pos {
+                BlockPos::Relative { x, y, z } => BlockPosition {
+                    x: if x.0 {
+                        self.position.unwrap().x.floor() as i32 + x.1
+                    } else {
+                        x.1
+                    },
+                    y: if y.0 {
+                        self.position.unwrap().y.floor() as i32 + y.1
+                    } else {
+                        y.1
+                    },
+                    z: if z.0 {
+                        self.position.unwrap().z.floor() as i32 + z.1
+                    } else {
+                        z.1
+                    },
+                },
+                BlockPos::Local(_, _, _) => {
+                    let _origin = match self.anchor {
+                        EntityAnchor::Feet => self.position.unwrap(),
+                        EntityAnchor::Eyes => {
+                            if ***self.ecs.get::<&Sneaking>(self.sender).unwrap() {
+                                self.position.unwrap() + Vec3d::new(0.0, EYE_LEVEL_SNEAKING, 0.0)
+                            } else {
+                                self.position.unwrap() + Vec3d::new(0.0, EYE_LEVEL, 0.0)
+                            }
+                        }
+                    };
+                    unimplemented!()
+                }
+            };
+
+            ValidBlockPosition::try_from(pos).map_err(|_| BlockPosError::InvalidPosition)
+        }
+    }
+    pub fn set_block_at(&mut self, pos: ValidBlockPosition, block: BlockId, destroy: bool) -> bool {
+        if !destroy && self.world.block_at(pos) == Some(block) {
+            false
+        } else {
+            if destroy {
+                // TODO drop old block, play its destroy sound
+            }
+            self.world.set_block_at(pos, block);
+            self.ecs.insert_event(BlockChangeEvent::single(pos));
+            true
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum BlockPosError {
+    NotAnEntity,
+    InvalidPosition,
 }
 
 pub fn register_vanilla_commands(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {

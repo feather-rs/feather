@@ -1,5 +1,7 @@
 //! The implementations of various commands.
 
+use std::collections::BTreeMap;
+
 use anyhow::bail;
 use commands::arguments::*;
 use commands::create_command::CreateCommand;
@@ -10,6 +12,7 @@ use uuid::Uuid;
 use common::banlist::{BanList, BanReason};
 use common::{Game, Window};
 use ecs::{Ecs, Entity};
+use feather_blocks::BlockId;
 use libcraft_core::Position;
 use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
@@ -20,7 +23,7 @@ use quill_common::entities::Player;
 use quill_common::events::{DisconnectEvent, GamemodeUpdateEvent, InventoryUpdateEvent};
 
 use crate::utils::*;
-use crate::CommandCtx;
+use crate::{BlockPosError, CommandCtx};
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
     // /me
@@ -797,6 +800,33 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 });
         });
 
+    fn time_to_ticks(time: &(TimeUnit, f32)) -> u64 {
+        (time.1
+            * match time.0 {
+                TimeUnit::Days => 24000.0,
+                TimeUnit::Seconds => 20.0,
+                TimeUnit::Ticks => 1.0,
+            }) as u64
+    }
+
+    fn time_query(context: &CommandCtx, time: u64) -> i32 {
+        context.send_message(Text::translate_with(
+            "commands.time.query",
+            vec![time.to_string()],
+        ));
+        time as i32
+    }
+
+    fn set_time(context: &mut CommandCtx, time: u64) -> i32 {
+        context.set_time(time);
+        let time_of_day = context.world.time.time_of_day();
+        context.send_message(Text::translate_with(
+            "commands.time.set",
+            vec![time_of_day.to_string()],
+        ));
+        time_of_day as i32
+    }
+
     // /defaultgamemode
     dispatcher
         .create_command("defaultgamemode")
@@ -816,6 +846,127 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
             ));
             Ok(0)
         });
+    }
+
+    // /setblock
+    dispatcher
+        .create_command("setblock")
+        .argument("pos", BlockPosArgument, "minecraft:block_pos")
+        .argument("block", BlockStateArgument, "minecraft:block_state")
+        .executes(|context, pos: &mut BlockPos, block: &mut BlockState| {
+            set_block_replace(context, pos, block, SetBlockMode::default())
+        })
+        .with(|command| {
+            command.subcommand("destroy").executes(
+                |context, pos: &mut BlockPos, block: &mut BlockState| {
+                    set_block_replace(context, pos, block, SetBlockMode::Destroy)
+                },
+            );
+        })
+        .with(|command| {
+            command.subcommand("keep").executes(
+                |context, pos: &mut BlockPos, block: &mut BlockState| {
+                    set_block_replace(context, pos, block, SetBlockMode::Keep)
+                },
+            );
+        })
+        .with(|command| {
+            command.subcommand("replace").executes(
+                |context, pos: &mut BlockPos, block: &mut BlockState| {
+                    set_block_replace(context, pos, block, SetBlockMode::Replace)
+                },
+            );
+        });
+
+    enum SetBlockMode {
+        Destroy,
+        Keep,
+        Replace,
+    }
+
+    impl Default for SetBlockMode {
+        fn default() -> Self {
+            SetBlockMode::Replace
+        }
+    }
+
+    fn set_block_replace(
+        mut context: CommandCtx,
+        pos: &mut BlockPos,
+        block: &mut BlockState,
+        mode: SetBlockMode,
+    ) -> anyhow::Result<i32> {
+        match context.block_pos(pos) {
+            Ok(pos) => {
+                if context.world.is_chunk_loaded(pos.chunk()) {
+                    if matches!(mode, SetBlockMode::Keep)
+                        && !context.world.block_at(pos).unwrap().is_air()
+                    {
+                        context.send_message(Text::translate("commands.setblock.failed").red());
+                        bail!("The old block is not empty and the setblock mode is `keep`")
+                    }
+                    if let Some(block_id) = BlockId::from_identifier(&block.block.to_string()) {
+                        let mut properties = block_id
+                            .to_properties_map()
+                            .into_iter()
+                            .map(|(key, value)| (key.into(), value.into()))
+                            .collect::<BTreeMap<String, String>>();
+                        properties.extend(
+                            block
+                                .properties
+                                .iter()
+                                .map(|(key, value)| (key.to_string(), value.to_string())),
+                        );
+                        if let Some(new) = BlockId::from_identifier_and_properties(
+                            &block.block.to_string(),
+                            &properties,
+                        ) {
+                            if context.set_block_at(pos, new, matches!(mode, SetBlockMode::Destroy))
+                            {
+                                // TODO Tick this block
+
+                                context.send_message(Text::translate_with(
+                                    "commands.setblock.success",
+                                    vec![
+                                        pos.x().to_string(),
+                                        pos.y().to_string(),
+                                        pos.z().to_string(),
+                                    ],
+                                ));
+                                Ok(1)
+                            } else {
+                                context.send_message(
+                                    Text::translate("commands.setblock.failed").red(),
+                                );
+                                bail!("This block is already set")
+                            }
+                        } else {
+                            // TODO report errors from BlockId::from_identifier_and_properties
+                            context.send_message(Text::translate("command.failed").red());
+                            bail!(
+                                "Too many properties, some of them doesn't exist in `{}`",
+                                block.block
+                            )
+                        }
+                    } else {
+                        // TODO report errors from BlockId::from_identifier_and_properties
+                        context.send_message(Text::translate("command.failed").red());
+                        bail!("Invalid block identifier `{}`", block.block)
+                    }
+                } else {
+                    context.send_message(Text::translate("argument.pos.unloaded").red());
+                    bail!("Unloaded position")
+                }
+            }
+            Err(BlockPosError::NotAnEntity) => {
+                context.send_message(Text::translate("commands.setblock.failed").red());
+                bail!("Local and relative coordinates with non-entity sender")
+            }
+            Err(BlockPosError::InvalidPosition) => {
+                context.send_message(Text::translate("argument.pos.unloaded").red());
+                bail!("Invalid position")
+            }
+        }
     }
 
     dispatcher.register_tab_completion("minecraft:banned_players", |text, ctx| {
@@ -849,33 +1000,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx, Text>) {
                 .collect(),
         )
     });
-
-    fn time_to_ticks(time: &(TimeUnit, f32)) -> u64 {
-        (time.1
-            * match time.0 {
-                TimeUnit::Days => 24000.0,
-                TimeUnit::Seconds => 20.0,
-                TimeUnit::Ticks => 1.0,
-            }) as u64
-    }
-
-    fn time_query(context: &CommandCtx, time: u64) -> i32 {
-        context.send_message(Text::translate_with(
-            "commands.time.query",
-            vec![time.to_string()],
-        ));
-        time as i32
-    }
-
-    fn set_time(context: &mut CommandCtx, time: u64) -> i32 {
-        context.set_time(time);
-        let time_of_day = context.world.time.time_of_day();
-        context.send_message(Text::translate_with(
-            "commands.time.set",
-            vec![time_of_day.to_string()],
-        ));
-        time_of_day as i32
-    }
 
     dispatcher.register_tab_completion(
         "minecraft:entity_anchor",

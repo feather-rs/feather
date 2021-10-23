@@ -484,11 +484,11 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
-source = "git+https://github.com/Iaiao/commands?rev=76a3b02340af32220fb377290e6a6d5ff27d2cc0#76a3b02340af32220fb377290e6a6d5ff27d2cc0"
+source = "git+https://github.com/Iaiao/commands?rev=42bebd15e18cf511355aaf5f241fb4218031c4ee#42bebd15e18cf511355aaf5f241fb4218031c4ee"
 dependencies = [
  "anyhow",
  "log",
- "quartz_nbt 0.2.4 (git+https://github.com/Iaiao/quartz_nbt?branch=parse_and_size)",
+ "quartz_nbt 0.2.4 (git+https://github.com/Rusty-Quartz/quartz_nbt)",
  "serde",
  "slab",
  "uuid",
@@ -899,6 +899,8 @@ version = "0.6.0"
 dependencies = [
  "anyhow",
  "commands",
+ "feather-base",
+ "feather-blocks",
  "feather-common",
  "feather-datapacks",
  "feather-ecs",
@@ -2286,13 +2288,13 @@ dependencies = [
 [[package]]
 name = "quartz_nbt"
 version = "0.2.4"
-source = "git+https://github.com/Iaiao/quartz_nbt?branch=parse_and_size#d4b6e302a61ec2a6c98fea3c5b325beb5fd9292b"
+source = "git+https://github.com/Rusty-Quartz/quartz_nbt#f2b92c3945ab6d5e72d1149eada11ed9c58871d6"
 dependencies = [
  "anyhow",
  "byteorder",
  "cesu8",
  "flate2",
- "quartz_nbt_macros 0.1.1 (git+https://github.com/Iaiao/quartz_nbt?branch=parse_and_size)",
+ "quartz_nbt_macros 0.1.1 (git+https://github.com/Rusty-Quartz/quartz_nbt)",
  "serde",
 ]
 
@@ -2310,7 +2312,7 @@ dependencies = [
 [[package]]
 name = "quartz_nbt_macros"
 version = "0.1.1"
-source = "git+https://github.com/Iaiao/quartz_nbt?branch=parse_and_size#d4b6e302a61ec2a6c98fea3c5b325beb5fd9292b"
+source = "git+https://github.com/Rusty-Quartz/quartz_nbt#f2b92c3945ab6d5e72d1149eada11ed9c58871d6"
 dependencies = [
  "proc-macro2",
  "quote",

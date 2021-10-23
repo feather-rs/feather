@@ -56,7 +56,7 @@ libcraft-text = { path = "../../libcraft/text" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 datapacks = { path = "../datapacks", package = "feather-datapacks" }
 feather-commands = { path = "../commands" }
-commands = { git = "https://github.com/Iaiao/commands", rev = "76a3b02340af32220fb377290e6a6d5ff27d2cc0" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "42bebd15e18cf511355aaf5f241fb4218031c4ee" }
 
 [features]
 default = [ "plugin-cranelift" ]
