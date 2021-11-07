@@ -12,5 +12,8 @@ futures-lite = "1"
 argh = "0.1"
 anyhow = "1"
 log = "0.4"
-simple_logger = "1"
 either = "1"
+colored = "2"
+fern = "0.6"
+time = { version = "0.3.4", features = ["local-offset", "formatting", "macros"] }
+

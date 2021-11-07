@@ -441,17 +441,6 @@ dependencies = [
 
 [[package]]
 name = "colored"
-version = "1.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4ffc801dacf156c5854b9df4f425a626539c3a6ef7893cc0c5084a23f0b6c59"
-dependencies = [
- "atty",
- "lazy_static",
- "winapi",
-]
-
-[[package]]
-name = "colored"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3616f750b84d8f0de8a58bda93e08e2a81ad3f523089b05f1dffecab48c6cbd"
@@ -930,7 +919,7 @@ dependencies = [
  "ahash 0.7.4",
  "anyhow",
  "base64",
- "colored 2.0.0",
+ "colored",
  "crossbeam-utils",
  "feather-base",
  "feather-common",
@@ -1582,11 +1571,13 @@ dependencies = [
  "argh",
  "async-executor",
  "async-io",
+ "colored",
  "either",
  "feather-protocol",
+ "fern",
  "futures-lite",
  "log",
- "simple_logger",
+ "time 0.3.4",
 ]
 
 [[package]]
@@ -2612,19 +2603,6 @@ dependencies = [
  "chrono",
  "num-bigint 0.2.6",
  "num-traits",
-]
-
-[[package]]
-name = "simple_logger"
-version = "1.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7de33c687404ec3045d4a0d437580455257c0436f858d702f244e7d652f9f07"
-dependencies = [
- "atty",
- "chrono",
- "colored 1.9.3",
- "log",
- "winapi",
 ]
 
 [[package]]
