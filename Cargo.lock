@@ -971,9 +971,6 @@ dependencies = [
 [[package]]
 name = "feather-utils"
 version = "0.1.0"
-dependencies = [
- "simple_logger",
-]
 
 [[package]]
 name = "feather-worldgen"
