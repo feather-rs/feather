@@ -38,8 +38,11 @@ protocol = { path = "../protocol", package = "feather-protocol" }
 quill-common = { path = "../../quill/common" }
 rand = "0.7"
 ring = "0.16"
-rsa = "0.3"
-rsa-der = "0.2"
+
+rsa = "0.4.0"
+rsa-der ="0.3"
+
+
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 sha-1 = "0.9"
