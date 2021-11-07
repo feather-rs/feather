@@ -19,9 +19,9 @@ pub fn init(level: LevelFilter) {
                 record.module_path().unwrap_or_default()
             };
 
-            let datetime: OffsetDateTime = match OffsetDateTime::now_local().is_ok() {
-                true => OffsetDateTime::now_local().unwrap(),
-                false => OffsetDateTime::now_utc(),
+            let datetime: OffsetDateTime = match OffsetDateTime::now_local() {
+                Ok(x) => x,
+                Err(_) => OffsetDateTime::now_utc(),
             };
             out.finish(format_args!(
                 "{} {:<5} [{}] {}",
