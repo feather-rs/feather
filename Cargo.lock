@@ -411,7 +411,7 @@ dependencies = [
  "libc",
  "num-integer",
  "num-traits",
- "time",
+ "time 0.1.43",
  "winapi",
 ]
 
@@ -930,7 +930,6 @@ dependencies = [
  "ahash 0.7.4",
  "anyhow",
  "base64",
- "chrono",
  "colored 2.0.0",
  "crossbeam-utils",
  "feather-base",
@@ -962,6 +961,7 @@ dependencies = [
  "serde_json",
  "sha-1",
  "slab",
+ "time 0.3.4",
  "tokio",
  "toml",
  "ureq",
@@ -2816,6 +2816,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "time"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99beeb0daeac2bd1e86ac2c21caddecb244b39a093594da1a661ec2060c7aedd"
+dependencies = [
+ "itoa",
+ "libc",
+ "time-macros",
+]
+
+[[package]]
+name = "time-macros"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25eb0ca3468fc0acc11828786797f6ef9aa1555e4a211a60d64cc8e4d1be47d6"
+
+[[package]]
 name = "tiny-keccak"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3366,7 +3383,7 @@ checksum = "55a275df0190f65f9e62f25b6bc8505a55cc643e433c822fb03a5e3e11fe1c29"
 dependencies = [
  "byteorder",
  "serde",
- "time",
+ "time 0.1.43",
  "wasmer-types",
 ]
 
@@ -3509,5 +3526,5 @@ dependencies = [
  "crc32fast",
  "flate2",
  "thiserror",
- "time",
+ "time 0.1.43",
 ]

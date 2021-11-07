@@ -1,5 +1,7 @@
 use colored::Colorize;
 use log::{Level, LevelFilter};
+use time::macros::format_description;
+use time::OffsetDateTime;
 
 pub fn init(level: LevelFilter) {
     fern::Dispatch::new()
@@ -16,9 +18,18 @@ pub fn init(level: LevelFilter) {
             } else {
                 record.module_path().unwrap_or_default()
             };
+
+            let datetime: OffsetDateTime = match OffsetDateTime::now_local().is_ok() {
+                true => OffsetDateTime::now_local().unwrap(),
+                false => OffsetDateTime::now_utc(),
+            };
             out.finish(format_args!(
                 "{} {:<5} [{}] {}",
-                chrono::Local::now().format("%Y-%m-%d %H:%M:%S,%3f"),
+                datetime
+                    .format(format_description!(
+                        "[year]-[month]-[day] [hour]:[minute]:[second],[subsecond digits:3]"
+                    ))
+                    .unwrap(),
                 level_string,
                 target,
                 message,

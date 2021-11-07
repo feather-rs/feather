@@ -17,7 +17,7 @@ ahash = "0.7"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
 base64 = "0.13"
-chrono = "0.4"
+time = { version = "0.3.4", features = ["local-offset", "formatting", "macros"] }
 colored = "2"
 common = { path = "../common", package = "feather-common" }
 crossbeam-utils = "0.8"
