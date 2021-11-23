@@ -9,6 +9,7 @@ members = [
     "libcraft/particles",
     "libcraft/text",
     "libcraft/inventory",
+    "libcraft/effects",
 
     # Quill
     "quill/sys-macros",

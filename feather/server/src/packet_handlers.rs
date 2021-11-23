@@ -20,6 +20,7 @@ mod entity_action;
 mod interaction;
 pub mod inventory;
 mod movement;
+mod use_item;
 
 /// Handles a packet received from a client.
 pub fn handle_packet(
@@ -77,6 +78,10 @@ pub fn handle_packet(
             entity_action::handle_entity_action(game, player_id, packet)
         }
 
+        ClientPlayPacket::UseItem(packet) => {
+            use_item::handle_use_item(game, server, packet, player_id)
+        }
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
@@ -108,8 +113,7 @@ pub fn handle_packet(
         | ClientPlayPacket::UpdateJigsawBlock(_)
         | ClientPlayPacket::UpdateStructureBlock(_)
         | ClientPlayPacket::UpdateSign(_)
-        | ClientPlayPacket::Spectate(_)
-        | ClientPlayPacket::UseItem(_) => Ok(()),
+        | ClientPlayPacket::Spectate(_) => Ok(()),
     }
 }
 

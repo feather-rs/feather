@@ -51,6 +51,7 @@ uuid = "0.8"
 slab = "0.4"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
+libcraft-effects = { path = "../../libcraft/effects" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 
 [features]
