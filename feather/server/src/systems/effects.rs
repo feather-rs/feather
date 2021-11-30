@@ -1,7 +1,7 @@
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
 use libcraft_effects::effects::Effect;
-use quill_common::components_effects::{SpeedEffect, SpeedEffectModifier};
+use quill_common::components_effects::{SpeedEffect, WalkEffectModifier};
 use std::collections::HashMap;
 
 use crate::{ClientId, NetworkId, Server};
@@ -65,30 +65,47 @@ fn speed_effect(game: &mut Game, server: &mut Server) -> SysResult {
     }
 
     for (entity, modifier) in new_walk_speed {
-        if game.ecs.get::<SpeedEffectModifier>(entity).is_err() {
-            game.ecs.insert(entity, SpeedEffectModifier(0))?;
+        if game.ecs.get::<WalkEffectModifier>(entity).is_err() {
+            game.ecs.insert(entity, WalkEffectModifier::new())?;
         }
 
-        let walk_speed_modifier = game.ecs.get::<SpeedEffectModifier>(entity)?.0;
+        let mut walk_speed_modifier = game.ecs.get_mut::<WalkEffectModifier>(entity)?;
+        if walk_speed_modifier.0.contains_key(&Effect::SpeedEffect) {
+            if modifier
+                == *walk_speed_modifier
+                    .0
+                    .get(&Effect::SpeedEffect)
+                    .unwrap_or(&0)
+            {
+                continue;
+            }
 
-        if modifier == walk_speed_modifier {
-            continue;
-        }
-
-        game.ecs
-            .insert(entity, SpeedEffectModifier { 0: modifier })?;
-    }
-
-    let mut rem_wm = vec![];
-
-    for (entity, &wm) in game.ecs.query::<&SpeedEffectModifier>().iter() {
-        if wm.0 == 0 {
-            rem_wm.push(entity);
+            walk_speed_modifier.0.insert(Effect::SpeedEffect, modifier);
         }
     }
 
-    for entity in rem_wm {
-        game.ecs.remove::<SpeedEffectModifier>(entity)?;
+    let mut rem_comp = vec![];
+
+    for (entity, wm) in game.ecs.query::<&mut WalkEffectModifier>().iter() {
+        let mut rem_wm = vec![];
+
+        for (effect, modifier) in wm.0.iter() {
+            if *modifier == 0 {
+                rem_wm.push(*effect);
+            }
+        }
+
+        for effect in rem_wm {
+            wm.0.remove(&effect);
+        }
+
+        if wm.0.is_empty() {
+            rem_comp.push(entity);
+        }
+    }
+
+    for entity in rem_comp {
+        game.ecs.remove::<WalkEffectModifier>(entity)?;
     }
 
     Ok(())

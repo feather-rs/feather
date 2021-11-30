@@ -234,7 +234,7 @@ host_component_enum! {
         Instabreak = 1021,
         Invulnerable = 1022,
 
-        SpeedEffectModifier = 1023,
+        WalkEffectModifier = 2023,
     }
 }
 

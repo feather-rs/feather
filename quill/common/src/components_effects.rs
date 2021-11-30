@@ -1,10 +1,11 @@
+use libcraft_effects::effects::Effect;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
-/// Storing Potion effects info.
+/// Storing effects info.
 #[derive(Copy, Clone, Debug, Hash, Serialize, PartialEq, Eq, Deserialize)]
-pub struct PotionApplication {
+pub struct EffectApplication {
     /// Strength Level of effect.
     pub amplifier: u8,
     /// Tick-based duration of the effect.
@@ -20,13 +21,13 @@ pub struct PotionApplication {
     pub start_tick: u64,
 }
 
-impl PotionApplication {
+impl EffectApplication {
     pub fn start_at(&mut self, start_tick: u64) {
         self.start_tick = start_tick
     }
 }
 
-impl Ord for PotionApplication {
+impl Ord for EffectApplication {
     fn cmp(&self, other: &Self) -> Ordering {
         if self.amplifier > other.amplifier || self.duration > other.duration {
             Ordering::Greater
@@ -37,7 +38,7 @@ impl Ord for PotionApplication {
         }
     }
 }
-impl PartialOrd for PotionApplication {
+impl PartialOrd for EffectApplication {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -46,22 +47,22 @@ impl PartialOrd for PotionApplication {
 macro_rules! impl_effect {
     ($ident:ident) => {
         #[derive(Serialize, Deserialize, Eq, PartialEq, Hash)]
-        pub struct $ident(pub BTreeSet<PotionApplication>);
+        pub struct $ident(pub BTreeSet<EffectApplication>);
         impl $ident {
             pub fn new() -> $ident {
                 $ident { 0: BTreeSet::new() }
             }
-            pub fn add_effect(&mut self, effect: PotionApplication) -> bool {
+            pub fn add_effect(&mut self, effect: EffectApplication) -> bool {
                 self.0.insert(effect)
             }
-            pub fn not_started(&mut self) -> Vec<PotionApplication> {
+            pub fn not_started(&mut self) -> Vec<EffectApplication> {
                 self.0
                     .iter()
                     .filter(|effect| effect.start_tick == 0)
                     .cloned()
                     .collect::<Vec<_>>()
             }
-            pub fn ended_on_tick(&mut self, tick: u64) -> Vec<PotionApplication> {
+            pub fn ended_on_tick(&mut self, tick: u64) -> Vec<EffectApplication> {
                 self.0
                     .iter()
                     .filter(|effect| {
@@ -70,7 +71,7 @@ macro_rules! impl_effect {
                     .cloned()
                     .collect::<Vec<_>>()
             }
-            pub fn active_effect(&mut self) -> Option<&PotionApplication> {
+            pub fn active_effect(&mut self) -> Option<&EffectApplication> {
                 self.0.iter().last()
             }
         }
@@ -118,8 +119,20 @@ impl_effect!(HeroOfTheVillageEffect);
 
 /// A walk speed modifier in percent
 #[derive(
-    Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
+    Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
 )]
-pub struct SpeedEffectModifier(pub i32);
+pub struct WalkEffectModifier(pub BTreeMap<Effect, i32>);
 
-bincode_component_impl!(SpeedEffectModifier);
+impl WalkEffectModifier {
+    pub fn new() -> WalkEffectModifier {
+        WalkEffectModifier { 0: BTreeMap::new() }
+    }
+}
+
+impl Default for WalkEffectModifier {
+    fn default() -> Self {
+        WalkEffectModifier::new()
+    }
+}
+
+bincode_component_impl!(WalkEffectModifier);
