@@ -196,7 +196,7 @@ impl Window {
     }
 
     fn shift_click_in_player_window(&mut self, slot: usize) -> SysResult {
-        let mut slot_item = &mut *self.inner.item(slot)?;
+        let slot_item = &mut *self.inner.item(slot)?;
 
         let (inventory, slot_area, _) = self.inner.index_to_slot(slot).unwrap();
         let areas_to_try = [
@@ -238,7 +238,7 @@ impl Window {
                 let mut i = 0;
                 while let Some(mut stack) = inventory.item(area, i) {
                     if stack.is_empty() {
-                        stack.merge(&mut slot_item);
+                        stack.merge(slot_item);
                     }
                     i += 1;
                 }
