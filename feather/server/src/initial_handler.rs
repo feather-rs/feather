@@ -27,6 +27,7 @@ use uuid::Uuid;
 
 use self::proxy::ProxyData;
 
+const VERSION_STRING: &str = "1.16.5";
 const SERVER_NAME: &str = "Feather 1.16.5";
 const PROTOCOL_VERSION: i32 = 754;
 
@@ -63,11 +64,11 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     match handshake.next_state {
         HandshakeState::Status => handle_status(worker).await,
         HandshakeState::Login => {
-            if handshake.protocol_version < PROTOCOL_VERSION {
+            if handshake.protocol_version != PROTOCOL_VERSION {
                 worker
                     .write(ServerLoginPacket::DisconnectLogin(DisconnectLogin {
                         reason: Text::from(
-                            "Invalid protocol! The server is running on version 1.16!",
+                            "Invalid protocol! The server is running on version {}!", VERSION_STRING
                         )
                         .to_string(),
                     }))
