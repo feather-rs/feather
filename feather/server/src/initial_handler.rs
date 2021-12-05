@@ -68,7 +68,8 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
                 worker
                     .write(ServerLoginPacket::DisconnectLogin(DisconnectLogin {
                         reason: Text::from(
-                            "Invalid protocol! The server is running on version {}!", VERSION_STRING
+                            "Invalid protocol! The server is running on version {}!",
+                            VERSION_STRING,
                         )
                         .to_string(),
                     }))
