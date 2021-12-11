@@ -1,7 +1,10 @@
+use base::{Particle, ParticleKind, TPS};
 use common::Game;
-use ecs::{SysResult, SystemExecutor};
+use ecs::{Entity, SysResult, SystemExecutor};
+use libcraft_core::Position;
 use libcraft_effects::effects::Effect;
 use quill_common::components_effects::{SpeedEffect, WalkEffectModifier};
+use quill_common::entity_init::EntityInit;
 use std::collections::HashMap;
 
 use crate::{ClientId, NetworkId, Server};
@@ -111,11 +114,31 @@ fn speed_effect(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-/// Set start_tick to all effects in effects_bucket
+fn add_particles(game: &mut Game, entity: Entity) -> SysResult {
+    if game.tick_count % (TPS * 2) as u64 == 0 {
+        let position = *game.ecs.get::<Position>(entity)?;
+
+        let mut entity_builder = game.create_entity_builder(position, EntityInit::AreaEffectCloud);
+
+        entity_builder.add(position);
+        entity_builder.add(Particle {
+            kind: ParticleKind::Effect,
+            offset_x: 0.0,
+            offset_y: 0.0,
+            offset_z: 0.0,
+            count: 5,
+        });
+        game.spawn_entity(entity_builder);
+    }
+    Ok(())
+}
+
+/// Set start_tick to all effects in effects_bucket and spawn particles
 macro_rules! add_start_tick_to_effects {
     ($fn_name:ident,$type:ident) => {
         fn $fn_name(game: &mut Game, server: &mut Server) -> SysResult {
-            for (_entity, (&client_id, effects_bucket, &network_id)) in game
+            let mut entities = vec![];
+            for (entity, (&client_id, effects_bucket, &network_id)) in game
                 .ecs
                 .query::<(&ClientId, &mut $type, &NetworkId)>()
                 .iter()
@@ -123,6 +146,8 @@ macro_rules! add_start_tick_to_effects {
                 if effects_bucket.0.is_empty() {
                     continue;
                 }
+
+                entities.push(entity);
 
                 let not_started = effects_bucket.not_started();
 
@@ -142,6 +167,11 @@ macro_rules! add_start_tick_to_effects {
                     effects_bucket.0.replace(effect);
                 }
             }
+
+            for entity in entities {
+                add_particles(game, entity)?;
+            }
+
             Ok(())
         }
     };
