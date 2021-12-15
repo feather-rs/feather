@@ -16,18 +16,22 @@ pub fn handle_use_item(
     speed.add_effect(EffectApplication {
         amplifier: 0,
         duration: 20 * TPS,
-        particle: false,
-        ambient: false,
-        icon: false,
+        flags: EffectFlags {
+            particle: true,
+            ambient: false,
+            icon: true,
+        },
         start_tick: 0,
     });
 
     speed.add_effect(EffectApplication {
         amplifier: 1,
         duration: 10 * TPS,
-        particle: false,
-        ambient: false,
-        icon: false,
+        flags: EffectFlags {
+            particle: true,
+            ambient: false,
+            icon: true,
+        },
         start_tick: 0,
     });
 

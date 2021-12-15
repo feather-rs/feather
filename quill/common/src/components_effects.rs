@@ -10,15 +10,20 @@ pub struct EffectApplication {
     pub amplifier: u8,
     /// Tick-based duration of the effect.
     pub duration: u32,
+    /// Effect flags
+    pub flags: EffectFlags,
+
+    /// Store when effect was added, if start_tick == 0 effect not yet sent to client
+    pub start_tick: u64,
+}
+#[derive(Copy, Clone, Debug, Hash, Serialize, PartialEq, Eq, Deserialize)]
+pub struct EffectFlags {
     /// Whether spawn particles or not.
     pub particle: bool,
     /// Whether the effect was given by a beacon or not.
     pub ambient: bool,
     /// Show effect icon or not.
     pub icon: bool,
-
-    /// Store when effect was added, if start_tick == 0 effect not yet sent to client
-    pub start_tick: u64,
 }
 
 impl EffectApplication {

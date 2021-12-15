@@ -3,20 +3,42 @@ use common::Game;
 use ecs::{Entity, SysResult, SystemExecutor};
 use libcraft_core::Position;
 use libcraft_effects::effects::Effect;
-use quill_common::components_effects::{SpeedEffect, WalkEffectModifier};
+use quill_common::components_effects::{EffectApplication, SpeedEffect, WalkEffectModifier};
 use quill_common::entity_init::EntityInit;
 use std::collections::HashMap;
 
-use crate::{ClientId, NetworkId, Server};
+use crate::{Client, ClientId, NetworkId, Server};
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems
         .group::<Server>()
         .add_system(add_start_tick_to_speed_effects)
-        .add_system(speed_effect);
+        .add_system(speed_effect)
+        .add_system(walk_effect_modifier_cleaner)
+        .add_system(effect_remover);
 }
 
-fn speed_effect(game: &mut Game, server: &mut Server) -> SysResult {
+fn speed_effect(game: &mut Game, _server: &mut Server) -> SysResult {
+    let mut new_walk_speed = HashMap::new();
+    for (entity, speed) in game.ecs.query::<&mut SpeedEffect>().iter() {
+        if speed.0.is_empty() {
+            continue;
+        }
+
+        if let Some(effect_ref) = speed.active_effect() {
+            let modifier = 20 * (effect_ref.amplifier + 1) as i32;
+            new_walk_speed.insert(entity, modifier);
+        };
+    }
+
+    for (entity, modifier) in new_walk_speed {
+        change_modifier(game, entity, modifier)?;
+    }
+
+    Ok(())
+}
+
+fn effect_remover(game: &mut Game, server: &mut Server) -> SysResult {
     let mut new_walk_speed = HashMap::new();
     for (entity, (&client_id, speed, &network_id)) in game
         .ecs
@@ -33,60 +55,39 @@ fn speed_effect(game: &mut Game, server: &mut Server) -> SysResult {
             if let Some(client) = server.clients.get(client_id) {
                 client.send_remove_entity_effect(network_id, Effect::SpeedEffect.id() as u8);
             }
-            let ok = speed.0.remove(effect);
-            if ok {
+
+            if speed.0.remove(effect) {
                 log::debug!("speed effect was removed with params {:?}", effect)
             }
             new_walk_speed.insert(entity, 0);
         }
 
         if !end_effect.is_empty() {
-            for active_effect in speed.0.iter() {
+            if let Some(active_effect) = speed.active_effect() {
                 if let Some(client) = server.clients.get(client_id) {
                     let duration = active_effect.duration as u64
                         - (game.tick_count - active_effect.start_tick);
 
-                    if duration == 0 {
-                        continue;
-                    }
-
-                    client.send_entity_effect(
-                        network_id,
+                    send_effect_to_client(
                         Effect::SpeedEffect.id() as u8,
-                        active_effect.amplifier as i8,
-                        duration as i32,
-                        0x02,
+                        network_id,
+                        active_effect,
+                        client,
+                        duration,
                     );
                 }
             }
         }
-
-        if let Some(effect_ref) = speed.active_effect() {
-            let modifier = 20 * (effect_ref.amplifier + 1) as i32;
-            new_walk_speed.insert(entity, modifier);
-        };
     }
 
     for (entity, modifier) in new_walk_speed {
-        if game.ecs.get::<WalkEffectModifier>(entity).is_err() {
-            game.ecs.insert(entity, WalkEffectModifier::new())?;
-        }
-
-        let mut walk_speed_modifier = game.ecs.get_mut::<WalkEffectModifier>(entity)?;
-        if walk_speed_modifier.0.contains_key(&Effect::SpeedEffect) {
-            if modifier
-                == *walk_speed_modifier
-                    .0
-                    .get(&Effect::SpeedEffect)
-                    .unwrap_or(&0)
-            {
-                continue;
-            }
-
-            walk_speed_modifier.0.insert(Effect::SpeedEffect, modifier);
-        }
+        change_modifier(game, entity, modifier)?;
     }
 
+    Ok(())
+}
+
+fn walk_effect_modifier_cleaner(game: &mut Game, _server: &mut Server) -> SysResult {
     let mut rem_comp = vec![];
 
     for (entity, wm) in game.ecs.query::<&mut WalkEffectModifier>().iter() {
@@ -114,7 +115,48 @@ fn speed_effect(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-fn add_particles(game: &mut Game, entity: Entity) -> SysResult {
+fn change_modifier(game: &mut Game, entity: Entity, new_modifier: i32) -> SysResult {
+    if game.ecs.get::<WalkEffectModifier>(entity).is_err() {
+        game.ecs.insert(entity, WalkEffectModifier::new())?;
+    }
+
+    let mut walk_speed_modifier = game.ecs.get_mut::<WalkEffectModifier>(entity)?;
+    if walk_speed_modifier.0.contains_key(&Effect::SpeedEffect)
+        && new_modifier
+            != *walk_speed_modifier
+                .0
+                .get(&Effect::SpeedEffect)
+                .unwrap_or(&0)
+    {
+        walk_speed_modifier
+            .0
+            .insert(Effect::SpeedEffect, new_modifier);
+    }
+    Ok(())
+}
+
+fn send_effect_to_client(
+    effect_id: u8,
+    network_id: NetworkId,
+    active_effect: &EffectApplication,
+    client: &Client,
+    duration: u64,
+) {
+    if duration == 0 {
+        return;
+    }
+
+    client.send_entity_effect(
+        network_id,
+        effect_id,
+        active_effect.amplifier as i8,
+        duration as i32,
+        active_effect.flags,
+    );
+}
+
+// todo change particle color
+fn add_particles(game: &mut Game, entity: Entity, _effect_kind: Effect) -> SysResult {
     if game.tick_count % (TPS * 2) as u64 == 0 {
         let position = *game.ecs.get::<Position>(entity)?;
 
@@ -147,7 +189,11 @@ macro_rules! add_start_tick_to_effects {
                     continue;
                 }
 
-                entities.push(entity);
+                if let Some(active_effect) = effects_bucket.active_effect() {
+                    if active_effect.flags.particle {
+                        entities.push((entity, Effect::$type));
+                    }
+                }
 
                 let not_started = effects_bucket.not_started();
 
@@ -155,12 +201,12 @@ macro_rules! add_start_tick_to_effects {
                     effect.start_tick = game.tick_count;
 
                     if let Some(client) = server.clients.get(client_id) {
-                        client.send_entity_effect(
-                            network_id,
+                        send_effect_to_client(
                             Effect::$type.id() as u8,
-                            effect.amplifier as i8,
-                            effect.duration as i32,
-                            0x02,
+                            network_id,
+                            &effect,
+                            client,
+                            effect.duration as u64,
                         );
                     }
 
@@ -168,8 +214,8 @@ macro_rules! add_start_tick_to_effects {
                 }
             }
 
-            for entity in entities {
-                add_particles(game, entity)?;
+            for (entity, effect_kind) in entities {
+                add_particles(game, entity, effect_kind)?;
             }
 
             Ok(())

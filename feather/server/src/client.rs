@@ -43,6 +43,7 @@ use crate::{
     network_id_registry::NetworkId,
     Options,
 };
+use quill_common::components_effects::EffectFlags;
 use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
@@ -609,14 +610,24 @@ impl Client {
         effect_id: u8,
         amplifier: i8,
         duration: i32,
-        flags: u8,
+        flags: EffectFlags,
     ) {
+        let mut flags_bit = 0;
+        if flags.ambient {
+            flags_bit |= 1 << 0;
+        }
+        if flags.particle {
+            flags_bit |= 1 << 1;
+        }
+        if flags.icon {
+            flags_bit |= 1 << 2;
+        }
         self.send_packet(EntityEffect {
             entity_id: network_id.0,
             effect_id,
             amplifier,
             duration,
-            flags,
+            flags: flags_bit,
         })
     }
 
