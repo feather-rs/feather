@@ -9,7 +9,8 @@ use uuid::Uuid;
 
 use base::anvil::player::PlayerData;
 use base::{
-    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition, CHUNK_HEIGHT, FacingCubic, FacingCardinalAndDown, FacingCardinal, BlockKind,
+    BlockKind, BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, FacingCardinal,
+    FacingCardinalAndDown, FacingCubic, ValidBlockPosition, CHUNK_HEIGHT,
 };
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
@@ -153,14 +154,18 @@ impl World {
     }
 
     pub fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockId> {
-        self.block_at(pos.adjacent(match dir {
-            FacingCubic::North => BlockFace::North,
-            FacingCubic::East => BlockFace::East,
-            FacingCubic::South => BlockFace::South,
-            FacingCubic::West => BlockFace::West,
-            FacingCubic::Up => BlockFace::Top,
-            FacingCubic::Down => BlockFace::Bottom,
-        }).try_into().unwrap())
+        self.block_at(
+            pos.adjacent(match dir {
+                FacingCubic::North => BlockFace::North,
+                FacingCubic::East => BlockFace::East,
+                FacingCubic::South => BlockFace::South,
+                FacingCubic::West => BlockFace::West,
+                FacingCubic::Up => BlockFace::Top,
+                FacingCubic::Down => BlockFace::Bottom,
+            })
+            .try_into()
+            .unwrap(),
+        )
     }
 
     pub fn adjacent_block_cardinal(
@@ -204,7 +209,9 @@ impl World {
                 FacingCubic::West => BlockFace::West,
                 FacingCubic::Up => BlockFace::Top,
                 FacingCubic::Down => BlockFace::Bottom,
-            }).try_into().unwrap(),
+            })
+            .try_into()
+            .unwrap(),
             block,
         )
     }

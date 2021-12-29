@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use crate::chunk::entities::ChunkEntities;
 use crate::entities::player::HotbarSlot;
 use crate::events::BlockChangeEvent;
@@ -10,6 +12,7 @@ use base::{
 use blocks::BlockKind;
 use ecs::{Ecs, SysResult, SystemExecutor};
 use libcraft_core::{BlockFace, EntityKind};
+use libcraft_items::InventorySlot;
 use quill_common::events::BlockPlacementEvent;
 use vek::Rect3;
 
@@ -29,14 +32,14 @@ pub fn block_placement(game: &mut Game) -> SysResult {
             libcraft_core::Hand::Offhand => inv.item(Area::Offhand, 0),
         }
         .unwrap();
-        if slot.is_none() {
+        if slot.is_empty() {
             continue;
         }
         if *gamemode == Gamemode::Spectator {
             // Cannot place in spectator mode
             continue;
         }
-        let block = match item_to_block(slot.as_ref().unwrap().item()) {
+        let block = match item_to_block(slot.item_kind().unwrap()) {
             Some(s) => s,
             None => continue,
         };
@@ -74,7 +77,7 @@ fn place_block(
     ecs: &Ecs,
 ) -> Option<Vec<BlockChangeEvent>> {
     let target1 = placement.location;
-    let target_block1 = world.block_at(target1)?;
+    let target_block1 = world.block_at(target1.try_into().unwrap())?;
     if target_block1.is_air() {
         return None;
     }
@@ -90,7 +93,7 @@ fn place_block(
         target1
     } else {
         let target2 = target1.adjacent(placement.face);
-        let target_block2 = world.block_at(target2)?;
+        let target_block2 = world.block_at(target2.try_into().unwrap())?;
         if merge_slab(&mut block, target_block2)
             | waterlog(&mut block, target_block2)
             | ((target_block2.kind() != block.kind()) & target_block2.is_replaceable())
@@ -103,7 +106,10 @@ fn place_block(
     door_hinge(&mut block, target, &placement.cursor_position, world);
     let place_top = match top_half(block) {
         Some(_) => {
-            if !world.block_at(target.up())?.is_replaceable() {
+            if !world
+                .block_at(target.up().try_into().unwrap())?
+                .is_replaceable()
+            {
                 // Short circuits if upper block is > 256
                 return None;
             }
@@ -154,14 +160,14 @@ fn place_block(
         return None;
     }
     if place_top {
-        world.set_block_at(target, block);
+        world.set_block_at(target.try_into().unwrap(), block);
         world.set_block_at(
-            target.up(),
+            target.up().try_into().unwrap(),
             block.with_half_upper_lower(HalfUpperLower::Upper),
         );
         Some(vec![
-            BlockChangeEvent::single(target),
-            BlockChangeEvent::single(target.up()),
+            BlockChangeEvent::single(target.try_into().unwrap()),
+            BlockChangeEvent::single(target.up().try_into().unwrap()),
         ])
     } else if place_head {
         let face = match block.facing_cardinal()? {
@@ -173,19 +179,19 @@ fn place_block(
         if !world.check_block_stability(block, target.adjacent(face))? {
             return None;
         }
-        world.set_block_at(target, block);
+        world.set_block_at(target.try_into().unwrap(), block);
         world.set_block_adjacent_cardinal(
             target,
             block.with_part(base::Part::Head),
             block.facing_cardinal()?,
         );
         Some(vec![
-            BlockChangeEvent::single(target),
-            BlockChangeEvent::single(target.adjacent(face)),
+            BlockChangeEvent::single(target.try_into().unwrap()),
+            BlockChangeEvent::single(target.adjacent(face).try_into().unwrap()),
         ])
     } else {
-        world.set_block_at(target, block);
-        Some(vec![BlockChangeEvent::single(target)])
+        world.set_block_at(target.try_into().unwrap(), block);
+        Some(vec![BlockChangeEvent::single(target.try_into().unwrap())])
     }
 }
 #[allow(clippy::float_cmp)]
@@ -555,17 +561,13 @@ fn item_to_block(item: Item) -> Option<BlockId> {
     })
 }
 
-fn decrease_slot(slot: &mut Option<ItemStack>) {
-    match slot {
-        Some(s) => match s.item() {
-            Item::WaterBucket | Item::LavaBucket => s.set_item(Item::Bucket),
-            _ => {
-                s.remove(1);
-                if s.count() == 0 {
-                    *slot = None;
-                }
-            }
-        },
-        None => {}
+fn decrease_slot(slot: &mut InventorySlot) {
+    match slot.item_kind().unwrap() {
+        Item::WaterBucket | Item::LavaBucket => {
+            *slot = InventorySlot::Filled(ItemStack::new(Item::Bucket, 1).unwrap())
+        }
+        _ => {
+            slot.try_take(1);
+        }
     }
 }
