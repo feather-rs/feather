@@ -11,7 +11,6 @@ use common::{
     ChatBox, Game, Window,
 };
 use ecs::{SysResult, SystemExecutor};
-use libcraft_core::EntityKind;
 use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
     Invulnerable, PreviousGamemode, WalkSpeed,
