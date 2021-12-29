@@ -1,3 +1,4 @@
+from pathlib import Path
 import common
 import collections
 
@@ -57,10 +58,13 @@ for variant in windows:
 
         area_in_inventory = common.camel_case(area_in_inventory)
         max_slot = slot_offset + number_of_slots
+        slot_offset_operation = ""
+        if slot_offset != 0:
+            slot_offset_operation += f" - {slot_offset}"
         index_to_slot += f"""
-        if index >= {slot_offset} && index < {max_slot} {{
+        if ({slot_offset}..{max_slot}).contains(&index) {{
             let area = Area::{area_in_inventory};
-            let slot = index - {slot_offset};
+            let slot = index{slot_offset_operation};
             Some(({inventory}, area, slot))
         }}   
         """
@@ -74,7 +78,10 @@ for variant in windows:
         first = False
 
         area_in_inventory = common.camel_case(area_in_inventory)
-        slot_to_index += f"if area == Area::{area_in_inventory} && {inventory}.ptr_eq(inventory) {{ Some(slot + {slot_offset}) }}"
+        if slot_offset == 0:
+            slot_to_index += f"if area == Area::{area_in_inventory} && {inventory}.ptr_eq(inventory) {{ Some(slot) }}"
+        else:
+            slot_to_index += f"if area == Area::{area_in_inventory} && {inventory}.ptr_eq(inventory) {{ Some(slot + {slot_offset}) }}"
 
     slot_to_index += "else { None } },"
 
@@ -147,4 +154,4 @@ get_areas_fn += "} }"
 output += f"impl <T> InventoryBacking<T> {{ {get_area_fn} {get_areas_fn} {constructor_fns} }}"
 output += f"impl crate::Inventory {{ {inventory_constructor_fns} }}"
 
-common.output("src/inventory.rs", output)
+common.output("inventory/src/inventory.rs", output)

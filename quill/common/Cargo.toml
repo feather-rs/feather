@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 bincode = "1"
 bytemuck = { version = "1", features = ["derive"] }
+derive_more = "0.99.16"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-particles = { path = "../../libcraft/particles" }
 libcraft-text = { path = "../../libcraft/text" }

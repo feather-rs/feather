@@ -1,20 +1,26 @@
-use generated::{Item, ItemStack};
-use nbt::Value;
-use serde::{Deserialize, Serialize};
+use libcraft_items::{Item, ItemStack};
 use std::{
     collections::HashMap,
     fs,
     fs::File,
     path::{Path, PathBuf},
 };
+
+use nbt::Value;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use quill_common::components::{
+    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
+    WalkSpeed,
+};
 
 use crate::inventory::*;
 
 use super::entity::{AnimalData, ItemNbt};
 
 /// Represents the contents of a player data file.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerData {
     // Inherit base entity data
     #[serde(flatten)]
@@ -22,10 +28,31 @@ pub struct PlayerData {
 
     #[serde(rename = "playerGameType")]
     pub gamemode: i32,
+    #[serde(rename = "previousPlayerGameType")]
+    pub previous_gamemode: i32,
     #[serde(rename = "Inventory")]
     pub inventory: Vec<InventorySlot>,
     #[serde(rename = "SelectedItemSlot")]
     pub held_item: i32,
+    pub abilities: PlayerAbilities,
+}
+
+/// Represents player's abilities (flying, invulnerability, speed, etc.)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerAbilities {
+    #[serde(rename = "walkSpeed")]
+    pub walk_speed: WalkSpeed,
+    #[serde(rename = "flySpeed")]
+    pub fly_speed: CreativeFlyingSpeed,
+    #[serde(rename = "mayfly")]
+    pub may_fly: CanCreativeFly,
+    #[serde(rename = "flying")]
+    pub is_flying: CreativeFlying,
+    #[serde(rename = "mayBuild")]
+    pub may_build: CanBuild,
+    #[serde(rename = "instabuild")]
+    pub instabreak: Instabreak,
+    pub invulnerable: Invulnerable,
 }
 
 /// Represents a single inventory slot (including position index).
@@ -43,8 +70,8 @@ pub struct InventorySlot {
 }
 
 impl InventorySlot {
-    /// Converts an `ItemStack` and network protocol index into an `InventorySlot`.
-    pub fn from_network_index(network: usize, stack: ItemStack) -> Option<Self> {
+    /// Converts an [`ItemStack`] and network protocol index into an [`InventorySlot`].
+    pub fn from_network_index(network: usize, stack: &ItemStack) -> Option<Self> {
         let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
             // Hotbar
             (network - SLOT_HOTBAR_OFFSET) as i8
@@ -63,8 +90,8 @@ impl InventorySlot {
         Some(Self::from_inventory_index(slot, stack))
     }
 
-    /// Converts an `ItemStack` and inventory position index into an `InventorySlot`.
-    pub fn from_inventory_index(slot: i8, stack: ItemStack) -> Self {
+    /// Converts an [`ItemStack`] and inventory position index into an [`InventorySlot`].
+    pub fn from_inventory_index(slot: i8, stack: &ItemStack) -> Self {
         let nbt = stack.clone().into();
         let nbt = if nbt == Default::default() {
             None
@@ -72,9 +99,9 @@ impl InventorySlot {
             Some(nbt)
         };
         Self {
-            count: stack.count as i8,
+            count: stack.count() as i8,
             slot,
-            item: stack.item.name().to_owned(),
+            item: stack.item().name().to_owned(),
             nbt,
         }
     }
@@ -159,14 +186,17 @@ fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::collections::HashMap;
+    use std::io::Cursor;
+
+    use num_traits::ToPrimitive;
+
     use crate::{
         inventory::{SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS},
         Gamemode,
     };
-    use num_traits::ToPrimitive;
-    use std::collections::HashMap;
-    use std::io::Cursor;
+
+    use super::*;
 
     #[test]
     fn test_deserialize_player() {
@@ -174,6 +204,10 @@ mod tests {
 
         let player: PlayerData = nbt::from_gzip_reader(&mut cursor).unwrap();
         assert_eq!(player.gamemode, Gamemode::Creative.to_i32().unwrap());
+        assert_eq!(
+            player.previous_gamemode,
+            Gamemode::Spectator.to_i32().unwrap()
+        );
         assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
         assert_eq!(player.inventory[0].nbt, Some(ItemNbt { damage: Some(3) }));
     }
@@ -188,8 +222,8 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::Feather);
-        assert_eq!(item_stack.count, 1);
+        assert_eq!(item_stack.item(), Item::Feather);
+        assert_eq!(item_stack.count(), 1);
     }
 
     #[test]
@@ -202,9 +236,9 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::DiamondAxe);
-        assert_eq!(item_stack.count, 1);
-        assert_eq!(item_stack.damage, Some(42));
+        assert_eq!(item_stack.item(), Item::DiamondAxe);
+        assert_eq!(item_stack.count(), 1);
+        assert_eq!(item_stack.damage_taken(), Some(42));
     }
 
     #[test]
@@ -217,7 +251,7 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::Air);
+        assert_eq!(item_stack.item(), Item::Air);
     }
 
     #[test]
@@ -251,7 +285,10 @@ mod tests {
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
-                InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1)),
+                InventorySlot::from_network_index(
+                    expected,
+                    &ItemStack::new(Item::Stone, 1).unwrap()
+                ),
                 Some(slot),
             );
         }

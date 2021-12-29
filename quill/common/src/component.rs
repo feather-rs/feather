@@ -188,6 +188,16 @@ host_component_enum! {
         CreativeFlyingEvent = 1010,
         Sneaking = 1011,
         SneakEvent = 1012,
+        Sprinting = 1013,
+        SprintEvent = 1014,
+        PreviousGamemode = 1015,
+        Health = 1016,
+        WalkSpeed = 1017,
+        CreativeFlyingSpeed = 1018,
+        CanCreativeFly = 1019,
+        CanBuild = 1020,
+        Instabreak = 1021,
+        Invulnerable = 1022,
 
 
     }
@@ -352,3 +362,4 @@ bincode_component_impl!(BlockPlacementEvent);
 bincode_component_impl!(BlockInteractEvent);
 bincode_component_impl!(CreativeFlyingEvent);
 bincode_component_impl!(SneakEvent);
+bincode_component_impl!(SprintEvent);

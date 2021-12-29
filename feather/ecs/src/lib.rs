@@ -3,7 +3,7 @@
 //! This is implemented as a wrapper around the Bevy Engine's fork of the
 //!  `hecs` crate, but we've made some interface changes:
 //! * A system framework has been implemented, with systems written as plain functions and
-//! executed sequentialy.
+//! executed sequentially.
 //! * `World` is renamed to `Ecs` so as to avoid conflict with Minecraft's concept of worlds.
 //! * We add support for events based on components.
 //!

@@ -7,7 +7,7 @@ names = {}
 display_names = {}
 bboxes = {}
 
-for entity in load_minecraft_json("entities.json"):
+for entity in load_minecraft_json("entities.json","1.16.2"):
     variant = camel_case(entity['name'])
     entities.append(variant)
     ids[variant] = entity['id']

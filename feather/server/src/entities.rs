@@ -1,6 +1,6 @@
 use base::{EntityKind, Position};
 use ecs::{EntityBuilder, EntityRef, SysResult};
-use quill_common::entity_init::EntityInit;
+use quill_common::{components::OnGround, entity_init::EntityInit};
 use uuid::Uuid;
 
 use crate::{Client, NetworkId};
@@ -15,17 +15,31 @@ impl SpawnPacketSender {
     }
 }
 
-/// Stores the position of an entity on
+/// Stores the [`Position`] of an entity on
 /// the previous tick. Used to determine
 /// when to send movement updates.
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousPosition(pub Position);
+/// Stores the [`OnGround`] status of an entity on
+/// the previous tick. Used to determine
+/// what movement packet to send.
+#[derive(Copy, Clone, Debug)]
+pub struct PreviousOnGround(pub OnGround);
 
 pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
     }
-    builder.add(PreviousPosition(*builder.get::<Position>().unwrap()));
+
+    // can't panic because this is only called after both position and onground is added to all entities.
+    // Position is added in the caller of this function and on_ground is added in the
+    // build default function. All entity builder functions call the build default function.
+    let prev_position = *builder.get::<Position>().unwrap();
+    let on_ground = *builder.get::<OnGround>().unwrap();
+
+    builder
+        .add(PreviousPosition(prev_position))
+        .add(PreviousOnGround(on_ground));
     add_spawn_packet(builder, init);
 }
 

@@ -6,33 +6,43 @@ use std::{
 };
 
 use ahash::AHashSet;
+use flume::{Receiver, Sender};
+use uuid::Uuid;
+
 use base::{
-    BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
-    ItemStack, Position, ProfileProperty, Text,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
+    ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
-use flume::{Receiver, Sender};
+use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use protocol::packets::server::{
+    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+};
 use protocol::{
     packets::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata,
-            SpawnPlayer, Title, UnloadChunk, UpdateViewPosition, WindowItems,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, JoinGame, KeepAlive,
+            PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer,
+            Title, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::OnGround;
-use uuid::Uuid;
-use vec_arena::Arena;
+use quill_common::components::{OnGround, PreviousGamemode};
 
-use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use crate::{
+    entities::{PreviousOnGround, PreviousPosition},
+    initial_handler::NewPlayer,
+    network_id_registry::NetworkId,
+    Options,
+};
+use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -44,7 +54,7 @@ pub struct ClientId(usize);
 /// Stores all `Client`s.
 #[derive(Default)]
 pub struct Clients {
-    arena: Arena<Client>,
+    slab: Slab<Client>,
 }
 
 impl Clients {
@@ -53,19 +63,23 @@ impl Clients {
     }
 
     pub fn insert(&mut self, client: Client) -> ClientId {
-        ClientId(self.arena.insert(client))
+        ClientId(self.slab.insert(client))
     }
 
     pub fn remove(&mut self, id: ClientId) -> Option<Client> {
-        self.arena.remove(id.0)
+        self.slab.try_remove(id.0)
     }
 
     pub fn get(&self, id: ClientId) -> Option<&Client> {
-        self.arena.get(id.0)
+        self.slab.get(id.0)
+    }
+
+    pub fn get_mut(&mut self, id: ClientId) -> Option<&mut Client> {
+        self.slab.get_mut(id.0)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
-        self.arena.iter().map(|(_i, client)| client)
+        self.slab.iter().map(|(_i, client)| client)
     }
 }
 
@@ -83,7 +97,7 @@ pub struct Client {
 
     teleport_id_counter: Cell<i32>,
 
-    network_id: NetworkId,
+    network_id: Option<NetworkId>,
     sent_entities: RefCell<AHashSet<NetworkId>>,
 
     knows_position: Cell<bool>,
@@ -99,14 +113,14 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(player: NewPlayer, options: Arc<Options>, network_id: NetworkId) -> Self {
+    pub fn new(player: NewPlayer, options: Arc<Options>) -> Self {
         Self {
             packets_to_send: player.packets_to_send,
             received_packets: player.received_packets,
             options,
             username: player.username,
             teleport_id_counter: Cell::new(0),
-            network_id,
+            network_id: None,
             profile: player.profile,
             uuid: player.uuid,
             sent_entities: RefCell::new(AHashSet::new()),
@@ -130,7 +144,7 @@ impl Client {
         &self.profile
     }
 
-    pub fn network_id(&self) -> NetworkId {
+    pub fn network_id(&self) -> Option<NetworkId> {
         self.network_id
     }
 
@@ -178,7 +192,11 @@ impl Client {
         self.sent_entities.borrow().contains(&network_id)
     }
 
-    pub fn send_join_game(&self, gamemode: Gamemode) {
+    pub fn set_network_id(&mut self, network_id: NetworkId) {
+        self.network_id = Some(network_id);
+    }
+
+    pub fn send_join_game(&self, gamemode: Gamemode, previous_gamemode: PreviousGamemode) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
@@ -191,10 +209,10 @@ impl Client {
         .expect("dimension asset is malformed");
 
         self.send_packet(JoinGame {
-            entity_id: self.network_id.0,
+            entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
             is_hardcore: false,
             gamemode,
-            previous_gamemode: 0,
+            previous_gamemode,
             world_names: vec!["world".to_owned()],
             dimension_codec: Nbt(dimension_codec),
             dimension: Nbt(dimension),
@@ -273,7 +291,7 @@ impl Client {
         });
     }
 
-    pub fn send_block_change(&self, position: BlockPosition, new_block: BlockId) {
+    pub fn send_block_change(&self, position: ValidBlockPosition, new_block: BlockId) {
         self.send_packet(BlockChange {
             position,
             block: new_block,
@@ -369,9 +387,11 @@ impl Client {
         &self,
         network_id: NetworkId,
         position: Position,
+        prev_position: PreviousPosition,
         on_ground: OnGround,
+        prev_on_ground: PreviousOnGround,
     ) {
-        if network_id == self.network_id {
+        if self.network_id == Some(network_id) {
             // This entity is the client. Only update
             // the position if it has changed from the client's
             // known position.
@@ -380,23 +400,50 @@ impl Client {
             }
             return;
         }
-        // Consider using the relative movement packets in the future.
-        // (Entity Teleport works fine, but the relative movement packets
-        // save bandwidth.)
-        self.send_packet(EntityTeleport {
-            entity_id: network_id.0,
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            yaw: position.yaw,
-            pitch: position.pitch,
-            on_ground: on_ground.0,
-        });
-        // Needed for head orientation
-        self.send_packet(EntityHeadLook {
-            entity_id: network_id.0,
-            head_yaw: position.yaw,
-        });
+
+        let no_change_yaw = (position.yaw - prev_position.0.yaw).abs() < 0.001;
+        let no_change_pitch = (position.pitch - prev_position.0.pitch).abs() < 0.001;
+
+        // If the entity jumps or falls we should send a teleport packet instead to keep relative movement in sync.
+        if on_ground != prev_on_ground.0 {
+            self.send_packet(EntityTeleport {
+                entity_id: network_id.0,
+                x: position.x,
+                y: position.y,
+                z: position.z,
+                yaw: position.yaw,
+                pitch: position.pitch,
+                on_ground: *on_ground,
+            });
+
+            return;
+        }
+
+        if no_change_yaw && no_change_pitch {
+            self.send_packet(EntityPosition {
+                entity_id: network_id.0,
+                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                on_ground: on_ground.0,
+            });
+        } else {
+            self.send_packet(EntityPositionAndRotation {
+                entity_id: network_id.0,
+                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                yaw: position.yaw,
+                pitch: position.pitch,
+                on_ground: on_ground.0,
+            });
+
+            // Needed for head orientation
+            self.send_packet(EntityHeadLook {
+                entity_id: network_id.0,
+                head_yaw: position.yaw,
+            });
+        }
     }
 
     pub fn send_keepalive(&self) {
@@ -405,7 +452,7 @@ impl Client {
     }
 
     pub fn send_entity_animation(&self, network_id: NetworkId, animation: Animation) {
-        if network_id == self.network_id {
+        if self.network_id == Some(network_id) {
             return;
         }
         self.send_packet(EntityAnimation {
@@ -482,12 +529,12 @@ impl Client {
         self.send_packet(packet);
     }
 
-    pub fn set_slot(&self, slot: i16, item: Option<ItemStack>) {
+    pub fn set_slot(&self, slot: i16, item: &InventorySlot) {
         log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
         self.send_packet(SetSlot {
             window_id: 0,
             slot,
-            slot_data: item,
+            slot_data: item.clone(),
         });
     }
 
@@ -506,7 +553,7 @@ impl Client {
         })
     }
 
-    pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
+    pub fn set_cursor_slot(&self, item: &InventorySlot) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
     }
@@ -518,6 +565,41 @@ impl Client {
             entity_id: netowrk_id.0,
             entries: entity_metadata,
         });
+    }
+
+    pub fn send_entity_metadata(&self, network_id: NetworkId, metadata: EntityMetadata) {
+        if self.network_id == Some(network_id) {
+            return;
+        }
+        self.send_packet(SendEntityMetadata {
+            entity_id: network_id.0,
+            entries: metadata,
+        });
+    }
+
+    pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
+        let mut bitfield = 0;
+        if *abilities.invulnerable {
+            bitfield |= 1 << 0;
+        }
+        if *abilities.is_flying {
+            bitfield |= 1 << 1;
+        }
+        if *abilities.may_fly {
+            bitfield |= 1 << 2;
+        }
+        if *abilities.instabreak {
+            bitfield |= 1 << 3;
+        }
+        self.send_packet(PlayerAbilities {
+            flags: bitfield,
+            flying_speed: *abilities.fly_speed,
+            fov_modifier: *abilities.walk_speed,
+        });
+    }
+
+    pub fn set_hotbar_slot(&self, slot: u8) {
+        self.send_packet(HeldItemChange { slot });
     }
 
     fn register_entity(&self, network_id: NetworkId) {
