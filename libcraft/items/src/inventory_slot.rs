@@ -188,6 +188,20 @@ impl InventorySlot {
             InventorySlot::Empty => None,
         }
     }
+
+    pub fn item_stack(&self) -> Option<&ItemStack> {
+        match self {
+            InventorySlot::Filled(f) => Some(f),
+            InventorySlot::Empty => None,
+        }
+    }
+
+    pub fn item_stack_mut(&mut self) -> Option<&mut ItemStack> {
+        match self {
+            InventorySlot::Filled(f) => Some(f),
+            InventorySlot::Empty => None,
+        }
+    }
 }
 
 #[cfg(test)]

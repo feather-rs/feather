@@ -1,3 +1,4 @@
+use common::block_break::BlockBreaker;
 use libcraft_items::InventorySlot;
 use log::debug;
 
@@ -108,7 +109,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             Position::default().chunk(),
             server.options.view_distance,
         ))
-        .add(gamemode)
+        .add(Gamemode::Survival)
         .add(previous_gamemode)
         .add(Name::new(client.username()))
         .add(client.uuid())
@@ -123,6 +124,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                 .map(|data| data.animal.health)
                 .unwrap_or(20.0),
         ))
+        .add(BlockBreaker::None)
         .add(abilities.walk_speed)
         .add(abilities.fly_speed)
         .add(abilities.is_flying)
