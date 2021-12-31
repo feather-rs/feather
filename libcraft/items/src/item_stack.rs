@@ -324,6 +324,10 @@ impl ItemStack {
     pub fn stack_size(&self) -> u32 {
         self.item.stack_size()
     }
+
+    pub fn metadata(&self) -> Option<&ItemStackMeta> {
+        self.meta.as_ref()
+    }
 }
 
 /// An error type that may be returned when performing
@@ -354,6 +358,12 @@ impl ItemStackMeta {
             repair_cost: None,
             enchantments: vec![],
         }
+    }
+    pub fn enchantments(&self) -> &[Enchantment] {
+        &self.enchantments
+    }
+    pub fn enchantments_mut(&mut self) -> &mut Vec<Enchantment> {
+        &mut self.enchantments
     }
 }
 

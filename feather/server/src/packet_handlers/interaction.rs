@@ -131,14 +131,12 @@ pub fn handle_player_digging(
                 let mut breaker = game.ecs.get_mut::<BlockBreaker>(player)?;
                 let window = game.ecs.get::<Window>(player)?;
                 let hotbar_slot = game.ecs.get::<HotbarSlot>(player)?.get();
-                let main = window.item(SLOT_HOTBAR_OFFSET + hotbar_slot)?;
-                let offh = window.item(SLOT_OFFHAND)?;
+                let main_hand = window.item(SLOT_HOTBAR_OFFSET + hotbar_slot)?;
                 let _ = breaker.insert(
                     ActiveBlockBreaker::new_player(
                         &mut game.world,
                         packet.position,
-                        main.item_stack(),
-                        offh.item_stack(),
+                        main_hand.item_stack(),
                     )
                     .unwrap(),
                 );

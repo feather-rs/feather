@@ -1,5 +1,6 @@
 use base::{ItemStack, ValidBlockPosition};
 use ecs::{EntityBuilder, SysResult, SystemExecutor};
+use libcraft_items::EnchantmentKind;
 use quill_common::entity_init::EntityInit;
 
 pub struct DestroyStateChange(pub ValidBlockPosition, pub u8);
@@ -39,17 +40,63 @@ impl ActiveBlockBreaker {
         Ok(())
     }
     pub fn new_player(
-        _world: &mut World,
+        world: &mut World,
         block_pos: ValidBlockPosition,
-        _mainhand: Option<&ItemStack>,
-        _offhand: Option<&ItemStack>,
+        main_hand: Option<&ItemStack>,
     ) -> Option<Self> {
-        // TODO
+        let block = world.block_at(block_pos)?.kind();
+        if !block.diggable() {
+            return None;
+        }
+        let harvestable = match (block.harvest_tools(), main_hand) {
+            (None, None | Some(_)) => true,
+            (Some(_), None) => false,
+            (Some(tools), Some(tool)) => tools.contains(&tool.item()),
+        };
+        let dig_multiplier = block
+            .dig_multipliers()
+            .iter()
+            .find_map(|(item, speed)| {
+                main_hand
+                    .map(|e| {
+                        if e.item() == *item {
+                            Some(*speed)
+                        } else {
+                            None
+                        }
+                    })
+                    .flatten()
+            })
+            .unwrap_or(1.0);
+        let effi_level = main_hand
+            .map(ItemStack::metadata)
+            .flatten()
+            .map(|meta| {
+                meta.enchantments().iter().find_map(|ench| {
+                    if ench.kind() == EnchantmentKind::Efficiency {
+                        Some(ench.level())
+                    } else {
+                        None
+                    }
+                })
+            })
+            .flatten();
+        let effi_speed = effi_level.map(|level| level * level + 1).unwrap_or(0) as f32;
+        let damage = if harvestable {
+            (dig_multiplier + effi_speed) / block.hardness() / 30.0
+        } else {
+            1.0 / block.hardness() / 100.0
+        };
+        let ticks = if damage > 1.0 {
+            0
+        } else {
+            (1.0 / damage).ceil() as u32 - 4
+        };
         Some(Self {
             position: block_pos,
             drop_item: true,
-            total_ticks: 20,
-            ticks_remaining: 20,
+            total_ticks: ticks,
+            ticks_remaining: ticks,
         })
     }
     pub fn destroy_stage(&self) -> u8 {
