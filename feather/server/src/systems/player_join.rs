@@ -124,7 +124,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                 .map(|data| data.animal.health)
                 .unwrap_or(20.0),
         ))
-        .add(BlockBreaker::None)
+        .add(BlockBreaker::Inactive)
         .add(abilities.walk_speed)
         .add(abilities.fly_speed)
         .add(abilities.is_flying)
