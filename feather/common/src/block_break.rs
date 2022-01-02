@@ -1,4 +1,4 @@
-use base::{ItemStack, ValidBlockPosition};
+use base::{BlockKind, ItemStack, ValidBlockPosition};
 use ecs::{EntityBuilder, SysResult, SystemExecutor};
 use libcraft_items::EnchantmentKind;
 use quill_common::{entities::Player, entity_init::EntityInit};
@@ -141,7 +141,7 @@ impl ActiveBreaker {
         equipped_item: Option<&ItemStack>,
     ) -> Option<Self> {
         let block = world.block_at(block_pos)?.kind();
-        if !block.diggable() {
+        if !block.diggable() || block == BlockKind::Air {
             return None;
         }
         let harvestable = match (block.harvest_tools(), equipped_item) {
@@ -233,11 +233,10 @@ fn process_block_breaking(game: &mut Game) -> SysResult {
             update_queue.push(entity);
         }
         // Break block when client requests to finish in order to prevent desyncs
-        if break_block {
-            if breaker.finished().unwrap().fake_finished || !game.ecs.get::<Player>(entity).is_ok()
-            {
-                break_queue.push(entity);
-            }
+        if break_block && breaker.finished().unwrap().fake_finished
+            || game.ecs.get::<Player>(entity).is_err()
+        {
+            break_queue.push(entity);
         }
     }
     for entity in update_queue {
@@ -249,7 +248,12 @@ fn process_block_breaking(game: &mut Game) -> SysResult {
         game.ecs.insert_entity_event(entity, event)?;
     }
     for entity in break_queue.into_iter() {
-        let breaker = game.ecs.get::<BlockBreaker>(entity)?.finished().unwrap().clone();
+        let breaker = game
+            .ecs
+            .get::<BlockBreaker>(entity)?
+            .finished()
+            .unwrap()
+            .clone();
         breaker.break_block(game)?;
     }
     Ok(())

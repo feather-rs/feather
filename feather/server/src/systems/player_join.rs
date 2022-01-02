@@ -109,7 +109,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             Position::default().chunk(),
             server.options.view_distance,
         ))
-        .add(Gamemode::Survival)
+        .add(Gamemode::Creative)
         .add(previous_gamemode)
         .add(Name::new(client.username()))
         .add(client.uuid())
