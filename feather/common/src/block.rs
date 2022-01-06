@@ -71,7 +71,7 @@ fn place_block(
     world: &mut World,
     player_pos: Position,
     chunk_entities: &ChunkEntities,
-    block: BlockId,
+    mut block: BlockId,
     placement: &BlockPlacementEvent,
     ecs: &Ecs,
     light_level: u8,
@@ -81,24 +81,26 @@ fn place_block(
     if target_block1.is_air() {
         return None;
     }
-    let mut block = block;
     let player_dir_ordered = ordered_directions(player_pos.direction());
     set_face(&mut block, &player_dir_ordered, placement);
     rotate_8dir(&mut block, player_pos.yaw);
     // Try placing the block by merging (=placing to the same position as the target block). Includes merging slabs, waterlogging and replacing blocks like grass.
+    // Only one of the following conditions can be met at a time, so short-circuiting is ok.
+    // The combinations include top slab & bottom slab, waterloggable block & water and any block & a replaceable block
     let target = if slab_to_place(&mut block, target_block1, placement)
-        | waterlog(&mut block, target_block1)
-        | ((target_block1.kind() != block.kind()) & target_block1.is_replaceable())
+        || waterlog(&mut block, target_block1)
+        || ((target_block1.kind() != block.kind()) && target_block1.is_replaceable())
     {
-        merge_slab(&mut block, target_block1);
+        // If the target block was waterlogged or replaced, attempts to create a double slabs have no effect
+        merge_slabs_in_place(&mut block, target_block1);
         target1
     } else {
         // Otherwise place the block next to the target
         let target2 = target1.adjacent(placement.face);
         let target_block2 = world.block_at(target2.try_into().unwrap())?;
-        if merge_slab(&mut block, target_block2)
-            | waterlog(&mut block, target_block2)
-            | ((target_block2.kind() != block.kind()) & target_block2.is_replaceable())
+        if merge_slabs_in_place(&mut block, target_block2)
+            || waterlog(&mut block, target_block2)
+            || ((target_block2.kind() != block.kind()) && target_block2.is_replaceable())
         {
             target2
         } else {
@@ -136,9 +138,9 @@ fn place_block(
     if chunk_entities
         .entities_in_chunk(target.chunk())
         .iter()
-        .any(|_entity| {
-            let entity_position = ecs.get::<Position>(*_entity).unwrap();
-            let entity_kind = *ecs.get::<EntityKind>(*_entity).unwrap();
+        .any(|&entity| {
+            let entity_position = ecs.get::<Position>(entity).unwrap();
+            let entity_kind = *ecs.get::<EntityKind>(entity).unwrap();
             let block_rect: Rect3<f64, f64> = vek::Rect3 {
                 x: target.x.into(),
                 y: target.y.into(),
@@ -178,9 +180,6 @@ fn place_block(
             FacingCardinal::West => BlockFace::West,
             FacingCardinal::East => BlockFace::East,
         };
-        if !world.check_block_stability(block, target.adjacent(face), light_level)? {
-            return None;
-        }
         world.set_block_at(target.try_into().unwrap(), block);
         world.set_block_adjacent_cardinal(
             target,
@@ -321,27 +320,23 @@ pub fn ordered_directions(direction: Vec3d) -> [FacingCubic; 6] {
     ]
 }
 
-// Merges the two blocks, in place.
-fn merge_slab(block: &mut BlockId, target: BlockId) -> bool {
-    let opt = try_merge_slabs(*block, target);
-    *block = opt.unwrap_or(*block);
-    opt.is_some()
-}
-
-/// Attempts to merge the two blocks as slabs.
-fn try_merge_slabs(a: BlockId, b: BlockId) -> Option<BlockId> {
-    if a.kind() != b.kind() {
-        return None;
+// Attempts to merge the two blocks, in place.
+fn merge_slabs_in_place(block: &mut BlockId, target: BlockId) -> bool {
+    if block.kind() != target.kind() {
+        return false;
     }
-    match (a.slab_kind(), b.slab_kind()) {
-        (Some(c), Some(d)) => match (c, d) {
+    let opt = match (block.slab_kind(), target.slab_kind()) {
+        (Some(slab1), Some(slab2)) => match (slab1, slab2) {
             (SlabKind::Top, SlabKind::Bottom) | (SlabKind::Bottom, SlabKind::Top) => {
-                Some(a.with_slab_kind(SlabKind::Double))
+                Some(block.with_slab_kind(SlabKind::Double))
             }
+
             _ => None,
         },
         _ => None,
-    }
+    };
+    *block = opt.unwrap_or(*block);
+    opt.is_some()
 }
 /// Determine what kind of slab to place. Returns `true` if the slab placed would be merged with the other slab. `try_merge_slabs` should always succeed if this function returns `true`.
 #[allow(clippy::float_cmp)]

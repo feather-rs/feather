@@ -186,12 +186,13 @@ impl World {
 
     pub fn get_facing_block(&self, pos: BlockPosition) -> Option<BlockId> {
         let block = self.block_at(pos.try_into().unwrap())?;
-        let a = block.facing_cardinal().map(FacingCardinal::to_facing_cubic);
-        let b = block
-            .facing_cardinal_and_down()
-            .map(FacingCardinalAndDown::to_facing_cubic);
-        let c = block.facing_cubic();
-        let dir = [a, b, c].iter().find_map(|&e| e)?;
+        let dir = if block.has_facing_cardinal() {
+            block.facing_cardinal().unwrap().to_facing_cubic()
+        } else if block.has_facing_cardinal_and_down() {
+            block.facing_cardinal_and_down().unwrap().to_facing_cubic()
+        } else {
+            block.facing_cubic()?
+        };
         self.adjacent_block_cubic(pos, dir)
     }
 
