@@ -188,6 +188,7 @@ fn place_block(
         ])
     } else {
         world.set_block_at(target, block);
+        connect_neighbours_and_up(world, target)?;
         Some(vec![BlockChangeEvent::try_single(target).ok()?])
     }
 }
@@ -584,6 +585,61 @@ fn decrease_slot(slot: &mut InventorySlot) {
             slot.try_take(1);
         }
     }
+}
+
+pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Option<()> {
+    use base::SimplifiedBlockKind::*;
+    let mut block = world.block_at(pos)?;
+    let east = world.block_at(pos.adjacent(BlockFace::East))?;
+    let west = world.block_at(pos.adjacent(BlockFace::West))?;
+    let north = world.block_at(pos.adjacent(BlockFace::North))?;
+    let south = world.block_at(pos.adjacent(BlockFace::South))?;
+    let mut east_connected = east.simplified_kind() == block.simplified_kind();
+    let mut west_connected = west.simplified_kind() == block.simplified_kind();
+    let mut north_connected = north.simplified_kind() == block.simplified_kind();
+    let mut south_connected = south.simplified_kind() == block.simplified_kind();
+    let is_wall_or_bars = |block: BlockId| matches!(
+        block.simplified_kind(),
+        BrickWall
+            | PrismarineWall
+            | RedSandstoneWall
+            | MossyStoneBrickWall
+            | GraniteWall
+            | StoneBrickWall
+            | NetherBrickWall
+            | AndesiteWall
+            | RedNetherBrickWall
+            | SandstoneWall
+            | EndStoneBrickWall
+            | DioriteWall
+            | CobblestoneWall
+            | MossyCobblestoneWall
+            | BlackstoneWall
+            | PolishedBlackstoneBrickWall
+            | PolishedBlackstoneWall
+            | IronBars
+    );
+    if is_wall_or_bars(block) {
+        east_connected |= east.is_opaque() || is_wall_or_bars(east);
+        west_connected |= west.is_opaque() || is_wall_or_bars(west); 
+        north_connected |=north.is_opaque() || is_wall_or_bars(north) ;
+        south_connected |=south.is_opaque() || is_wall_or_bars(south) ;
+        if block.has_up() {
+            block.set_up(!((east_connected ^ west_connected) && (north_connected ^ south_connected)));
+        }
+    }
+    if matches!(block.simplified_kind(), Fence) {
+        east_connected  |= east.is_opaque()  || east.simplified_kind() == FenceGate;
+        west_connected  |= west.is_opaque()  || west.simplified_kind() == FenceGate;
+        north_connected |= north.is_opaque() || north.simplified_kind() == FenceGate;
+        south_connected |= south.is_opaque() || south.simplified_kind() == FenceGate;
+    }
+    block.set_east_connected(east_connected);
+    block.set_west_connected(west_connected);
+    block.set_north_connected(north_connected);
+    block.set_south_connected(south_connected);
+
+    Some(())
 }
 
 trait AdjacentBlockHelper {
