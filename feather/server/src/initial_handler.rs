@@ -46,8 +46,7 @@ pub struct NewPlayer {
 
 /// Result of initial handling.
 pub enum InitialHandling {
-    /// The client should be disconnected (sent when
-    /// the connection was just a "status" ping.)
+    /// The client should be disconnected.
     Disconnect,
     /// We should create a new player.
     Join(NewPlayer),
