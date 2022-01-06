@@ -1,8 +1,10 @@
-use base::{BlockPosition, FacingCubic, BlockId, FacingCardinalAndDown, FacingCardinal, categories::SupportType, BlockKind};
+use base::{
+    categories::SupportType, BlockId, BlockKind, BlockPosition, EastNlt, FacingCardinal,
+    FacingCardinalAndDown, FacingCubic, NorthNlt, SouthNlt, WestNlt,
+};
 use libcraft_core::BlockFace;
 
 use crate::World;
-
 
 pub trait AdjacentBlockHelper {
     fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockId>;
@@ -266,4 +268,86 @@ impl AdjacentBlockHelper for World {
             true
         })
     }
+}
+
+pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Option<()> {
+    use base::SimplifiedBlockKind::*;
+    let mut block = world.block_at(pos)?;
+    let east = world.block_at(pos.adjacent(BlockFace::East))?;
+    let west = world.block_at(pos.adjacent(BlockFace::West))?;
+    let north = world.block_at(pos.adjacent(BlockFace::North))?;
+    let south = world.block_at(pos.adjacent(BlockFace::South))?;
+    let mut east_connected = east.simplified_kind() == block.simplified_kind();
+    let mut west_connected = west.simplified_kind() == block.simplified_kind();
+    let mut north_connected = north.simplified_kind() == block.simplified_kind();
+    let mut south_connected = south.simplified_kind() == block.simplified_kind();
+    let is_wall_or_bars = |block: BlockId| {
+        matches!(
+            block.simplified_kind(),
+            BrickWall
+                | PrismarineWall
+                | RedSandstoneWall
+                | MossyStoneBrickWall
+                | GraniteWall
+                | StoneBrickWall
+                | NetherBrickWall
+                | AndesiteWall
+                | RedNetherBrickWall
+                | SandstoneWall
+                | EndStoneBrickWall
+                | DioriteWall
+                | CobblestoneWall
+                | MossyCobblestoneWall
+                | BlackstoneWall
+                | PolishedBlackstoneBrickWall
+                | PolishedBlackstoneWall
+                | IronBars
+        )
+    };
+    if is_wall_or_bars(block) {
+        east_connected = east_connected || east.is_full_block() || is_wall_or_bars(east);
+        west_connected = west_connected || west.is_full_block() || is_wall_or_bars(west);
+        north_connected = north_connected || north.is_full_block() || is_wall_or_bars(north);
+        south_connected = south_connected || south.is_full_block() || is_wall_or_bars(south);
+        if block.has_up() {
+            block.set_up(
+                !((east_connected ^ west_connected) && (north_connected ^ south_connected)),
+            );
+        }
+    }
+    if matches!(block.simplified_kind(), Fence) {
+        east_connected |= east.is_full_block() || east.simplified_kind() == FenceGate;
+        west_connected |= west.is_full_block() || west.simplified_kind() == FenceGate;
+        north_connected |= north.is_full_block() || north.simplified_kind() == FenceGate;
+        south_connected |= south.is_full_block() || south.simplified_kind() == FenceGate;
+    }
+
+    block.set_east_connected(east_connected);
+    block.set_west_connected(west_connected);
+    block.set_north_connected(north_connected);
+    block.set_south_connected(south_connected);
+    // TODO: walls are tall when stacked
+    block.set_east_nlt(if east_connected {
+        EastNlt::Low
+    } else {
+        EastNlt::None
+    });
+    block.set_west_nlt(if west_connected {
+        WestNlt::Low
+    } else {
+        WestNlt::None
+    });
+    block.set_north_nlt(if north_connected {
+        NorthNlt::Low
+    } else {
+        NorthNlt::None
+    });
+    block.set_south_nlt(if south_connected {
+        SouthNlt::Low
+    } else {
+        SouthNlt::None
+    });
+    world.set_block_at(pos, block);
+
+    Some(())
 }
