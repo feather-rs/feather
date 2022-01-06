@@ -2,15 +2,12 @@ use std::convert::TryInto;
 use std::{path::PathBuf, sync::Arc};
 
 use ahash::{AHashMap, AHashSet};
-use base::categories::SupportType;
-use libcraft_core::BlockFace;
 use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use uuid::Uuid;
 
 use base::anvil::player::PlayerData;
 use base::{
-    BlockKind, BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, FacingCardinal,
-    FacingCardinalAndDown, FacingCubic, ValidBlockPosition, CHUNK_HEIGHT,
+    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition, CHUNK_HEIGHT,
 };
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
@@ -141,259 +138,20 @@ impl World {
     /// if its chunk was not loaded or the coordinates
     /// are out of bounds and thus no operation
     /// was performed.
-    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
-        self.chunk_map.set_block_at(pos, block)
+    pub fn set_block_at(&self, pos: impl TryInto<ValidBlockPosition>, block: BlockId) -> bool {
+        let valid_pos = match pos.try_into() {
+            Ok(valid) => valid,
+            Err(_) => return false,
+        };
+        self.chunk_map.set_block_at(valid_pos, block)
     }
 
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
     /// exists is not loaded or the coordinates
     /// are out of bounds, `None` is returned.
-    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
-        self.chunk_map.block_at(pos)
-    }
-
-    pub fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockId> {
-        self.block_at(
-            pos.adjacent(match dir {
-                FacingCubic::North => BlockFace::North,
-                FacingCubic::East => BlockFace::East,
-                FacingCubic::South => BlockFace::South,
-                FacingCubic::West => BlockFace::West,
-                FacingCubic::Up => BlockFace::Top,
-                FacingCubic::Down => BlockFace::Bottom,
-            })
-            .try_into()
-            .unwrap(),
-        )
-    }
-
-    pub fn adjacent_block_cardinal(
-        &self,
-        pos: BlockPosition,
-        dir: FacingCardinal,
-    ) -> Option<BlockId> {
-        self.adjacent_block_cubic(pos, dir.to_facing_cubic())
-    }
-
-    pub fn adjacent_block_cardinal_and_down(
-        &self,
-        pos: BlockPosition,
-        dir: FacingCardinalAndDown,
-    ) -> Option<BlockId> {
-        self.adjacent_block_cubic(pos, dir.to_facing_cubic())
-    }
-
-    pub fn get_facing_block(&self, pos: BlockPosition) -> Option<BlockId> {
-        let block = self.block_at(pos.try_into().unwrap())?;
-        let dir = if block.has_facing_cardinal() {
-            block.facing_cardinal().unwrap().to_facing_cubic()
-        } else if block.has_facing_cardinal_and_down() {
-            block.facing_cardinal_and_down().unwrap().to_facing_cubic()
-        } else {
-            block.facing_cubic()?
-        };
-        self.adjacent_block_cubic(pos, dir)
-    }
-
-    pub fn set_block_adjacent_cubic(
-        &self,
-        pos: BlockPosition,
-        block: BlockId,
-        dir: FacingCubic,
-    ) -> bool {
-        self.set_block_at(
-            pos.adjacent(match dir {
-                FacingCubic::North => BlockFace::North,
-                FacingCubic::East => BlockFace::East,
-                FacingCubic::South => BlockFace::South,
-                FacingCubic::West => BlockFace::West,
-                FacingCubic::Up => BlockFace::Top,
-                FacingCubic::Down => BlockFace::Bottom,
-            })
-            .try_into()
-            .unwrap(),
-            block,
-        )
-    }
-
-    pub fn set_block_adjacent_cardinal(
-        &self,
-        pos: BlockPosition,
-        block: BlockId,
-        dir: FacingCardinal,
-    ) -> bool {
-        self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
-    }
-
-    pub fn set_block_adjacent_cardinal_and_down(
-        &self,
-        pos: BlockPosition,
-        block: BlockId,
-        dir: FacingCardinalAndDown,
-    ) -> bool {
-        self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
-    }
-
-    pub fn check_block_stability(
-        &self,
-        block: BlockId,
-        pos: BlockPosition,
-        light_level: u8,
-    ) -> Option<bool> {
-        use blocks::SimplifiedBlockKind::*;
-        Some(if let Some(support_type) = block.support_type() {
-            let block_under = self.block_at(pos.down().try_into().ok()?);
-            let block_up = self.block_at(pos.up().try_into().ok()?);
-            let block_facing = self.get_facing_block(pos);
-            match support_type {
-                SupportType::OnSolid => block_under?.is_solid(),
-                SupportType::OnDesertBlocks => matches!(
-                    block_under?.simplified_kind(),
-                    Sand | RedSand | Dirt | CoarseDirt | Podzol
-                ),
-                SupportType::OnDirtBlocks => matches!(
-                    block_under?.simplified_kind(),
-                    Dirt | GrassBlock | CoarseDirt | Podzol | Farmland
-                ),
-                SupportType::OnFarmland => block_under?.simplified_kind() == Farmland,
-                SupportType::OnSoulSand => block_under?.simplified_kind() == SoulSand,
-                SupportType::OnWater => block_under?.simplified_kind() == Water,
-                SupportType::FacingSolid => block_facing?.is_solid(),
-                SupportType::FacingJungleWood => matches!(
-                    block_facing?.kind(),
-                    BlockKind::JungleLog
-                        | BlockKind::StrippedJungleLog
-                        | BlockKind::JungleWood
-                        | BlockKind::StrippedJungleWood
-                ),
-                SupportType::OnOrFacingSolid => self
-                    .block_at(
-                        pos.adjacent(match block.face()? {
-                            base::Face::Floor => BlockFace::Bottom,
-                            base::Face::Wall => match block.facing_cardinal()?.opposite() {
-                                FacingCardinal::North => BlockFace::North,
-                                FacingCardinal::South => BlockFace::South,
-                                FacingCardinal::West => BlockFace::West,
-                                FacingCardinal::East => BlockFace::East,
-                            },
-                            base::Face::Ceiling => BlockFace::Top,
-                        })
-                        .try_into()
-                        .ok()?,
-                    )?
-                    .is_full_block(),
-                SupportType::CactusLike => {
-                    matches!(block_under?.simplified_kind(), Sand | RedSand | Cactus) && {
-                        let mut ok = true;
-                        for face in [
-                            BlockFace::North,
-                            BlockFace::South,
-                            BlockFace::West,
-                            BlockFace::East,
-                        ] {
-                            let block = self.block_at(pos.adjacent(face).try_into().ok()?)?;
-                            ok &= !block.is_full_block() && block.simplified_kind() != Cactus
-                        }
-                        ok
-                    }
-                }
-                SupportType::ChorusFlowerLike => {
-                    let neighbours = [
-                        BlockFace::North,
-                        BlockFace::South,
-                        BlockFace::West,
-                        BlockFace::East,
-                    ]
-                    .iter()
-                    .filter_map(|&face| pos.adjacent(face).try_into().ok())
-                    .filter_map(|pos| self.block_at(pos))
-                    .map(BlockId::simplified_kind);
-                    neighbours.clone().filter(|&e| e == Air).count() == 3
-                        && neighbours.filter(|&e| e == EndStone).count() == 1
-                        || matches!(block_under?.simplified_kind(), EndStone | ChorusPlant)
-                }
-                SupportType::ChorusPlantLike => {
-                    let n = [
-                        BlockFace::North,
-                        BlockFace::South,
-                        BlockFace::West,
-                        BlockFace::East,
-                    ];
-                    let horizontal = n
-                        .iter()
-                        .filter_map(|&f| pos.adjacent(f).try_into().ok())
-                        .filter_map(|p| self.block_at(p))
-                        .map(BlockId::simplified_kind);
-                    let horizontal_down = n
-                        .iter()
-                        .filter_map(|&f| pos.down().adjacent(f).try_into().ok())
-                        .filter_map(|p| self.block_at(p))
-                        .map(BlockId::simplified_kind);
-                    if horizontal.clone().count() != 4 || horizontal_down.clone().count() != 4 {
-                        return None;
-                    }
-                    let has_horizontal = horizontal.clone().any(|b| b == ChorusPlant);
-                    let has_vertical =
-                        matches!(block_up?.simplified_kind(), ChorusPlant | ChorusFlower);
-                    let is_connected = horizontal
-                        .zip(horizontal_down)
-                        .any(|(h, hd)| h == ChorusPlant && matches!(hd, ChorusPlant | EndStone));
-                    is_connected && !(has_vertical && has_horizontal && !block_under?.is_air())
-                }
-                SupportType::MushroomLike => block_under?.is_full_block() && light_level < 13,
-                SupportType::SnowLike => {
-                    block_under?.is_full_block()
-                        && !matches!(block_under?.simplified_kind(), Ice | PackedIce)
-                }
-                SupportType::SugarCaneLike => {
-                    matches!(
-                        block_under?.simplified_kind(),
-                        Dirt | CoarseDirt | Podzol | Sand | RedSand
-                    ) && {
-                        let mut ok = false;
-                        for face in [
-                            BlockFace::North,
-                            BlockFace::South,
-                            BlockFace::West,
-                            BlockFace::East,
-                        ] {
-                            let block =
-                                self.block_at(pos.down().adjacent(face).try_into().ok()?)?;
-                            ok |= matches!(block.simplified_kind(), FrostedIce | Water);
-                            ok |= block.waterlogged().unwrap_or(false);
-                        }
-                        ok
-                    }
-                }
-                SupportType::TripwireHookLike => {
-                    block_facing?.is_full_block()
-                        && !matches!(block_facing?.simplified_kind(), RedstoneBlock | Observer)
-                }
-                SupportType::VineLike => {
-                    matches!(
-                        self.block_at(pos.up().try_into().ok()?)?.simplified_kind(),
-                        Vine
-                    ) || {
-                        let mut ok = false;
-                        for face in [
-                            BlockFace::North,
-                            BlockFace::South,
-                            BlockFace::West,
-                            BlockFace::East,
-                            BlockFace::Top,
-                        ] {
-                            let block =
-                                self.block_at(pos.down().adjacent(face).try_into().ok()?)?;
-                            ok |= block.is_full_block();
-                        }
-                        ok
-                    }
-                }
-            }
-        } else {
-            true
-        })
+    pub fn block_at(&self, pos: impl TryInto<ValidBlockPosition>) -> Option<BlockId> {
+        self.chunk_map.block_at(pos.try_into().ok()?)
     }
 
     /// Returns the chunk map.
@@ -510,8 +268,6 @@ fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use super::*;
 
     #[test]
@@ -521,11 +277,7 @@ mod tests {
             .chunk_map_mut()
             .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));
 
-        assert!(world
-            .block_at(BlockPosition::new(0, -1, 0).try_into().unwrap())
-            .is_none());
-        assert!(world
-            .block_at(BlockPosition::new(0, 0, 0).try_into().unwrap())
-            .is_some());
+        assert!(world.block_at(BlockPosition::new(0, -1, 0)).is_none());
+        assert!(world.block_at(BlockPosition::new(0, 0, 0)).is_some());
     }
 }
