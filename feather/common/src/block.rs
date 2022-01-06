@@ -225,8 +225,8 @@ fn door_hinge(
     }
     let lt = world.adjacent_block_cardinal(pos.up(), left)?;
     let rt = world.adjacent_block_cardinal(pos.up(), right)?;
-    let solid_left = is_block_solid(lb) | is_block_solid(lt);
-    let solid_right = is_block_solid(rb) | is_block_solid(rt);
+    let solid_left = is_block_solid(lb) || is_block_solid(lt);
+    let solid_right = is_block_solid(rb) || is_block_solid(rt);
     if solid_left && !solid_right {
         block.set_hinge(Hinge::Left);
         return Some(());
@@ -238,8 +238,8 @@ fn door_hinge(
     let relevant_axis = match cardinal {
         FacingCardinal::North => cursor_pos[0],
         FacingCardinal::South => 1.0 - cursor_pos[0],
-        FacingCardinal::West => cursor_pos[2],
-        FacingCardinal::East => 1.0 - cursor_pos[2],
+        FacingCardinal::West => 1.0 - cursor_pos[2],
+        FacingCardinal::East => cursor_pos[2],
     };
     block.set_hinge(if relevant_axis < 0.5 {
         Hinge::Left
@@ -441,6 +441,7 @@ fn is_player_relative(kind: SimplifiedBlockKind) -> bool {
             | IronDoor
             | WarpedDoor
             | CrimsonDoor
+            | Stairs
     )
 }
 
@@ -449,7 +450,7 @@ fn is_reverse_placed(kind: SimplifiedBlockKind) -> bool {
     use SimplifiedBlockKind::*;
     matches!(
         kind,
-        Observer | Bed | FenceGate | WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor
+        Observer | Bed | FenceGate | WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor | Stairs
     )
 }
 
