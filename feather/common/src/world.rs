@@ -319,16 +319,27 @@ impl World {
                         BlockFace::West,
                         BlockFace::East,
                     ];
-                    let horizontal = n.iter().filter_map(|&f| pos.adjacent(f).try_into().ok()).filter_map(|p| self.block_at(p)).map(BlockId::simplified_kind);
-                    let horizontal_down = n.iter().filter_map(|&f| pos.down().adjacent(f).try_into().ok()).filter_map(|p| self.block_at(p)).map(BlockId::simplified_kind);
-                    if horizontal.clone().count() != 4 || horizontal_down.clone().count() != 4 { return None; }
+                    let horizontal = n
+                        .iter()
+                        .filter_map(|&f| pos.adjacent(f).try_into().ok())
+                        .filter_map(|p| self.block_at(p))
+                        .map(BlockId::simplified_kind);
+                    let horizontal_down = n
+                        .iter()
+                        .filter_map(|&f| pos.down().adjacent(f).try_into().ok())
+                        .filter_map(|p| self.block_at(p))
+                        .map(BlockId::simplified_kind);
+                    if horizontal.clone().count() != 4 || horizontal_down.clone().count() != 4 {
+                        return None;
+                    }
                     let has_horizontal = horizontal.clone().any(|b| b == ChorusPlant);
-                    let has_vertical = matches!(block_up?.simplified_kind(), ChorusPlant | ChorusFlower);
-                    let is_connected = horizontal.zip(horizontal_down).any(|(h, hd)| {
-                        h == ChorusPlant && matches!(hd, ChorusPlant | EndStone)
-                    });
+                    let has_vertical =
+                        matches!(block_up?.simplified_kind(), ChorusPlant | ChorusFlower);
+                    let is_connected = horizontal
+                        .zip(horizontal_down)
+                        .any(|(h, hd)| h == ChorusPlant && matches!(hd, ChorusPlant | EndStone));
                     is_connected && !(has_vertical && has_horizontal && !block_under?.is_air())
-                },
+                }
                 SupportType::MushroomLike => block_under?.is_full_block() && light_level < 13,
                 SupportType::SnowLike => {
                     block_under?.is_full_block()
