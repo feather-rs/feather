@@ -7,15 +7,17 @@ use base::{
 };
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
+
 use quill_common::{
-    components::{OnGround, Sprinting},
+    components::Sprinting,
     events::{SneakEvent, SprintEvent},
 };
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
-    NetworkId, Server,
+    Server,
 };
+use quill_common::components::{NetworkId, OnGround};
 
 mod spawn_packet;
 

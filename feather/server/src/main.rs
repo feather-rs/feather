@@ -1,11 +1,13 @@
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 
-use anyhow::Context;
 use base::anvil::level::SuperflatGeneratorOptions;
 use common::{Game, TickLoop, World};
-use ecs::SystemExecutor;
+use ecs::{HasResources, SystemExecutor};
+use feather_commands::{CommandCtx, CommandDispatcher};
+use feather_server::console_input::{flush_stdout, ConsoleInput};
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
+use quill_common::components::DefaultGamemode;
 use worldgen::{ComposableGenerator, SuperflatWorldGenerator, WorldGenerator};
 
 mod logging;
@@ -18,20 +20,41 @@ async fn main() -> anyhow::Result<()> {
     let feather_server::config::ConfigContainer {
         config,
         was_config_created,
-    } = feather_server::config::load(CONFIG_PATH).context("failed to load configuration file")?;
-    logging::init(config.log.level);
+    } = feather_server::config::load(CONFIG_PATH).expect("failed to load configuration file");
+
+    let (stdout_tx, stdout_rx) = flume::unbounded();
+    logging::init(config.log.level, stdout_tx);
     if was_config_created {
         log::info!("Created default config");
     }
     log::info!("Loaded config");
 
     log::info!("Creating server");
+    flush_stdout(&stdout_rx, "");
     let options = config.to_options();
-    let server = Server::bind(options).await?;
-
-    let game = init_game(server, &config)?;
-
-    run(game);
+    match Server::bind(options).await {
+        Ok(server) => match init_game(server, &config) {
+            Ok(mut game) => {
+                let console_input = ConsoleInput::new::<CommandCtx>(
+                    stdout_rx,
+                    config.cli.completion_type,
+                    config.cli.edit_mode,
+                );
+                game.insert_resource(console_input);
+                run(game);
+            }
+            Err(err) => {
+                log::error!("{}", err);
+                flush_stdout(&stdout_rx, "");
+                std::process::exit(1);
+            }
+        },
+        Err(err) => {
+            log::error!("{}", err);
+            flush_stdout(&stdout_rx, "");
+            std::process::exit(1);
+        }
+    }
 
     Ok(())
 }
@@ -40,7 +63,9 @@ fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
     init_world_source(&mut game, config);
+    init_commands(&mut game);
     init_plugin_manager(&mut game)?;
+    init_config(&mut game, config);
     Ok(game)
 }
 
@@ -55,16 +80,27 @@ fn init_systems(game: &mut Game, server: Server) {
 
     print_systems(&systems);
 
-    game.system_executor = Rc::new(RefCell::new(systems));
+    game.insert_resource(systems);
 }
 
 fn init_world_source(game: &mut Game, config: &Config) {
     // Load chunks from the world save first,
-    // and fall back to generating a superflat
-    // world otherwise. This is a placeholder:
-    // we don't have proper world generation yet.
+    // and fall back to generating a world otherwise.
 
-    let seed = 42; // FIXME: load from the level file
+    // FIXME: load from the level file if exists
+    let seed = config.world.seed.parse().unwrap_or_else(|_| {
+        if config.world.seed.is_empty() {
+            rand::random()
+        } else {
+            // Java String#hashCode
+            config
+                .world
+                .seed
+                .chars()
+                .fold(0i32, |val, ch| val.wrapping_mul(31).wrapping_add(ch as i32))
+                as i64
+        }
+    });
 
     let generator: Arc<dyn WorldGenerator> = match &config.world.generator[..] {
         "flat" => Arc::new(SuperflatWorldGenerator::new(
@@ -72,7 +108,13 @@ fn init_world_source(game: &mut Game, config: &Config) {
         )),
         _ => Arc::new(ComposableGenerator::default_with_seed(seed)),
     };
-    game.world = World::with_gen_and_path(generator, config.world.name.clone());
+    game.world = World::new(generator, config.world.name.clone(), seed);
+}
+
+fn init_commands(game: &mut Game) {
+    let mut dispatcher = CommandDispatcher::new();
+    feather_commands::register_vanilla_commands(&mut dispatcher);
+    game.insert_resource(dispatcher);
 }
 
 fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
@@ -82,6 +124,10 @@ fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
     game.insert_resource(plugin_manager_rc);
     Ok(())
+}
+
+fn init_config(game: &mut Game, config: &Config) {
+    game.insert_resource(DefaultGamemode::new(config.server.default_gamemode));
 }
 
 fn print_systems(systems: &SystemExecutor<Game>) {
@@ -97,8 +143,10 @@ fn run(game: Game) {
 
 fn create_tick_loop(mut game: Game) -> TickLoop {
     TickLoop::new(move || {
-        let systems = Rc::clone(&game.system_executor);
-        systems.borrow_mut().run(&mut game);
+        game.resources()
+            .get_mut::<SystemExecutor<Game>>()
+            .unwrap()
+            .run(&mut game);
         game.tick_count += 1;
 
         false

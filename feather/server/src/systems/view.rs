@@ -3,6 +3,8 @@
 //! The entities and chunks visible to each client are
 //! determined based on the player's [`common::view::View`].
 
+use crate::client::Client;
+use crate::Server;
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};
 use common::{
@@ -10,8 +12,7 @@ use common::{
     Game,
 };
 use ecs::{Entity, SysResult, SystemExecutor};
-
-use crate::{Client, ClientId, Server};
+use quill_common::components::ClientId;
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems

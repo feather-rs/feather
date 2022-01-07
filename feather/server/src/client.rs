@@ -13,14 +13,13 @@ use base::{
     BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
     ProfileProperty, Text, ValidBlockPosition,
 };
-use common::{
-    chat::{ChatKind, ChatMessage},
-    Window,
-};
+use common::world::WorldTime;
+use feather_commands::{CommandCtx, CommandDispatcher};
 use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+    ChangeGameState, DeclareCommands, EntityPosition, EntityPositionAndRotation, EntityTeleport,
+    HeldItemChange, PlayerAbilities, StateReason, TabComplete, TabCompleteMatch, TimeUpdate,
 };
 use protocol::{
     packets::{
@@ -34,22 +33,21 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::{OnGround, PreviousGamemode};
+use quill_common::components::{
+    ChatKind, ChatMessage, ClientId, NetworkId, OnGround, PreviousGamemode,
+};
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
     initial_handler::NewPlayer,
-    network_id_registry::NetworkId,
     Options,
 };
+use common::Window;
 use slab::Slab;
+use std::net::IpAddr;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
-
-/// ID of a client. Can be reused.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ClientId(usize);
 
 /// Stores all `Client`s.
 #[derive(Default)]
@@ -110,6 +108,9 @@ pub struct Client {
     client_known_position: Cell<Option<Position>>,
 
     disconnected: Cell<bool>,
+
+    /// Player's real IP address
+    real_ip: IpAddr,
 }
 
 impl Client {
@@ -129,6 +130,7 @@ impl Client {
             chunk_send_queue: RefCell::new(VecDeque::new()),
             client_known_position: Cell::new(None),
             disconnected: Cell::new(false),
+            real_ip: player.ip,
         }
     }
 
@@ -154,6 +156,10 @@ impl Client {
 
     pub fn username(&self) -> &str {
         &self.username
+    }
+
+    pub fn real_ip(&self) -> IpAddr {
+        self.real_ip
     }
 
     pub fn received_packets(&self) -> impl Iterator<Item = ClientPlayPacket> + '_ {
@@ -329,6 +335,10 @@ impl Client {
     pub fn remove_tablist_player(&self, uuid: Uuid) {
         log::trace!("Sending RemovePlayer({}) to {}", uuid, self.username);
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
+    }
+
+    pub fn change_player_tablist_gamemode(&self, uuid: Uuid, gamemode: Gamemode) {
+        self.send_packet(PlayerInfo::UpdateGamemodes(vec![(uuid, gamemode)]));
     }
 
     pub fn unload_entity(&self, id: NetworkId) {
@@ -529,6 +539,21 @@ impl Client {
         self.send_packet(packet);
     }
 
+    pub fn send_slot_item(&self, window_id: u8, slot: i16, item: InventorySlot) {
+        log::trace!(
+            "Updating slot {} in window {} for {}",
+            slot,
+            window_id,
+            self.username
+        );
+        let packet = SetSlot {
+            window_id,
+            slot,
+            slot_data: item,
+        };
+        self.send_packet(packet);
+    }
+
     pub fn set_slot(&self, slot: i16, item: &InventorySlot) {
         log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
         self.send_packet(SetSlot {
@@ -602,6 +627,47 @@ impl Client {
         self.send_packet(HeldItemChange { slot });
     }
 
+    pub fn change_gamemode(&self, gamemode: Gamemode) {
+        self.send_packet(ChangeGameState {
+            reason: StateReason::ChangeGameMode,
+            value: gamemode as u8 as f32,
+        })
+    }
+
+    pub fn send_time(&self, time: &WorldTime) {
+        self.send_packet(TimeUpdate {
+            world_age: time.world_age(),
+            time_of_day: time.time(),
+        })
+    }
+
+    pub fn send_commands(&self, commands: &CommandDispatcher<CommandCtx, Text>) {
+        self.send_packet(DeclareCommands {
+            __todo__: commands.packet().unwrap(),
+        })
+    }
+
+    pub fn send_tab_completions(
+        &self,
+        transaction_id: i32,
+        completions: Vec<(String, Option<Text>)>,
+        start: usize,
+        length: usize,
+    ) {
+        self.send_packet(TabComplete {
+            id: transaction_id,
+            start: start as i32,
+            length: length as i32,
+            matches: completions
+                .into_iter()
+                .map(|(value, tooltip)| TabCompleteMatch {
+                    value,
+                    tooltip: tooltip.map(|t| t.to_string()),
+                })
+                .collect(),
+        })
+    }
+
     fn register_entity(&self, network_id: NetworkId) {
         self.sent_entities.borrow_mut().insert(network_id);
     }
@@ -610,10 +676,10 @@ impl Client {
         let _ = self.packets_to_send.try_send(packet.into());
     }
 
-    pub fn disconnect(&self, reason: &str) {
+    pub fn disconnect(&self, reason: impl Into<Text>) {
         self.disconnected.set(true);
         self.send_packet(Disconnect {
-            reason: Text::from(reason.to_owned()).to_string(),
+            reason: Into::<Text>::into(reason).to_string(),
         });
     }
 }

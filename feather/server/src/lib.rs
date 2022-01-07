@@ -2,33 +2,33 @@
 
 use std::{sync::Arc, time::Instant};
 
+use flume::Receiver;
+
 use base::Position;
 use chunk_subscriptions::ChunkSubscriptions;
+pub use client::{Client, Clients};
+use common::player_count::PlayerCount;
 use common::Game;
 use ecs::SystemExecutor;
-use flume::Receiver;
 use initial_handler::NewPlayer;
-use listener::Listener;
+pub use options::Options;
+use quill_common::components::ClientId;
+use systems::view::WaitingChunks;
+
+use crate::listener::Listener;
 
 mod chunk_subscriptions;
 pub mod client;
 pub mod config;
 mod connection_worker;
+pub mod console_input;
 mod entities;
 pub mod favicon;
 mod initial_handler;
-mod listener;
-mod network_id_registry;
-mod options;
+pub mod listener;
+pub mod options;
 mod packet_handlers;
-mod player_count;
 mod systems;
-
-pub use client::{Client, ClientId, Clients};
-pub use network_id_registry::NetworkId;
-pub use options::Options;
-use player_count::PlayerCount;
-use systems::view::WaitingChunks;
 
 /// A Minecraft server.
 ///
@@ -54,7 +54,7 @@ impl Server {
     /// Starts a server with the given `Options`.
     ///
     /// Must be called within the context of a Tokio runtime.
-    pub async fn bind(options: Options) -> anyhow::Result<Self> {
+    pub async fn bind(options: Options) -> anyhow::Result<Server> {
         let options = Arc::new(options);
         let player_count = PlayerCount::new(options.max_players);
 

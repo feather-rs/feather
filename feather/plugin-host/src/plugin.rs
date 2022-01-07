@@ -1,13 +1,19 @@
 use std::sync::Arc;
 
 use anyhow::bail;
+use commands::dispatcher::{Args, CommandOutput, TabCompletion};
+
+use feather_commands::CommandCtx;
 use feather_common::Game;
+use quill::{Caller, CommandContext};
+use quill_common::EntityId;
 use quill_plugin_format::{PluginFile, PluginMetadata, PluginTarget, Triple};
 
 use crate::{
     context::{PluginContext, PluginPtrMut},
     PluginId, PluginManager,
 };
+use feather_base::Text;
 
 mod native;
 mod wasm;
@@ -93,6 +99,75 @@ impl Plugin {
                 Ok(())
             }
         })
+    }
+
+    pub fn run_command(
+        &self,
+        data: PluginPtrMut<u8>,
+        args: &mut Args,
+        mut context: CommandCtx,
+    ) -> CommandOutput {
+        let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
+        self.context.enter(&mut *context, || {
+            let ctx = CommandContext {
+                game: quill::Game::new(),
+                caller,
+                // Command context with the plugin will be created on the plugin side
+                plugin: &mut (),
+            };
+            match &self.inner {
+                Inner::Wasm(w) => w.run_command(data, args, ctx),
+                Inner::Native(n) => n.run_command(data, args, ctx),
+            }
+        })
+    }
+
+    pub fn run_command_fork(
+        &self,
+        data: PluginPtrMut<u8>,
+        args: &mut Args,
+        mut context: CommandCtx,
+        f: u32,
+    ) -> CommandOutput {
+        let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
+        self.context.enter(&mut *context, || {
+            let ctx = CommandContext {
+                game: quill::Game::new(),
+                caller,
+                // Command context with the plugin will be created on the plugin side
+                plugin: &mut (),
+            };
+            match &self.inner {
+                Inner::Wasm(w) => w.run_command_fork(data, args, ctx, f),
+                Inner::Native(n) => n.run_command_fork(data, args, ctx, f),
+            }
+        })
+    }
+
+    pub fn run_command_completer(
+        &self,
+        data: PluginPtrMut<u8>,
+        text: &str,
+        context: &mut CommandCtx,
+    ) -> TabCompletion<Text> {
+        let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
+        self.context.enter(context, || {
+            let ctx = CommandContext {
+                game: quill::Game::new(),
+                caller,
+                // Command context with the plugin will be created on the plugin side
+                plugin: &mut (),
+            };
+            match &self.inner {
+                Inner::Wasm(w) => w.run_command_completer(data, text, ctx),
+                Inner::Native(n) => n.run_command_completer(data, text, ctx),
+            }
+            .unwrap_or_default()
+        })
+    }
+
+    pub fn enter<R>(&self, game: &mut Game, callback: impl FnOnce() -> R) -> R {
+        self.context.enter(game, callback)
     }
 }
 

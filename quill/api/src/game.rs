@@ -33,6 +33,7 @@ pub struct EntityRemoved;
 ///
 /// A `Game` is passed to systems when they run.
 #[derive(Debug)]
+#[repr(C)]
 pub struct Game {
     _not_send_sync: PhantomData<*mut ()>,
 }
@@ -205,7 +206,7 @@ impl Game {
     }
 
     /// Sends a custom packet to an entity.
-    pub fn send_plugin_message(entity: EntityId, channel: &str, data: &[u8]) {
+    pub fn send_plugin_message(&self, entity: EntityId, channel: &str, data: &[u8]) {
         let channel_ptr = channel.as_ptr().into();
         let data_ptr = data.as_ptr().into();
         unsafe {

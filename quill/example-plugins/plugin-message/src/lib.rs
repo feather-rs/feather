@@ -28,7 +28,7 @@ fn plugin_message_system(_plugin: &mut PluginMessage, game: &mut Game) {
             data.extend_from_slice(b"Connect");
             data.extend_from_slice(&u16::to_be_bytes(5));
             data.extend_from_slice(b"lobby");
-            Game::send_plugin_message(entity.id(), "bungeecord:main", &data);
+            game.send_plugin_message(entity.id(), "bungeecord:main", &data);
         }
     }
 }

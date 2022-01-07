@@ -28,7 +28,7 @@ pub use libcraft_core::{
 pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackError};
 pub use libcraft_particles::{Particle, ParticleKind};
-pub use libcraft_text::{deserialize_text, Text, Title};
+pub use libcraft_text::{deserialize_text, Text, TextComponentBuilder, TextValue, Title};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
 

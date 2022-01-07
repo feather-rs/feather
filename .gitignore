@@ -7,7 +7,14 @@
 .cargo
 
 world/
-/config.toml
+feather/downloaded
+feather/datapacks/minecraft/
+config.toml
+plugins
+banned-players.json
+banned-ips.json
+usercache.json
+.feather_command_history
 
 # Python cache files (libcraft)
 **/__pycache__/

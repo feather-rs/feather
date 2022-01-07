@@ -4,7 +4,8 @@ use common::{window::BackingWindow, Window};
 use ecs::{EntityRef, SysResult};
 use protocol::packets::client::{ClickWindow, CreativeInventoryAction};
 
-use crate::{ClientId, Server};
+use crate::Server;
+use quill_common::components::ClientId;
 
 pub fn handle_creative_inventory_action(
     player: EntityRef,

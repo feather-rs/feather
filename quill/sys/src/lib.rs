@@ -90,7 +90,7 @@ extern "C" {
     /// The given message should be in the JSON format.
     ///
     /// Does nothing if the entity does not exist or it does not have the `Chat` component.
-    pub fn entity_send_message(entity: EntityId, message_ptr: Pointer<u8>, message_len: u32);
+    pub fn entity_send_message(entity: EntityId, message_ptr: Pointer<u8>);
 
     /// Sends a title to an entity.
     ///
@@ -173,5 +173,30 @@ extern "C" {
         channel_len: u32,
         data_ptr: Pointer<u8>,
         data_len: u32,
+    );
+
+    /// Modifies command executor. `executors` have quill's CommandContexts
+    /// Arguments are emptied after this call
+    ///
+    /// Arguments:
+    /// Nodes: Vec<CommandNode>
+    /// Executors: Vec<Box<dyn Fn(Args, CommandContext) -> bool>>>
+    /// Tab completers: Vec<(String, Box<dyn Fn(&str, CommandContext) -> Vec<(String, Option<String>)>>)>
+    ///
+    /// Arguments are dropped on the host, so you shouldn't drop them after calling this method
+    #[allow(clippy::too_many_arguments)]
+    pub fn modify_command_executor(
+        nodes_ptr: PointerMut<u8>,
+        nodes_len: u32,
+        nodes_cap: u32,
+        executors_ptr: PointerMut<u8>,
+        executors_len: u32,
+        executors_cap: u32,
+        tab_completers_ptr: PointerMut<u8>,
+        tab_completers_len: u32,
+        tab_completers_cap: u32,
+        forks_ptr: PointerMut<u8>,
+        forks_len: u32,
+        forks_cap: u32,
     );
 }

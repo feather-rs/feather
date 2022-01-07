@@ -5,5 +5,7 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+slab = "0.4.4"
 quill-common = { path = "../common" }
 quill-sys-macros = { path = "../sys-macros" }
+commands = { git = "https://github.com/Iaiao/commands", rev = "42bebd15e18cf511355aaf5f241fb4218031c4ee" }

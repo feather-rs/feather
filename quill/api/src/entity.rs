@@ -1,5 +1,6 @@
 use std::{marker::PhantomData, ptr};
 
+use crate::Text;
 use quill_common::{Component, Pointer, PointerMut};
 
 /// Unique internal ID of an entity.
@@ -23,9 +24,9 @@ pub struct MissingComponent(&'static str);
 ///
 /// Use [`crate::Game::entity`] to get an `Entity` instance.
 ///
-/// An `Entity` be sent or shared between threads. However,
+/// An `Entity` can't be sent or shared between threads. However,
 /// an [`EntityId`] can.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct Entity {
     id: EntityId,
@@ -92,10 +93,13 @@ impl Entity {
     ///
     /// The message sends as a "system" message.
     /// See [the wiki](https://wiki.vg/Chat) for more details.
-    pub fn send_message(&self, message: impl AsRef<str>) {
-        let message = message.as_ref();
+    pub fn send_message(&self, message: impl Into<Text>) {
+        let message = message.into();
         unsafe {
-            quill_sys::entity_send_message(self.id.0, message.as_ptr().into(), message.len() as u32)
+            quill_sys::entity_send_message(
+                self.id.0,
+                Pointer::new(&message as *const _ as *const _),
+            )
         }
     }
 

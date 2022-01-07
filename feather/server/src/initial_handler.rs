@@ -1,12 +1,19 @@
 //! Initial handling of a connection.
 
-use crate::{connection_worker::Worker, favicon::Favicon};
+use std::convert::TryInto;
+
 use anyhow::bail;
-use base::{ProfileProperty, Text};
 use flume::{Receiver, Sender};
 use md5::Digest;
 use num_bigint::BigInt;
 use once_cell::sync::Lazy;
+use rand::rngs::OsRng;
+use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
+use serde::{Deserialize, Serialize};
+use sha1::Sha1;
+use uuid::Uuid;
+
+use base::{ProfileProperty, Text};
 use protocol::{
     codec::CryptKey,
     packets::{
@@ -18,14 +25,12 @@ use protocol::{
     ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
 };
-use rand::rngs::OsRng;
-use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
-use serde::{Deserialize, Serialize};
-use sha1::Sha1;
-use std::convert::TryInto;
-use uuid::Uuid;
+
+use crate::connection_worker::Worker;
 
 use self::proxy::ProxyData;
+use crate::favicon::Favicon;
+use std::net::IpAddr;
 
 const SERVER_NAME: &str = "Feather 1.16.5";
 const PROTOCOL_VERSION: i32 = 754;
@@ -38,6 +43,7 @@ pub struct NewPlayer {
     pub uuid: Uuid,
     pub username: String,
     pub profile: Vec<ProfileProperty>,
+    pub ip: IpAddr,
 
     pub received_packets: Receiver<ClientPlayPacket>,
     pub packets_to_send: Sender<ServerPlayPacket>,
@@ -166,15 +172,19 @@ async fn handle_login(
     if worker.options().online_mode {
         enable_encryption(worker, login_start.name).await
     } else {
+        let mut ip = *worker.ip();
         let profile = match proxy_data {
-            Some(proxy_data) => AuthResponse {
-                id: proxy_data.uuid,
-                name: login_start.name.clone(),
-                properties: proxy_data.profile,
-            },
+            Some(proxy_data) => {
+                ip = proxy_data.client.parse()?;
+                AuthResponse {
+                    id: proxy_data.uuid,
+                    name: login_start.name.clone(),
+                    properties: proxy_data.profile,
+                }
+            }
             None => offline_mode_profile(login_start.name),
         };
-        finish_login(worker, profile).await
+        finish_login(worker, profile, ip).await
     }
 }
 
@@ -221,7 +231,7 @@ async fn enable_encryption(
 
     let response = authenticate(shared_secret, username).await?;
 
-    finish_login(worker, response).await
+    finish_login(worker, response, *worker.ip()).await
 }
 
 async fn do_encryption_handshake(worker: &mut Worker) -> anyhow::Result<CryptKey> {
@@ -293,6 +303,7 @@ fn hexdigest(bytes: &[u8]) -> String {
 async fn finish_login(
     worker: &mut Worker,
     response: AuthResponse,
+    real_ip: IpAddr,
 ) -> anyhow::Result<InitialHandling> {
     enable_compression(worker).await?;
 
@@ -308,6 +319,7 @@ async fn finish_login(
         username: response.name,
         uuid: response.id,
         profile: response.properties,
+        ip: real_ip,
         received_packets: worker.received_packets(),
         packets_to_send: worker.packets_to_send(),
     };

@@ -1,22 +1,24 @@
 //! Systems linking a `Server` and a `Game`.
 
+use std::time::{Duration, Instant};
+
+use crate::Server;
+use common::Game;
+use ecs::{SysResult, SystemExecutor};
+use quill_common::components::{ClientId, Name};
+
 mod block;
 mod chat;
 mod entity;
+mod gamemode;
+mod inventory;
 mod particle;
 mod player_join;
 mod player_leave;
 mod plugin_message;
 mod tablist;
+mod time;
 pub mod view;
-
-use std::time::{Duration, Instant};
-
-use common::Game;
-use ecs::{SysResult, SystemExecutor};
-use quill_common::components::Name;
-
-use crate::{client::ClientId, Server};
 
 /// Registers systems for a `Server` with a `Game`.
 pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Game>) {
@@ -36,6 +38,9 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     chat::register(game, systems);
     particle::register(systems);
     plugin_message::register(systems);
+    gamemode::register(systems);
+    time::register(systems);
+    inventory::register(systems);
 
     systems.group::<Server>().add_system(tick_clients);
 }

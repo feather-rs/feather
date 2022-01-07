@@ -10,16 +10,19 @@ anyhow = "1"
 bincode = "1"
 bumpalo = "3"
 bytemuck = "1"
+commands = { git = "https://github.com/Iaiao/commands", rev = "42bebd15e18cf511355aaf5f241fb4218031c4ee" }
 feather-base = { path = "../base" }
 feather-common = { path = "../common" }
 feather-ecs = { path = "../ecs" }
 feather-plugin-host-macros = { path = "macros" }
+feather-commands = { path = "../commands" }
 
 libloading = "0.7"
 log = "0.4"
 paste = "1"
 quill-common = { path = "../../quill/common" }
 quill-plugin-format = { path = "../../quill/plugin-format" }
+quill = { path = "../../quill/api" }
 serde = "1"
 tempfile = "3"
 vec-arena = "1"

@@ -27,6 +27,7 @@ members = [
     "quill/example-plugins/query-entities",
     "quill/example-plugins/simple",
     "quill/example-plugins/observe-creativemode-flight-event",
+    "quill/example-plugins/bungeecord-servers",
 
     # Feather (common and server)
     "feather/utils",

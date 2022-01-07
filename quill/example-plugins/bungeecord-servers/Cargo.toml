@@ -1,0 +1,13 @@
+[package]
+name = "bungeecord-servers-plugin"
+version = "0.1.0"
+authors = ["Iaiao <iaiao.abc@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+quill = { path = "../../api" }
+anyhow = "1.0.44"
+commands = { git = "https://github.com/Iaiao/commands", rev = "42bebd15e18cf511355aaf5f241fb4218031c4ee" }

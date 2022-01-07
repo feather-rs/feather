@@ -1,23 +1,23 @@
-use libcraft_items::InventorySlot;
 use log::debug;
 
 use base::anvil::player::PlayerAbilities;
 use base::{Gamemode, Inventory, ItemStack, Position, Text};
-use common::{
-    chat::{ChatKind, ChatPreference},
-    entities::player::HotbarSlot,
-    view::View,
-    window::BackingWindow,
-    ChatBox, Game, Window,
-};
+use common::{entities::player::HotbarSlot, view::View, window::BackingWindow, Game, Window};
 use ecs::{SysResult, SystemExecutor};
+use feather_commands::{CommandCtx, CommandDispatcher};
+use libcraft_items::InventorySlot;
 use quill_common::components::{
-    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
-    Invulnerable, PreviousGamemode, WalkSpeed,
+    CanBuild, CanCreativeFly, ChatBox, ChatKind, ChatPreference, CreativeFlying,
+    CreativeFlyingSpeed, DefaultGamemode, Health, Instabreak, Invulnerable, Name, PreviousGamemode,
+    RealIp, WalkSpeed,
 };
-use quill_common::{components::Name, entity_init::EntityInit};
+use quill_common::{
+    components::{ClientId, NetworkId},
+    entity_init::EntityInit,
+};
 
-use crate::{ClientId, NetworkId, Server};
+use crate::Server;
+use common::banlist::{BanEntry, BanList};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(poll_new_players);
@@ -34,6 +34,22 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get_mut(client_id).unwrap();
+    let banlist = game.resources.get::<BanList>().unwrap();
+    if let Some(BanEntry { reason, .. }) = banlist.get_ban_entry(&client.uuid()) {
+        client.disconnect(Text::translate_with(
+            "multiplayer.disconnect.banned.reason",
+            vec![reason.to_string()],
+        ));
+        return Ok(());
+    }
+    if let Some(BanEntry { reason, .. }) = banlist.get_ip_ban_entry(client.real_ip()) {
+        client.disconnect(Text::translate_with(
+            "multiplayer.disconnect.banned_ip.reason",
+            vec![reason.to_string()],
+        ));
+        return Ok(());
+    }
+    drop(banlist);
     let player_data = game.world.load_player_data(client.uuid());
     let mut builder = game.create_entity_builder(
         player_data
@@ -56,7 +72,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let gamemode = player_data
         .as_ref()
         .map(|data| Gamemode::from_id(data.gamemode as u8).expect("Unsupported gamemode"))
-        .unwrap_or(server.options.default_gamemode);
+        .unwrap_or(**game.resources.get::<DefaultGamemode>().unwrap());
     let previous_gamemode = player_data
         .as_ref()
         .map(|data| PreviousGamemode::from_id(data.previous_gamemode as i8))
@@ -64,6 +80,12 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     client.send_join_game(gamemode, previous_gamemode);
     client.send_brand();
+    client.send_commands(
+        &*game
+            .resources
+            .get::<CommandDispatcher<CommandCtx, Text>>()
+            .unwrap(),
+    );
 
     // Abilities
     let abilities = player_abilities_or_default(
@@ -129,7 +151,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(abilities.may_fly)
         .add(abilities.may_build)
         .add(abilities.instabreak)
-        .add(abilities.invulnerable);
+        .add(abilities.invulnerable)
+        .add(RealIp(client.real_ip()));
 
     game.spawn_entity(builder);
 

@@ -4,11 +4,14 @@
 //! components.
 
 use std::fmt::Display;
+use std::net::IpAddr;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
 
-use libcraft_core::Gamemode;
+pub use libcraft_core::Gamemode;
+use libcraft_text::{Text, Title};
 
 /// Whether an entity is touching the ground.
 #[derive(
@@ -284,3 +287,178 @@ impl Sprinting {
     }
 }
 bincode_component_impl!(Sprinting);
+
+/// An entity's ID used by the protocol
+/// in `entity_id` fields.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct NetworkId(pub i32);
+
+impl NetworkId {
+    /// Creates a new, unique network ID.
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        static NEXT: AtomicI32 = AtomicI32::new(0);
+        // In theory, this can overflow if the server
+        // creates 4 billion entities. The hope is that
+        // old entities will have died out at that point.
+        Self(NEXT.fetch_add(1, Ordering::SeqCst))
+    }
+}
+
+/// ID of a client. Can be reused.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ClientId(pub usize);
+
+/// An entity's "mailbox" for receiving chat messages.
+///
+/// Internally stores a list of [`ChatMessage`]s.
+/// It is up to the user to flush the mailbox.
+/// (`feather-server` flushes mailboxes by sending chat packets.)
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChatBox {
+    messages: Vec<ChatMessage>,
+    titles: Vec<Title>,
+    preference: ChatPreference,
+}
+
+bincode_component_impl!(ChatBox);
+
+impl ChatBox {
+    pub fn new(preference: ChatPreference) -> Self {
+        Self {
+            messages: Vec::new(),
+            titles: Vec::new(),
+            preference,
+        }
+    }
+
+    pub fn set_preference(&mut self, preference: ChatPreference) {
+        self.preference = preference;
+    }
+
+    pub fn send(&mut self, message: ChatMessage) {
+        self.messages.push(message);
+    }
+
+    pub fn send_chat(&mut self, message: impl Into<Text>) {
+        self.send(ChatMessage::new(ChatKind::PlayerChat, message.into()));
+    }
+
+    pub fn send_system(&mut self, message: impl Into<Text>) {
+        self.send(ChatMessage::new(ChatKind::System, message.into()));
+    }
+
+    pub fn send_above_hotbar(&mut self, message: impl Into<Text>) {
+        self.send(ChatMessage::new(ChatKind::AboveHotbar, message.into()));
+    }
+
+    /// Adds the [`Title`] to the title queue.
+    pub fn send_title(&mut self, title: Title) {
+        self.titles.push(title);
+    }
+
+    /// Drains titles in the mailbox
+    pub fn drain_titles(&mut self) -> impl Iterator<Item = Title> + '_ {
+        self.titles.drain(..)
+    }
+
+    /// Drains messages in the mailbox.
+    pub fn drain(&mut self) -> impl Iterator<Item = ChatMessage> + '_ {
+        let preference = self.preference;
+        self.messages
+            .drain(..)
+            .filter(move |msg| msg.kind.should_send(preference))
+    }
+}
+
+/// Represents a chat message.
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct ChatMessage {
+    kind: ChatKind,
+    message: Text,
+}
+
+impl ChatMessage {
+    pub fn new(kind: ChatKind, message: Text) -> Self {
+        Self { kind, message }
+    }
+
+    pub fn kind(&self) -> ChatKind {
+        self.kind
+    }
+
+    pub fn text(&self) -> &Text {
+        &self.message
+    }
+}
+
+/// Kind of chat message. The client determines whether
+/// to display a message based on this kind.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ChatKind {
+    /// A player chat message or similar.
+    PlayerChat,
+    /// The output of a command or other messages
+    /// not originating from players.
+    System,
+    /// A message displayed above the hotbar.
+    AboveHotbar,
+}
+
+impl ChatKind {
+    pub fn should_send(self, preference: ChatPreference) -> bool {
+        match self {
+            ChatKind::PlayerChat => preference == ChatPreference::All,
+            ChatKind::System => preference >= ChatPreference::System,
+            ChatKind::AboveHotbar => true,
+        }
+    }
+}
+
+/// A player's chat preference.
+/// Determines which [`ChatKind`]s will
+/// be sent to this player.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum ChatPreference {
+    /// Receive only game info messages.
+    GameInfoOnly,
+    /// Receive only messages from commands and game info messages.
+    System,
+    /// Receive all messages.
+    All,
+}
+
+/// A player's real ip address
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, derive_more::Deref)]
+pub struct RealIp(pub IpAddr);
+
+bincode_component_impl!(RealIp);
+
+/// Marker component for the console entity.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Console;
+
+bincode_component_impl!(Console);
+
+/// A player's previous gamemode
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    derive_more::Deref,
+    derive_more::DerefMut,
+)]
+pub struct DefaultGamemode(Gamemode);
+
+impl DefaultGamemode {
+    pub fn new(gamemode: Gamemode) -> DefaultGamemode {
+        DefaultGamemode(gamemode)
+    }
+}
+
+bincode_component_impl!(DefaultGamemode);

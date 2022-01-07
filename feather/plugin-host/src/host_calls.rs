@@ -9,6 +9,7 @@ use crate::env::PluginEnv;
 use crate::host_function::{NativeHostFunction, WasmHostFunction};
 
 mod block;
+mod command;
 mod component;
 mod entity;
 mod entity_builder;
@@ -46,6 +47,7 @@ macro_rules! host_calls {
 }
 
 use block::*;
+use command::*;
 use component::*;
 use entity::*;
 use entity_builder::*;
@@ -69,4 +71,5 @@ host_calls! {
     "block_set" => block_set,
     "block_fill_chunk_section" => block_fill_chunk_section,
     "plugin_message_send" => plugin_message_send,
+    "modify_command_executor" => modify_command_executor,
 }

@@ -1,9 +1,9 @@
 use feather_base::Text;
-use feather_common::chat::{ChatKind, ChatMessage};
 use feather_ecs::Entity;
 use feather_plugin_host_macros::host_function;
 
 use crate::context::{PluginContext, PluginPtr};
+use quill_common::components::{ChatKind, ChatMessage};
 
 #[host_function]
 pub fn entity_exists(cx: &PluginContext, entity: u64) -> anyhow::Result<u32> {
@@ -15,13 +15,12 @@ pub fn entity_send_message(
     cx: &PluginContext,
     entity: u64,
     message_ptr: PluginPtr<u8>,
-    message_len: u32,
 ) -> anyhow::Result<()> {
-    let message = cx.read_string(message_ptr, message_len)?;
+    let message = message_ptr.as_native() as *const Text;
     let entity = Entity::from_bits(entity);
     let _ = cx.game_mut().send_message(
         entity,
-        ChatMessage::new(ChatKind::System, Text::from(message)),
+        ChatMessage::new(ChatKind::System, unsafe { &*message }.clone()),
     );
     Ok(())
 }

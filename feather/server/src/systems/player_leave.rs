@@ -1,17 +1,19 @@
-use num_traits::cast::ToPrimitive;
-
-use base::anvil::entity::{AnimalData, BaseEntityData};
 use base::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
-use base::{Gamemode, Inventory, Position, Text};
+use base::Text;
+use base::{Gamemode, Inventory, Position};
 use common::entities::player::HotbarSlot;
-use common::{chat::ChatKind, Game};
+use common::Game;
 use ecs::{SysResult, SystemExecutor};
+use num_traits::cast::ToPrimitive;
 use quill_common::components::{
-    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
-    Invulnerable, Name, PreviousGamemode, WalkSpeed,
+    CanBuild, CanCreativeFly, ChatKind, ClientId, CreativeFlying, CreativeFlyingSpeed, Health,
+    Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
 };
 
-use crate::{ClientId, Server};
+use crate::Server;
+use base::anvil::entity::{AnimalData, BaseEntityData};
+use quill_common::entities::Player;
+use quill_common::events::DisconnectEvent;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems
@@ -20,6 +22,18 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 }
 
 fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (_, event, &client)) in game
+        .ecs
+        .query::<(&Player, &DisconnectEvent, &ClientId)>()
+        .iter()
+    {
+        server
+            .clients
+            .get(client)
+            .unwrap()
+            .disconnect((**event).clone());
+    }
+
     let mut entities_to_remove = Vec::new();
     for (
         player,

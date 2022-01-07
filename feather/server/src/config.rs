@@ -3,10 +3,13 @@
 use std::{fs, net::IpAddr, path::Path, str::FromStr};
 
 use anyhow::Context;
-use base::Gamemode;
+use rustyline::{CompletionType, EditMode};
 use serde::{Deserialize, Deserializer};
 
-use crate::{favicon::Favicon, Options};
+use base::Gamemode;
+
+use crate::favicon::Favicon;
+use crate::options::Options;
 
 const DEFAULT_CONFIG: &str = include_str!("../config.toml");
 
@@ -44,6 +47,7 @@ pub struct Config {
     pub log: Log,
     pub world: World,
     pub proxy: Proxy,
+    pub cli: Cli,
 }
 
 impl Config {
@@ -72,6 +76,8 @@ impl Config {
                 ProxyMode::Velocity => Some(crate::options::ProxyMode::Velocity),
             },
             velocity_secret: self.proxy.velocity_secret.clone(),
+            cli_tab_completion_type: self.cli.completion_type,
+            cli_mode: self.cli.edit_mode,
         }
     }
 }
@@ -117,6 +123,32 @@ pub enum ProxyMode {
     None,
     Bungee,
     Velocity,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Cli {
+    #[serde(with = "CompletionTypeRef")]
+    pub completion_type: CompletionType,
+    #[serde(with = "EditModeRef")]
+    pub edit_mode: EditMode,
+}
+
+#[non_exhaustive]
+#[derive(Deserialize)]
+#[serde(remote = "CompletionType", rename_all = "snake_case")]
+pub enum CompletionTypeRef {
+    Circular,
+    List,
+    #[cfg(all(unix, feature = "rustyline/with-fuzzy"))]
+    Fuzzy,
+}
+
+#[non_exhaustive]
+#[derive(Deserialize)]
+#[serde(remote = "EditMode", rename_all = "snake_case")]
+pub enum EditModeRef {
+    Emacs,
+    Vi,
 }
 
 fn deserialize_log_level<'de, D: Deserializer<'de>>(

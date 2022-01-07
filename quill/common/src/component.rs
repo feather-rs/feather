@@ -198,6 +198,19 @@ host_component_enum! {
         CanBuild = 1020,
         Instabreak = 1021,
         Invulnerable = 1022,
+        GamemodeUpdateEvent = 1023,
+        TimeUpdateEvent = 1024,
+        InventoryUpdateEvent = 1025,
+        ChatBox = 1026,
+        PluginMessageReceiveEvent = 1027,
+        InstabreakChangeEvent = 1028,
+        FlyingAbilityChangeEvent = 1029,
+        BuildingAbilityChangeEvent = 1030,
+        InvulnerabilityChangeEvent = 1031,
+        RealIp = 1032,
+        DisconnectEvent = 1033,
+        Console = 1034,
+        DefaultGamemode = 1035,
 
 
     }
@@ -363,3 +376,12 @@ bincode_component_impl!(BlockInteractEvent);
 bincode_component_impl!(CreativeFlyingEvent);
 bincode_component_impl!(SneakEvent);
 bincode_component_impl!(SprintEvent);
+bincode_component_impl!(GamemodeUpdateEvent);
+bincode_component_impl!(TimeUpdateEvent);
+bincode_component_impl!(InventoryUpdateEvent);
+bincode_component_impl!(PluginMessageReceiveEvent);
+bincode_component_impl!(InstabreakChangeEvent);
+bincode_component_impl!(FlyingAbilityChangeEvent);
+bincode_component_impl!(BuildingAbilityChangeEvent);
+bincode_component_impl!(InvulnerabilityChangeEvent);
+bincode_component_impl!(DisconnectEvent);

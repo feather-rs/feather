@@ -73,7 +73,7 @@ pub struct ComposableGenerator {
     /// by this composable generator.
     finishers: SmallVec<[Box<dyn FinishingGenerator>; 8]>,
     /// The world seed.
-    seed: u64,
+    seed: i64,
 }
 
 impl ComposableGenerator {
@@ -83,7 +83,7 @@ impl ComposableGenerator {
         density_map: D,
         composition: C,
         finishers: F,
-        seed: u64,
+        seed: i64,
     ) -> Self
     where
         B: BiomeGenerator + 'static,
@@ -102,7 +102,7 @@ impl ComposableGenerator {
 
     /// A default composable generator, used
     /// for worlds with "default" world type.
-    pub fn default_with_seed(seed: u64) -> Self {
+    pub fn default_with_seed(seed: i64) -> Self {
         let finishers: Vec<Box<dyn FinishingGenerator>> = vec![
             Box::new(SnowFinisher::default()),
             Box::new(SingleFoliageFinisher::default()),
@@ -120,7 +120,7 @@ impl ComposableGenerator {
 
 impl WorldGenerator for ComposableGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
-        let mut seed_shuffler = XorShiftRng::seed_from_u64(self.seed);
+        let mut seed_shuffler = XorShiftRng::seed_from_u64(self.seed as u64);
 
         // Generate biomes for 3x3 grid of chunks around current chunk.
         let biome_seed = seed_shuffler.gen();

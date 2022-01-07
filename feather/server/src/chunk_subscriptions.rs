@@ -1,4 +1,5 @@
 use ahash::AHashMap;
+
 use base::ChunkPosition;
 use common::{
     events::{EntityRemoveEvent, ViewUpdateEvent},
@@ -6,9 +7,10 @@ use common::{
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
+use quill_common::components::ClientId;
 use utils::vec_remove_item;
 
-use crate::{ClientId, Server};
+use crate::Server;
 
 /// Data structure to query which clients should
 /// receive updates from a given chunk, fast.

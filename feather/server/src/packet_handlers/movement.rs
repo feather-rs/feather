@@ -9,7 +9,8 @@ use quill_common::{
     events::CreativeFlyingEvent,
 };
 
-use crate::{ClientId, Server};
+use crate::Server;
+use quill_common::components::ClientId;
 
 /// If a player has been teleported by the server,
 /// we don't want to override their position if
