@@ -18,7 +18,7 @@ use common::{
     Window,
 };
 use libcraft_items::InventorySlot;
-use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation, PlayerListHeaderAndFooter};
 use protocol::packets::server::{
     EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
 };
@@ -329,6 +329,11 @@ impl Client {
     pub fn remove_tablist_player(&self, uuid: Uuid) {
         log::trace!("Sending RemovePlayer({}) to {}", uuid, self.username);
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
+    }
+
+    pub fn send_tablist_header_footer(&self, header: &str, footer: &str) {
+        log::trace!("Sending PlayerListHeaderAndFooter ({},{})", header, footer);
+        self.send_packet(PlayerListHeaderAndFooter {header: header.to_string(), footer: footer.to_string()})
     }
 
     pub fn unload_entity(&self, id: NetworkId) {
