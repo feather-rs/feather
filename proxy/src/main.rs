@@ -30,7 +30,7 @@ struct Args {
     /// Only log clientside/serverside packets
     #[clap(arg_enum, short, long, default_value_t)]
     side: ConnectionSide,
-    /// show the contents of the packets. -vv will also display hexdump
+    /// Show the contents of the packets. `-vv` will also display hexdump
     #[clap(short, long, parse(from_occurrences))]
     verbose: usize,
     /// Don't log packets with the specified IDs (hexadecimal, comma-separated)
