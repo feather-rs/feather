@@ -24,8 +24,3 @@ thiserror = "1"
 uuid = "0.8"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
-
-
-
-[features]
-proxy = ["base/proxy"]

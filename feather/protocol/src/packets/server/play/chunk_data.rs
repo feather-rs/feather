@@ -145,7 +145,6 @@ fn encode_section(
     Ok(())
 }
 
-#[cfg(feature = "proxy")]
 impl Readable for ChunkData {
     fn read(buffer: &mut std::io::Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where

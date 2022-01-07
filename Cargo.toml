@@ -43,7 +43,7 @@ members = [
     "feather/server",
 
     # Other
-    "tools/proxy",
+    "proxy",
 ]
 
 # No longer need to use release for "development":
