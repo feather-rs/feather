@@ -15,5 +15,5 @@ log = "0.4"
 either = "1"
 colored = "2"
 fern = "0.6"
-time = { version = "0.3.4", features = ["local-offset", "formatting", "macros"] }
+time = { version = "0.3", features = ["local-offset", "formatting", "macros"] }
 
