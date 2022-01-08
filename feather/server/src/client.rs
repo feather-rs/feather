@@ -18,7 +18,10 @@ use common::{
     Window,
 };
 use libcraft_items::InventorySlot;
-use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation, PlayerListHeaderAndFooter};
+use packets::server::{
+    Particle, PlayerListHeaderAndFooter, SetSlot, SpawnLivingEntity, UpdateLight,
+    WindowConfirmation,
+};
 use protocol::packets::server::{
     EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
 };
@@ -333,7 +336,10 @@ impl Client {
 
     pub fn send_tablist_header_footer(&self, header: &str, footer: &str) {
         log::trace!("Sending PlayerListHeaderAndFooter ({},{})", header, footer);
-        self.send_packet(PlayerListHeaderAndFooter {header: header.to_string(), footer: footer.to_string()})
+        self.send_packet(PlayerListHeaderAndFooter {
+            header: header.to_string(),
+            footer: footer.to_string(),
+        })
     }
 
     pub fn unload_entity(&self, id: NetworkId) {

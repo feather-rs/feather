@@ -2,7 +2,7 @@
 
 use base::{Gamemode, ProfileProperty};
 use common::{
-    events::{EntityRemoveEvent, PlayerJoinEvent, TablistHeaderFooter, TablistExtrasUpdateEvent},
+    events::{EntityRemoveEvent, PlayerJoinEvent, TablistExtrasUpdateEvent, TablistHeaderFooter},
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
@@ -11,8 +11,11 @@ use uuid::Uuid;
 
 use crate::{ClientId, Server};
 
-pub fn register(game: &mut Game,systems: &mut SystemExecutor<Game>) {
-    game.insert_resource(TablistHeaderFooter { header: "{\"text\":\"\"}".to_string(), footer: "{\"text\":\"\"}".to_string() });
+pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
+    game.insert_resource(TablistHeaderFooter {
+        header: "{\"text\":\"\"}".to_string(),
+        footer: "{\"text\":\"\"}".to_string(),
+    });
     systems
         .group::<Server>()
         .add_system(remove_tablist_players)
@@ -67,24 +70,23 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn update_tablist_header(game: &mut Game, server: &mut Server) -> SysResult {
-    for _ in game
-        .ecs
-        .query::<&TablistExtrasUpdateEvent>()
-        .iter() 
-    {
+    for _ in game.ecs.query::<&TablistExtrasUpdateEvent>().iter() {
         let header_footer = game.resources.get::<TablistHeaderFooter>()?;
-        server.broadcast_with(|client| client.send_tablist_header_footer(&header_footer.header, &header_footer.footer));    
+        server.broadcast_with(|client| {
+            client.send_tablist_header_footer(&header_footer.header, &header_footer.footer)
+        });
     }
     Ok(())
 }
 
 fn send_tablist_header_on_join(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (_, &client_id)) in game
-    .ecs
-    .query::<(&PlayerJoinEvent, &ClientId)>()
-    .iter(){
+    for (_, (_, &client_id)) in game.ecs.query::<(&PlayerJoinEvent, &ClientId)>().iter() {
         let header_footer = game.resources.get::<TablistHeaderFooter>()?;
-        server.clients.get(client_id).unwrap().send_tablist_header_footer(&header_footer.header, &header_footer.footer);
+        server
+            .clients
+            .get(client_id)
+            .unwrap()
+            .send_tablist_header_footer(&header_footer.header, &header_footer.footer);
     }
     Ok(())
 }
