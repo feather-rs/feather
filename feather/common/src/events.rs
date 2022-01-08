@@ -74,8 +74,11 @@ pub struct EntityRemoveEvent;
 #[derive(Debug)]
 pub struct EntityCreateEvent;
 
-#[derive(Debug)]
-pub struct TablistExtrasUpdateEvent {
-    pub header: Option<String>,
-    pub footer: Option<String>,
+#[derive(Debug, Clone)]
+pub struct TablistHeaderFooter {
+    pub header: String,
+    pub footer: String,
 }
+
+#[derive(Debug)]
+pub struct TablistExtrasUpdateEvent;

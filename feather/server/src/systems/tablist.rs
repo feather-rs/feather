@@ -2,7 +2,7 @@
 
 use base::{Gamemode, ProfileProperty};
 use common::{
-    events::{EntityRemoveEvent, PlayerJoinEvent, TablistExtrasUpdateEvent},
+    events::{EntityRemoveEvent, PlayerJoinEvent, TablistHeaderFooter, TablistExtrasUpdateEvent},
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
@@ -11,12 +11,14 @@ use uuid::Uuid;
 
 use crate::{ClientId, Server};
 
-pub fn register(systems: &mut SystemExecutor<Game>) {
+pub fn register(game: &mut Game,systems: &mut SystemExecutor<Game>) {
+    game.insert_resource(TablistHeaderFooter { header: "{\"text\":\"\"}".to_string(), footer: "{\"text\":\"\"}".to_string() });
     systems
         .group::<Server>()
         .add_system(remove_tablist_players)
         .add_system(add_tablist_players)
-        .add_system(update_tablist_header);
+        .add_system(update_tablist_header)
+        .add_system(send_tablist_header_on_join);
 }
 
 fn remove_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
@@ -65,14 +67,24 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn update_tablist_header(game: &mut Game, server: &mut Server) -> SysResult {
-    game.ecs.insert_event(TablistExtrasUpdateEvent{ header: Some("{\"text\":\"xDDDDD\"}".to_string()), footer: Some("{\"text\":\"xDDDDDDD\"}".to_string()) });
-    let default = "{\"text\":\"\"}";
-    for (_,event) in game
+    for _ in game
         .ecs
         .query::<&TablistExtrasUpdateEvent>()
         .iter() 
     {
-        server.broadcast_with(|client| client.send_tablist_header_footer(event.header.as_deref().unwrap_or(default), event.footer.as_deref().unwrap_or(default)))    
+        let header_footer = game.resources.get::<TablistHeaderFooter>()?;
+        server.broadcast_with(|client| client.send_tablist_header_footer(&header_footer.header, &header_footer.footer));    
+    }
+    Ok(())
+}
+
+fn send_tablist_header_on_join(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (_, &client_id)) in game
+    .ecs
+    .query::<(&PlayerJoinEvent, &ClientId)>()
+    .iter(){
+        let header_footer = game.resources.get::<TablistHeaderFooter>()?;
+        server.clients.get(client_id).unwrap().send_tablist_header_footer(&header_footer.header, &header_footer.footer);
     }
     Ok(())
 }
