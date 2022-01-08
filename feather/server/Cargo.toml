@@ -17,7 +17,7 @@ ahash = "0.7"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
 base64 = "0.13"
-time = { version = "0.3.4", features = ["local-offset", "formatting", "macros"] }
+time = { version = "0.3", features = ["local-offset", "formatting", "macros"] }
 colored = "2"
 common = { path = "../common", package = "feather-common" }
 crossbeam-utils = "0.8"
@@ -37,7 +37,7 @@ plugin-host = { path = "../plugin-host", package = "feather-plugin-host" }
 protocol = { path = "../protocol", package = "feather-protocol" }
 quill-common = { path = "../../quill/common" }
 
-rand = "0.8.0"
+rand = "0.8"
 ring = "0.16"
 
 rsa = "0.5"
