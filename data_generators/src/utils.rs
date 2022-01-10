@@ -43,7 +43,7 @@ where
 /// Writes the contents to a file in provided path, then runs rustfmt.
 ///
 /// Parameters:
-/// path: Path to destination file, relative to leather root
+/// path: Path to destination file, relative to feather root
 /// content: Contents to be written in the file
 pub fn output(file: &str, content: &str) {
     let path = std::env::current_dir().unwrap().join(file);
