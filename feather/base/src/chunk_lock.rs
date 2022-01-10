@@ -45,17 +45,14 @@ impl ChunkLock {
     /// Locks this chunk with read access. Doesn't block.
     /// Returns None if the chunk is unloaded or locked for writing, Some otherwise.
     pub fn try_read(&self) -> Option<RwLockReadGuard<Chunk>> {
-        if self.is_loaded() {
-            self.lock.try_read()
-        } else {
-            None
-        }
+        self.lock.try_read()
     }
 
     /// Locks this chunk with read access, blocking the current thread until it can be acquired.
     pub fn read(&self) -> RwLockReadGuard<Chunk> {
         self.lock.read()
     }
+
     /// Locks this chunk with exclusive write access. Doesn't block.
     /// Returns None if the chunk is unloaded or locked already, Some otherwise.
     pub fn try_write(&self) -> Option<RwLockWriteGuard<Chunk>> {
@@ -82,18 +79,20 @@ impl ChunkLock {
 
 #[cfg(test)]
 mod tests {
+    use crate::world::Sections;
+    use crate::ChunkPosition;
     use std::{
         thread::{sleep, spawn, JoinHandle},
         time::Duration,
     };
 
-    use crate::prelude::*;
-
     use super::*;
-    use crate::common::world::Sections;
 
     fn empty_lock(x: i32, z: i32, loaded: bool) -> ChunkLock {
-        ChunkLock::new(Chunk::new(ChunkPosition::new(x, z), Sections(16)), loaded)
+        ChunkLock::new(
+            Chunk::new(ChunkPosition::new(x, z), Sections(16), 0),
+            loaded,
+        )
     }
 
     #[test]

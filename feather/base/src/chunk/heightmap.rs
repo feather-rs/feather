@@ -193,21 +193,3 @@ where
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::base::chunk::Chunk;
-    use crate::common::world::Sections;
-    use crate::prelude::ChunkPosition;
-    use std::time::SystemTime;
-
-    #[test]
-    fn test() {
-        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16));
-        let time = SystemTime::now();
-        for _ in 0..10000 {
-            chunk.recalculate_heightmaps();
-        }
-        println!("{:?}", time.elapsed());
-    }
-}

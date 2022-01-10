@@ -115,7 +115,6 @@ enum BlockChanges {
 
 #[cfg(test)]
 mod tests {
-    use crate::base::chunk::SECTION_VOLUME;
     use ahash::AHashSet;
     use ecs::Entity;
 
@@ -126,7 +125,7 @@ mod tests {
         let pos = BlockPosition::new(5, 64, 9).try_into().unwrap();
         let event = BlockChangeEvent::single(
             pos,
-            Entity::new(0),
+            EntityWorld(Entity::from_bits(0)),
             EntityDimension("minecraft:overworld".to_string()),
         );
         assert_eq!(event.count(), 1);
@@ -144,7 +143,7 @@ mod tests {
         let event = BlockChangeEvent::fill_chunk_section(
             chunk,
             section_y,
-            Entity::new(0),
+            EntityWorld(Entity::from_bits(0)),
             EntityDimension("minecraft:overworld".to_string()),
         );
         assert_eq!(event.count(), SECTION_VOLUME);

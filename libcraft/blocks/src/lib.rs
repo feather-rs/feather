@@ -182,7 +182,7 @@ mod tests {
     fn highest_id() {
         assert_eq!(
             HIGHEST_ID,
-            *VANILLA_ID_TABLE.last().unwrap().last().unwrap()
+            *VANILLA_ID_TABLE.last().unwrap().last().unwrap() as usize
         )
     }
 
@@ -191,13 +191,13 @@ mod tests {
         let block = BlockId::rose_bush().with_half_upper_lower(HalfUpperLower::Lower);
 
         assert_eq!(block.vanilla_id(), 8140); // will have to be changed whenever we update to a newer MC version
-        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), block);
+        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), Some(block));
 
         let block =
             BlockId::structure_block().with_structure_block_mode(StructureBlockMode::Corner);
 
         assert_eq!(block.vanilla_id(), 15991);
-        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), block);
+        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), Some(block));
 
         let mut block = BlockId::redstone_wire();
         block.set_power(2);
@@ -213,16 +213,16 @@ mod tests {
         assert_eq!(block.north_wire(), Some(NorthWire::Up));
 
         assert_eq!(block.vanilla_id(), 2568);
-        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), block);
+        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), Some(block));
     }
 
     #[test]
     fn vanilla_ids_roundtrip() {
-        for id in 0..8598 {
-            assert_eq!(BlockId::from_vanilla_id(id).vanilla_id(), id);
+        for id in 0..(HIGHEST_ID as u16) {
+            assert_eq!(BlockId::from_vanilla_id(id).unwrap().vanilla_id(), id);
 
             if id != 0 {
-                assert_ne!(BlockId::from_vanilla_id(id), BlockId::air());
+                assert_ne!(BlockId::from_vanilla_id(id).unwrap(), BlockId::air());
             }
         }
     }

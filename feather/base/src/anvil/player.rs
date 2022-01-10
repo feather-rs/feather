@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::{
     fs,
     fs::File,
@@ -146,20 +147,27 @@ impl InventorySlot {
     }
 }
 
-impl From<InventorySlot> for ItemStack {
-    fn from(slot: InventorySlot) -> Self {
-        ItemStack::from(&slot)
+#[derive(Debug)]
+pub struct NoSuckItemError;
+
+impl TryFrom<InventorySlot> for ItemStack {
+    type Error = NoSuckItemError;
+
+    fn try_from(slot: InventorySlot) -> Result<Self, Self::Error> {
+        ItemStack::try_from(&slot)
     }
 }
 
 // Can't do proper Borrow trait impl because of orphan rule
-impl From<&InventorySlot> for ItemStack {
-    fn from(slot: &InventorySlot) -> Self {
-        ItemNbt::item_stack(
+impl TryFrom<&InventorySlot> for ItemStack {
+    type Error = NoSuckItemError;
+
+    fn try_from(slot: &InventorySlot) -> Result<Self, Self::Error> {
+        Ok(ItemNbt::item_stack(
             &slot.nbt,
-            Item::from_name(slot.item.as_str()).unwrap(),
+            Item::from_name(slot.item.as_str()).ok_or(NoSuckItemError)?,
             slot.count as u8,
-        )
+        ))
     }
 }
 
@@ -188,11 +196,11 @@ fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::convert::TryInto;
     use std::io::Cursor;
 
+    use libcraft_core::Gamemode;
     use num_traits::ToPrimitive;
-
-    use crate::prelude::Gamemode;
 
     use super::*;
 
@@ -200,10 +208,7 @@ mod tests {
     fn test_deserialize_player() {
         let mut cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 
-        let player: PlayerData =
-            quartz_nbt::serde::deserialize_from(&mut cursor, Flavor::GzCompressed)
-                .unwrap()
-                .0;
+        let player: PlayerData = nbt::from_gzip_reader(&mut cursor).unwrap();
         assert_eq!(player.gamemode, Gamemode::Creative.to_i32().unwrap());
         assert_eq!(
             player.previous_gamemode,
@@ -222,7 +227,7 @@ mod tests {
             nbt: None,
         };
 
-        let item_stack: ItemStack = slot.into();
+        let item_stack: ItemStack = slot.try_into().unwrap();
         assert_eq!(item_stack.item(), Item::Feather);
         assert_eq!(item_stack.count(), 1);
     }
@@ -236,7 +241,7 @@ mod tests {
             nbt: Some(ItemNbt { damage: Some(42) }),
         };
 
-        let item_stack: ItemStack = slot.into();
+        let item_stack: ItemStack = slot.try_into().unwrap();
         assert_eq!(item_stack.item(), Item::DiamondAxe);
         assert_eq!(item_stack.count(), 1);
         assert_eq!(item_stack.damage_taken(), Some(42));
@@ -251,8 +256,8 @@ mod tests {
             nbt: None,
         };
 
-        let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item(), Item::Air);
+        let item_stack: Result<ItemStack, NoSuckItemError> = slot.try_into();
+        assert!(item_stack.is_err());
     }
 
     #[test]

@@ -178,13 +178,9 @@ mod tests {
 
     #[test]
     fn test_deserialize_level_file() {
-        let level = quartz_nbt::serde::deserialize::<Root>(
-            include_bytes!("level.dat"),
-            Flavor::GzCompressed,
-        )
-        .unwrap()
-        .0
-        .data;
+        let level = nbt::from_gzip_reader::<_, Root>(Cursor::new(include_bytes!("level.dat")))
+            .unwrap()
+            .data;
 
         assert!(!level.allow_commands);
         assert_eq!(level.clear_weather_time, 0);

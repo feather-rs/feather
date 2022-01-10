@@ -2,7 +2,7 @@ use std::mem::ManuallyDrop;
 
 /// A packed array of integers where each integer consumes
 /// `bits_per_value` bits. Used to store block data in chunks.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct PackedArray {
     length: usize,
     bits_per_value: usize,

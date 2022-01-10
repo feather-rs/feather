@@ -9,7 +9,7 @@ use crate::{BlockId, ChunkSection};
 
 /// Stores blocks or biomes of a chunk section.
 /// N = 4 for blocks, 2 for biomes
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PalettedContainer<T>
 where
     T: Paletteable,
@@ -164,7 +164,7 @@ where
                 }
             }
             PalettedContainer::MultipleValues { data, palette } => {
-                if palette.len() - 1 > data.max_value() as usize {
+                if palette.len() >= data.max_value() as usize {
                     // Resize to either the global palette or a new section palette size.
                     let new_size = data.bits_per_value() + 1;
                     if new_size <= T::MAX_BITS_PER_ENTRY {
@@ -285,5 +285,41 @@ impl Paletteable for BiomeId {
 
     fn length() -> usize {
         BIOMES_COUNT.load(Ordering::Relaxed)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use libcraft_blocks::BlockId;
+
+    use crate::chunk::paletted_container::PalettedContainer;
+
+    #[test]
+    fn test() {
+        let mut container = PalettedContainer::<BlockId>::new();
+        assert_eq!(container, PalettedContainer::default());
+        container.set_block_at(10, 10, 5, BlockId::stone()).unwrap();
+        assert_eq!(
+            container.palette().unwrap(),
+            &vec![BlockId::default(), BlockId::stone()]
+        );
+        assert_eq!(container.get_block_at(10, 10, 5).unwrap(), BlockId::stone());
+        for id in 0..256 {
+            container
+                .set_block_at(
+                    id / 16,
+                    0,
+                    id % 16,
+                    BlockId::from_vanilla_id(id as u16).unwrap(),
+                )
+                .unwrap();
+        }
+        assert!(matches!(container, PalettedContainer::GlobalPalette { .. }));
+        for id in 0..256 {
+            assert_eq!(
+                container.get_block_at(id / 16, 0, id % 16).unwrap(),
+                BlockId::from_vanilla_id(id as u16).unwrap()
+            );
+        }
     }
 }

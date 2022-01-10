@@ -139,9 +139,9 @@ pub enum BlockPositionValidationError {
 #[cfg(test)]
 mod tests {
 
+    use libcraft_core::BlockPosition;
     use std::convert::TryInto;
 
-    use crate::prelude::*;
     use crate::ValidBlockPosition;
 
     #[test]

@@ -72,24 +72,63 @@ impl WorldGenerator for SuperflatWorldGenerator {
 
 #[cfg(test)]
 mod tests {
-    use base::biome::BiomeId;
+    use base::biome::{
+        BiomeCategory, BiomeColor, BiomeEffects, BiomeGeneratorInfo, BiomeInfo, BiomeSpawners,
+    };
     use base::chunk::SECTION_HEIGHT;
-    use libcraft_blocks::BlockId;
-
-    use crate::base::chunk::SECTION_HEIGHT;
 
     use super::*;
 
     #[test]
     pub fn test_worldgen_flat() {
         let options = SuperflatGeneratorOptions {
-            biome: BiomeId::Mountains.name().to_owned(),
+            biome: "minecraft:mountains".to_string(),
             ..Default::default()
         };
 
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
         let generator = SuperflatWorldGenerator { options };
-        let chunk = generator.generate_chunk(chunk_pos, Sections(16));
+        let mut biomes = BiomeList::default();
+        biomes.insert(
+            "minecraft:mountains".to_string(),
+            BiomeGeneratorInfo {
+                carvers: Default::default(),
+                features: vec![],
+                spawners: BiomeSpawners {
+                    monster: vec![],
+                    creature: vec![],
+                    ambient: vec![],
+                    axolotls: vec![],
+                    underground_water_creature: vec![],
+                    water_creature: vec![],
+                    water_ambient: vec![],
+                    misc: vec![],
+                },
+                spawn_costs: Default::default(),
+                info: BiomeInfo {
+                    effects: BiomeEffects {
+                        mood_sound: None,
+                        music: None,
+                        ambient_sound: None,
+                        additions_sound: None,
+                        grass_color_modifier: None,
+                        sky_color: BiomeColor { r: 0, g: 0, b: 0 },
+                        foliage_color: None,
+                        grass_color: None,
+                        fog_color: BiomeColor { r: 0, g: 0, b: 0 },
+                        water_color: BiomeColor { r: 0, g: 0, b: 0 },
+                        water_fog_color: BiomeColor { r: 0, g: 0, b: 0 },
+                    },
+                    precipitation: "".to_string(),
+                    temperature: 0.0,
+                    downfall: 0.0,
+                    temperature_modifier: None,
+                    category: BiomeCategory::Ocean,
+                    particle: None,
+                },
+            },
+        );
+        let chunk = generator.generate_chunk(chunk_pos, Sections(16), 0, &biomes);
 
         assert_eq!(chunk.position(), chunk_pos);
         for x in 0usize..16 {
@@ -108,7 +147,10 @@ mod tests {
                         BlockId::air()
                     );
                 }
-                assert_eq!(chunk.biomes().get_at_block(x, 0, z), BiomeId::Mountains);
+                assert_eq!(
+                    chunk.biome_at(x, 0, z).unwrap(),
+                    biomes.get_id("minecraft:mountains").unwrap()
+                );
             }
         }
     }

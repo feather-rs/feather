@@ -97,6 +97,29 @@ impl Chunk {
         }
     }
 
+    /// Gets the biome at the given position within this chunk.
+    ///
+    /// Returns `None` if the coordinates are out of bounds.
+    pub fn biome_at(&self, x: usize, y: usize, z: usize) -> Option<BiomeId> {
+        self.section_for_y(y)?.biome_at(
+            x / BIOME_SAMPLE_RATE,
+            (y / BIOME_SAMPLE_RATE) % SECTION_HEIGHT,
+            z / BIOME_SAMPLE_RATE,
+        )
+    }
+
+    /// Sets the biome at the given position within this chunk.
+    ///
+    /// Returns `None` if the coordinates are out of bounds.
+    pub fn set_biome_at(&mut self, x: usize, y: usize, z: usize, biome: BiomeId) -> Option<()> {
+        self.section_for_y_mut(y)?.set_biome_at(
+            x / BIOME_SAMPLE_RATE,
+            (y / BIOME_SAMPLE_RATE) % SECTION_HEIGHT,
+            z / BIOME_SAMPLE_RATE,
+            biome,
+        )
+    }
+
     /// Fills the given chunk section with `block`.
     pub fn fill_section(&mut self, section: usize, block: BlockId) -> bool {
         let section = match self.sections.get_mut(section) {
@@ -261,6 +284,20 @@ impl ChunkSection {
         self.blocks.set_block_at(x, y, z, block)
     }
 
+    /// Gets the biome at the given coordinates within this
+    /// chunk section.
+    pub fn biome_at(&self, x: usize, y: usize, z: usize) -> Option<BiomeId> {
+        self.biomes.biome_at(x, y, z)
+    }
+
+    /// Sets the biome at the given coordinates within
+    /// this chunk section.
+    ///
+    /// Returns `None` if the coordinates were out of bounds.
+    pub fn set_biome_at(&mut self, x: usize, y: usize, z: usize, biome: BiomeId) -> Option<()> {
+        self.biomes.set_biome_at(x, y, z, biome)
+    }
+
     /// Fills this chunk section with the given block.
     ///
     /// Does not currently update heightmaps.
@@ -374,52 +411,34 @@ impl ChunkSection {
 
 #[cfg(test)]
 mod tests {
-    use crate::blocks::HIGHEST_ID;
-    use crate::prelude::*;
-
     use super::*;
 
     #[test]
     fn chunk_new() {
         let pos = ChunkPosition::new(0, 0);
-        let chunk = Chunk::new(pos, Sections(16));
+        let chunk = Chunk::new(pos, Sections(16), 0);
 
         // Confirm that chunk is empty
         for x in 0..16 {
-            assert!(chunk.section(x).is_none());
-            assert!(chunk.section(x).is_none());
+            assert_eq!(
+                chunk.section(x).unwrap().blocks,
+                PalettedContainer::default()
+            );
+            assert_eq!(
+                chunk.section(x).unwrap().biomes,
+                PalettedContainer::default()
+            );
         }
 
         assert_eq!(chunk.position(), pos);
-    }
-
-    #[test]
-    fn chunk_new_with_default_biome() {
-        let pos = ChunkPosition::new(0, 0);
-        let chunk = Chunk::new_with_default_biome(pos, BiomeId::Mountains, Sections(16));
-
-        // Confirm that chunk is empty
-        for x in 0..16 {
-            assert!(chunk.section(x).is_none());
-            assert!(chunk.section(x).is_none());
-        }
-
-        assert_eq!(chunk.position(), pos);
-
-        // Confirm that biomes are set
-        for x in 0..BIOME_SAMPLE_RATE {
-            for z in 0..BIOME_SAMPLE_RATE {
-                assert_eq!(chunk.biomes.get(x, 0, z), BiomeId::Mountains);
-            }
-        }
     }
 
     #[test]
     fn set_block_simple() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos, Sections(16));
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
-        chunk.set_block_at(0, 0, 0, BlockId::andesite());
+        chunk.set_block_at(0, 0, 0, BlockId::andesite(), true);
         assert_eq!(chunk.block_at(0, 0, 0).unwrap(), BlockId::andesite());
         assert!(chunk.section(0).is_some());
     }
@@ -427,14 +446,14 @@ mod tests {
     #[test]
     fn fill_chunk() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos, Sections(16));
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
         let block = BlockId::stone();
 
         for x in 0..SECTION_WIDTH {
             for y in 0..16 * SECTION_HEIGHT {
                 for z in 0..SECTION_WIDTH {
-                    chunk.set_block_at(x, y, z, block).unwrap();
+                    chunk.set_block_at(x, y, z, block, true).unwrap();
                     assert_eq!(chunk.block_at(x, y, z), Some(block));
                 }
             }
@@ -458,30 +477,19 @@ mod tests {
         // resizing, etc. works correctly.
 
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos, Sections(16));
-
-        for section in chunk.sections() {
-            assert!(section.is_none());
-        }
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
         for section in 0..16 {
             let mut counter = 0;
             for x in 0..SECTION_WIDTH {
                 for y in 0..SECTION_HEIGHT {
                     for z in 0..SECTION_WIDTH {
-                        let block = BlockId::from_vanilla_id(counter);
-                        chunk.set_block_at(x, (section * SECTION_HEIGHT) + y, z, block);
+                        let block = BlockId::from_vanilla_id(counter).unwrap();
+                        chunk.set_block_at(x, (section * SECTION_HEIGHT) + y, z, block, true);
                         assert_eq!(
                             chunk.block_at(x, (section * SECTION_HEIGHT) + y, z),
                             Some(block)
                         );
-                        if counter != 0 {
-                            assert!(
-                                chunk.section(section as isize).is_some(),
-                                "Section {} failed",
-                                section
-                            );
-                        }
                         counter += 1;
                     }
                 }
@@ -495,7 +503,7 @@ mod tests {
             for x in 0..SECTION_WIDTH {
                 for y in 0..SECTION_HEIGHT {
                     for z in 0..SECTION_WIDTH {
-                        let block = BlockId::from_vanilla_id(counter);
+                        let block = BlockId::from_vanilla_id(counter).unwrap();
                         assert_eq!(
                             chunk.block_at(x, (section as usize * SECTION_HEIGHT) + y, z),
                             Some(block)
@@ -512,34 +520,29 @@ mod tests {
         for x in 0..SECTION_WIDTH {
             for y in 0..16 * SECTION_HEIGHT {
                 for z in 0..SECTION_WIDTH {
-                    chunk.set_block_at(x, y, z, BlockId::air());
+                    chunk.set_block_at(x, y, z, BlockId::air(), false);
                 }
             }
-        }
-
-        for section in chunk.sections() {
-            assert!(section.is_none());
         }
     }
 
     #[test]
     fn section_from_data_and_palette() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos, Sections(16));
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
-        let mut palette = Palette::new();
+        let mut palette = PalettedContainer::new();
         let stone_index = palette.index_or_insert(BlockId::stone());
 
         let mut data = PackedArray::new(16 * SECTION_WIDTH * SECTION_WIDTH, 5);
         for i in 0..4096 {
             data.set(i, stone_index as u64);
         }
+        palette.set_data(data);
 
-        let section = ChunkSection::new(
-            PackedArrayStore::from_raw_parts(Some(palette), data),
-            LightStore::new(),
-        );
-        chunk.set_section_at(0, Some(section));
+        let section =
+            ChunkSection::new(palette, PalettedContainer::default(), 0, LightStore::new());
+        chunk.set_section_at(0, section);
 
         for x in 0..SECTION_WIDTH {
             for y in 0..16 {
@@ -563,22 +566,22 @@ mod tests {
 
     #[test]
     fn test_biomes() {
-        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16));
+        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16), 0);
 
-        for x in 0..BIOME_SAMPLE_RATE {
-            for z in 0..BIOME_SAMPLE_RATE {
-                assert_eq!(chunk.biomes().get(x, 0, z), BiomeId::TheVoid);
-                chunk.biomes_mut().set(x, 0, z, BiomeId::BirchForest);
-                assert_eq!(chunk.biomes().get(x, 0, z), BiomeId::BirchForest);
+        for x in (0..SECTION_WIDTH).step_by(BIOME_SAMPLE_RATE) {
+            for z in (0..SECTION_WIDTH).step_by(BIOME_SAMPLE_RATE) {
+                assert_eq!(chunk.biome_at(x, 0, z), Some(0.into()));
+                chunk.set_biome_at(x, 0, z, 1.into());
+                assert_eq!(chunk.biome_at(x, 0, z), Some(1.into()));
             }
         }
     }
 
     #[test]
     fn test_light() {
-        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16));
+        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16), 0);
 
-        chunk.set_block_at(0, 0, 0, BlockId::stone()).unwrap();
+        chunk.set_block_at(0, 0, 0, BlockId::stone(), true).unwrap();
 
         for x in 0..SECTION_WIDTH {
             for y in 0..SECTION_HEIGHT {
@@ -594,9 +597,9 @@ mod tests {
 
     #[test]
     fn heightmaps() {
-        let mut chunk = Chunk::new(ChunkPosition::new(0, 0), Sections(16));
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0), Sections(16), 0);
 
-        chunk.set_block_at(0, 10, 0, BlockId::stone());
+        chunk.set_block_at(0, 10, 0, BlockId::stone(), true);
         assert_eq!(chunk.heightmaps.motion_blocking.height(0, 0), Some(10));
     }
 
@@ -613,11 +616,5 @@ mod tests {
                 }
             }
         }
-    }
-
-    #[test]
-    fn global_bits() {
-        //The highest block state id must fit into GLOBAL_BITS_PER_BLOCK
-        assert_eq!(HIGHEST_ID >> GLOBAL_BITS_PER_BLOCK, 0)
     }
 }
