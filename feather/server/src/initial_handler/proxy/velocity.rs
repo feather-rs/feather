@@ -62,7 +62,7 @@ fn read_player_info(key: &str, payload: &[u8]) -> anyhow::Result<ProxyData> {
     let payload = verify_hmac(key, payload)?;
 
     let mut payload = Cursor::new(payload);
-    let mcversion = ProtocolVersion::V1_16_2;
+    let mcversion = ProtocolVersion::V1_18_1;
 
     let version = VarInt::read(&mut payload, mcversion)?;
     if version.0 != FORWARDING_VERSION {

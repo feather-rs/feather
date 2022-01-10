@@ -1,5 +1,4 @@
 // This file is @generated. Please do not edit.
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Area {
     Storage,
@@ -42,629 +41,580 @@ pub enum Area {
     StonecutterInput,
     StonecutterOutput,
 }
+impl Area {
+    #[inline]
+    pub fn values() -> &'static [Area] {
+        use Area::*;
+        &[
+            Storage,
+            CraftingOutput,
+            CraftingInput,
+            Helmet,
+            Chestplate,
+            Leggings,
+            Boots,
+            Hotbar,
+            Offhand,
+            FurnaceIngredient,
+            FurnaceFuel,
+            FurnaceOutput,
+            EnchantmentItem,
+            EnchantmentLapis,
+            BrewingBottle,
+            BrewingIngredient,
+            BrewingBlazePowder,
+            VillagerInput,
+            VillagerOutput,
+            BeaconPayment,
+            AnvilInput1,
+            AnvilInput2,
+            AnvilOutput,
+            Saddle,
+            HorseArmor,
+            LlamaCarpet,
+            CartographyMap,
+            CartographyPaper,
+            CartographyOutput,
+            GrindstoneInput1,
+            GrindstoneInput2,
+            GrindstoneOutput,
+            LecternBook,
+            LoomBanner,
+            LoomDye,
+            LoomPattern,
+            LoomOutput,
+            StonecutterInput,
+            StonecutterOutput,
+        ]
+    }
+}
 #[derive(Debug, Clone)]
 pub enum Window {
-    Player {
-        player: crate::Inventory,
-    },
-    Generic9x1 {
+    Generic9X3 {
         block: crate::Inventory,
         player: crate::Inventory,
     },
-    Generic9x2 {
-        block: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Generic9x3 {
-        block: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Generic9x4 {
-        block: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Generic9x5 {
-        block: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Generic9x6 {
+    Generic9X6 {
         left_chest: crate::Inventory,
         right_chest: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Generic3x3 {
-        block: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Crafting {
-        crafting_table: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Furnace {
-        furnace: crate::Inventory,
-        player: crate::Inventory,
-    },
-    BlastFurnace {
-        blast_furnace: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Smoker {
-        smoker: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Enchantment {
-        enchantment_table: crate::Inventory,
-        player: crate::Inventory,
-    },
-    BrewingStand {
-        brewing_stand: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Beacon {
-        beacon: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Anvil {
-        anvil: crate::Inventory,
         player: crate::Inventory,
     },
     Hopper {
         hopper: crate::Inventory,
         player: crate::Inventory,
     },
-    ShulkerBox {
-        shulker_box: crate::Inventory,
-        player: crate::Inventory,
-    },
-    Cartography {
-        cartography_table: crate::Inventory,
-        player: crate::Inventory,
-    },
     Grindstone {
         grindstone: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Furnace {
+        furnace: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Generic3X3 {
+        block: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Smoker {
+        smoker: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Anvil {
+        anvil: crate::Inventory,
         player: crate::Inventory,
     },
     Lectern {
         lectern: crate::Inventory,
         player: crate::Inventory,
     },
-    Loom {
-        loom: crate::Inventory,
+    Generic9X4 {
+        block: crate::Inventory,
+        player: crate::Inventory,
+    },
+    ShulkerBox {
+        shulker_box: crate::Inventory,
+        player: crate::Inventory,
+    },
+    BrewingStand {
+        brewing_stand: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Generic9X5 {
+        block: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Generic9X2 {
+        block: crate::Inventory,
         player: crate::Inventory,
     },
     Stonecutter {
         stonecutter: crate::Inventory,
         player: crate::Inventory,
     },
+    Crafting {
+        crafting_table: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Player {
+        player: crate::Inventory,
+    },
+    BlastFurnace {
+        blast_furnace: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Loom {
+        loom: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Generic9X1 {
+        block: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Enchantment {
+        enchantment_table: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Cartography {
+        cartography_table: crate::Inventory,
+        player: crate::Inventory,
+    },
+    Beacon {
+        beacon: crate::Inventory,
+        player: crate::Inventory,
+    },
 }
 impl Window {
-    #[allow(unused_comparisons)]
     pub fn index_to_slot(&self, index: usize) -> Option<(&crate::Inventory, Area, usize)> {
-        match self {
-            Window::Player { player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::CraftingOutput;
-                    let slot = index;
-                    Some((player, area, slot))
-                } else if (1..5).contains(&index) {
-                    let area = Area::CraftingInput;
-                    let slot = index - 1;
-                    Some((player, area, slot))
-                } else if (5..6).contains(&index) {
-                    let area = Area::Helmet;
-                    let slot = index - 5;
-                    Some((player, area, slot))
-                } else if (6..7).contains(&index) {
-                    let area = Area::Chestplate;
-                    let slot = index - 6;
-                    Some((player, area, slot))
-                } else if (7..8).contains(&index) {
-                    let area = Area::Leggings;
-                    let slot = index - 7;
-                    Some((player, area, slot))
-                } else if (8..9).contains(&index) {
-                    let area = Area::Boots;
-                    let slot = index - 8;
-                    Some((player, area, slot))
-                } else if (9..36).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 9;
-                    Some((player, area, slot))
-                } else if (36..45).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 36;
-                    Some((player, area, slot))
-                } else if (45..46).contains(&index) {
-                    let area = Area::Offhand;
-                    let slot = index - 45;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+        match (self, index) {
+            (Window::Generic9X3 { block, player }, 0usize..=26usize) => {
+                Some((block, Area::Storage, index - 0usize))
             }
-            Window::Generic9x1 { block, player } => {
-                if (0..9).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((block, area, slot))
-                } else if (9..36).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 9;
-                    Some((player, area, slot))
-                } else if (36..45).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 36;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Generic9X3 { block, player }, 27usize..=53usize) => {
+                Some((player, Area::Storage, index - 27usize))
             }
-            Window::Generic9x2 { block, player } => {
-                if (0..18).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((block, area, slot))
-                } else if (18..45).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 18;
-                    Some((player, area, slot))
-                } else if (45..54).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 45;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Generic9X3 { block, player }, 54usize..=62usize) => {
+                Some((player, Area::Hotbar, index - 54usize))
             }
-            Window::Generic9x3 { block, player } => {
-                if (0..27).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((block, area, slot))
-                } else if (27..54).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 27;
-                    Some((player, area, slot))
-                } else if (54..63).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 54;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                0usize..=26usize,
+            ) => Some((left_chest, Area::Storage, index - 0usize)),
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                27usize..=53usize,
+            ) => Some((right_chest, Area::Storage, index - 27usize)),
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                54usize..=80usize,
+            ) => Some((player, Area::Storage, index - 54usize)),
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                81usize..=89usize,
+            ) => Some((player, Area::Hotbar, index - 81usize)),
+            (Window::Hopper { hopper, player }, 0usize..=3usize) => {
+                Some((hopper, Area::Storage, index - 0usize))
             }
-            Window::Generic9x4 { block, player } => {
-                if (0..36).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((block, area, slot))
-                } else if (36..63).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 36;
-                    Some((player, area, slot))
-                } else if (63..72).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 63;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Hopper { hopper, player }, 4usize..=30usize) => {
+                Some((player, Area::Storage, index - 4usize))
             }
-            Window::Generic9x5 { block, player } => {
-                if (0..45).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((block, area, slot))
-                } else if (45..72).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 45;
-                    Some((player, area, slot))
-                } else if (72..81).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 72;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Hopper { hopper, player }, 31usize..=39usize) => {
+                Some((player, Area::Hotbar, index - 31usize))
             }
-            Window::Generic9x6 {
-                left_chest,
-                right_chest,
-                player,
-            } => {
-                if (0..27).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((left_chest, area, slot))
-                } else if (27..54).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 27;
-                    Some((right_chest, area, slot))
-                } else if (54..81).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 54;
-                    Some((player, area, slot))
-                } else if (81..90).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 81;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, 0usize..=0usize) => {
+                Some((grindstone, Area::GrindstoneInput1, index - 0usize))
             }
-            Window::Generic3x3 { block, player } => {
-                if (0..9).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((block, area, slot))
-                } else if (9..36).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 9;
-                    Some((player, area, slot))
-                } else if (36..45).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 36;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, 1usize..=1usize) => {
+                Some((grindstone, Area::GrindstoneInput2, index - 1usize))
             }
-            Window::Crafting {
-                crafting_table,
-                player,
-            } => {
-                if (0..1).contains(&index) {
-                    let area = Area::CraftingOutput;
-                    let slot = index;
-                    Some((crafting_table, area, slot))
-                } else if (1..10).contains(&index) {
-                    let area = Area::CraftingInput;
-                    let slot = index - 1;
-                    Some((crafting_table, area, slot))
-                } else if (10..37).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 10;
-                    Some((player, area, slot))
-                } else if (37..46).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 37;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, 2usize..=2usize) => {
+                Some((grindstone, Area::GrindstoneOutput, index - 2usize))
             }
-            Window::Furnace { furnace, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::FurnaceIngredient;
-                    let slot = index;
-                    Some((furnace, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::FurnaceFuel;
-                    let slot = index - 1;
-                    Some((furnace, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::FurnaceOutput;
-                    let slot = index - 2;
-                    Some((furnace, area, slot))
-                } else if (3..30).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 3;
-                    Some((player, area, slot))
-                } else if (30..39).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 30;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, 3usize..=29usize) => {
+                Some((player, Area::Storage, index - 3usize))
             }
-            Window::BlastFurnace {
-                blast_furnace,
-                player,
-            } => {
-                if (0..1).contains(&index) {
-                    let area = Area::FurnaceIngredient;
-                    let slot = index;
-                    Some((blast_furnace, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::FurnaceFuel;
-                    let slot = index - 1;
-                    Some((blast_furnace, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::FurnaceOutput;
-                    let slot = index - 2;
-                    Some((blast_furnace, area, slot))
-                } else if (3..30).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 3;
-                    Some((player, area, slot))
-                } else if (30..39).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 30;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, 30usize..=38usize) => {
+                Some((player, Area::Hotbar, index - 30usize))
             }
-            Window::Smoker { smoker, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::FurnaceIngredient;
-                    let slot = index;
-                    Some((smoker, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::FurnaceFuel;
-                    let slot = index - 1;
-                    Some((smoker, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::FurnaceOutput;
-                    let slot = index - 2;
-                    Some((smoker, area, slot))
-                } else if (3..30).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 3;
-                    Some((player, area, slot))
-                } else if (30..39).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 30;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, 0usize..=0usize) => {
+                Some((furnace, Area::FurnaceIngredient, index - 0usize))
             }
-            Window::Enchantment {
-                enchantment_table,
-                player,
-            } => {
-                if (0..1).contains(&index) {
-                    let area = Area::EnchantmentItem;
-                    let slot = index;
-                    Some((enchantment_table, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::EnchantmentLapis;
-                    let slot = index - 1;
-                    Some((enchantment_table, area, slot))
-                } else if (2..29).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 2;
-                    Some((player, area, slot))
-                } else if (29..38).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 29;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, 1usize..=1usize) => {
+                Some((furnace, Area::FurnaceFuel, index - 1usize))
             }
-            Window::BrewingStand {
-                brewing_stand,
-                player,
-            } => {
-                if (0..3).contains(&index) {
-                    let area = Area::BrewingBottle;
-                    let slot = index;
-                    Some((brewing_stand, area, slot))
-                } else if (3..4).contains(&index) {
-                    let area = Area::BrewingIngredient;
-                    let slot = index - 3;
-                    Some((brewing_stand, area, slot))
-                } else if (4..5).contains(&index) {
-                    let area = Area::BrewingBlazePowder;
-                    let slot = index - 4;
-                    Some((brewing_stand, area, slot))
-                } else if (5..32).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 5;
-                    Some((player, area, slot))
-                } else if (32..41).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 32;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, 2usize..=2usize) => {
+                Some((furnace, Area::FurnaceOutput, index - 2usize))
             }
-            Window::Beacon { beacon, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::BeaconPayment;
-                    let slot = index;
-                    Some((beacon, area, slot))
-                } else if (1..28).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 1;
-                    Some((player, area, slot))
-                } else if (28..37).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 28;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, 3usize..=29usize) => {
+                Some((player, Area::Storage, index - 3usize))
             }
-            Window::Anvil { anvil, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::AnvilInput1;
-                    let slot = index;
-                    Some((anvil, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::AnvilInput2;
-                    let slot = index - 1;
-                    Some((anvil, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::AnvilOutput;
-                    let slot = index - 2;
-                    Some((anvil, area, slot))
-                } else if (3..30).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 3;
-                    Some((player, area, slot))
-                } else if (30..39).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 30;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, 30usize..=38usize) => {
+                Some((player, Area::Hotbar, index - 30usize))
             }
-            Window::Hopper { hopper, player } => {
-                if (0..4).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((hopper, area, slot))
-                } else if (4..31).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 4;
-                    Some((player, area, slot))
-                } else if (31..40).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 31;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Generic3X3 { block, player }, 0usize..=8usize) => {
+                Some((block, Area::Storage, index - 0usize))
             }
-            Window::ShulkerBox {
-                shulker_box,
-                player,
-            } => {
-                if (0..27).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index;
-                    Some((shulker_box, area, slot))
-                } else if (27..54).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 27;
-                    Some((player, area, slot))
-                } else if (54..63).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 54;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Generic3X3 { block, player }, 9usize..=35usize) => {
+                Some((player, Area::Storage, index - 9usize))
             }
-            Window::Cartography {
-                cartography_table,
-                player,
-            } => {
-                if (0..1).contains(&index) {
-                    let area = Area::CartographyMap;
-                    let slot = index;
-                    Some((cartography_table, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::CartographyPaper;
-                    let slot = index - 1;
-                    Some((cartography_table, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::CartographyOutput;
-                    let slot = index - 2;
-                    Some((cartography_table, area, slot))
-                } else if (3..30).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 3;
-                    Some((player, area, slot))
-                } else if (30..39).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 30;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Generic3X3 { block, player }, 36usize..=44usize) => {
+                Some((player, Area::Hotbar, index - 36usize))
             }
-            Window::Grindstone { grindstone, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::GrindstoneInput1;
-                    let slot = index;
-                    Some((grindstone, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::GrindstoneInput2;
-                    let slot = index - 1;
-                    Some((grindstone, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::GrindstoneOutput;
-                    let slot = index - 2;
-                    Some((grindstone, area, slot))
-                } else if (3..30).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 3;
-                    Some((player, area, slot))
-                } else if (30..39).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 30;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, 0usize..=0usize) => {
+                Some((smoker, Area::FurnaceIngredient, index - 0usize))
             }
-            Window::Lectern { lectern, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::LecternBook;
-                    let slot = index;
-                    Some((lectern, area, slot))
-                } else if (1..28).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 1;
-                    Some((player, area, slot))
-                } else if (28..37).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 28;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, 1usize..=1usize) => {
+                Some((smoker, Area::FurnaceFuel, index - 1usize))
             }
-            Window::Loom { loom, player } => {
-                if (0..1).contains(&index) {
-                    let area = Area::LoomBanner;
-                    let slot = index;
-                    Some((loom, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::LoomDye;
-                    let slot = index - 1;
-                    Some((loom, area, slot))
-                } else if (2..3).contains(&index) {
-                    let area = Area::LoomPattern;
-                    let slot = index - 2;
-                    Some((loom, area, slot))
-                } else if (3..4).contains(&index) {
-                    let area = Area::LoomOutput;
-                    let slot = index - 3;
-                    Some((loom, area, slot))
-                } else if (4..31).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 4;
-                    Some((player, area, slot))
-                } else if (31..40).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 31;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, 2usize..=2usize) => {
+                Some((smoker, Area::FurnaceOutput, index - 2usize))
             }
-            Window::Stonecutter {
-                stonecutter,
-                player,
-            } => {
-                if (0..1).contains(&index) {
-                    let area = Area::StonecutterInput;
-                    let slot = index;
-                    Some((stonecutter, area, slot))
-                } else if (1..2).contains(&index) {
-                    let area = Area::StonecutterOutput;
-                    let slot = index - 1;
-                    Some((stonecutter, area, slot))
-                } else if (2..29).contains(&index) {
-                    let area = Area::Storage;
-                    let slot = index - 2;
-                    Some((player, area, slot))
-                } else if (29..38).contains(&index) {
-                    let area = Area::Hotbar;
-                    let slot = index - 29;
-                    Some((player, area, slot))
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, 3usize..=29usize) => {
+                Some((player, Area::Storage, index - 3usize))
             }
+            (Window::Smoker { smoker, player }, 30usize..=38usize) => {
+                Some((player, Area::Hotbar, index - 30usize))
+            }
+            (Window::Anvil { anvil, player }, 0usize..=0usize) => {
+                Some((anvil, Area::AnvilInput1, index - 0usize))
+            }
+            (Window::Anvil { anvil, player }, 1usize..=1usize) => {
+                Some((anvil, Area::AnvilInput2, index - 1usize))
+            }
+            (Window::Anvil { anvil, player }, 2usize..=2usize) => {
+                Some((anvil, Area::AnvilOutput, index - 2usize))
+            }
+            (Window::Anvil { anvil, player }, 3usize..=29usize) => {
+                Some((player, Area::Storage, index - 3usize))
+            }
+            (Window::Anvil { anvil, player }, 30usize..=38usize) => {
+                Some((player, Area::Hotbar, index - 30usize))
+            }
+            (Window::Lectern { lectern, player }, 0usize..=0usize) => {
+                Some((lectern, Area::LecternBook, index - 0usize))
+            }
+            (Window::Lectern { lectern, player }, 1usize..=27usize) => {
+                Some((player, Area::Storage, index - 1usize))
+            }
+            (Window::Lectern { lectern, player }, 28usize..=36usize) => {
+                Some((player, Area::Hotbar, index - 28usize))
+            }
+            (Window::Generic9X4 { block, player }, 0usize..=35usize) => {
+                Some((block, Area::Storage, index - 0usize))
+            }
+            (Window::Generic9X4 { block, player }, 36usize..=62usize) => {
+                Some((player, Area::Storage, index - 36usize))
+            }
+            (Window::Generic9X4 { block, player }, 63usize..=71usize) => {
+                Some((player, Area::Hotbar, index - 63usize))
+            }
+            (
+                Window::ShulkerBox {
+                    shulker_box,
+                    player,
+                },
+                0usize..=26usize,
+            ) => Some((shulker_box, Area::Storage, index - 0usize)),
+            (
+                Window::ShulkerBox {
+                    shulker_box,
+                    player,
+                },
+                27usize..=53usize,
+            ) => Some((player, Area::Storage, index - 27usize)),
+            (
+                Window::ShulkerBox {
+                    shulker_box,
+                    player,
+                },
+                54usize..=62usize,
+            ) => Some((player, Area::Hotbar, index - 54usize)),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                0usize..=2usize,
+            ) => Some((brewing_stand, Area::BrewingBottle, index - 0usize)),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                3usize..=3usize,
+            ) => Some((brewing_stand, Area::BrewingIngredient, index - 3usize)),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                4usize..=4usize,
+            ) => Some((brewing_stand, Area::BrewingBlazePowder, index - 4usize)),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                5usize..=31usize,
+            ) => Some((player, Area::Storage, index - 5usize)),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                32usize..=40usize,
+            ) => Some((player, Area::Hotbar, index - 32usize)),
+            (Window::Generic9X5 { block, player }, 0usize..=44usize) => {
+                Some((block, Area::Storage, index - 0usize))
+            }
+            (Window::Generic9X5 { block, player }, 45usize..=71usize) => {
+                Some((player, Area::Storage, index - 45usize))
+            }
+            (Window::Generic9X5 { block, player }, 72usize..=80usize) => {
+                Some((player, Area::Hotbar, index - 72usize))
+            }
+            (Window::Generic9X2 { block, player }, 0usize..=17usize) => {
+                Some((block, Area::Storage, index - 0usize))
+            }
+            (Window::Generic9X2 { block, player }, 18usize..=44usize) => {
+                Some((player, Area::Storage, index - 18usize))
+            }
+            (Window::Generic9X2 { block, player }, 45usize..=53usize) => {
+                Some((player, Area::Hotbar, index - 45usize))
+            }
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                0usize..=0usize,
+            ) => Some((stonecutter, Area::StonecutterInput, index - 0usize)),
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                1usize..=1usize,
+            ) => Some((stonecutter, Area::StonecutterOutput, index - 1usize)),
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                2usize..=28usize,
+            ) => Some((player, Area::Storage, index - 2usize)),
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                29usize..=37usize,
+            ) => Some((player, Area::Hotbar, index - 29usize)),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                0usize..=0usize,
+            ) => Some((crafting_table, Area::CraftingOutput, index - 0usize)),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                1usize..=9usize,
+            ) => Some((crafting_table, Area::CraftingInput, index - 1usize)),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                10usize..=36usize,
+            ) => Some((player, Area::Storage, index - 10usize)),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                37usize..=45usize,
+            ) => Some((player, Area::Hotbar, index - 37usize)),
+            (Window::Player { player }, 0usize..=0usize) => {
+                Some((player, Area::CraftingOutput, index - 0usize))
+            }
+            (Window::Player { player }, 1usize..=4usize) => {
+                Some((player, Area::CraftingInput, index - 1usize))
+            }
+            (Window::Player { player }, 5usize..=5usize) => {
+                Some((player, Area::Helmet, index - 5usize))
+            }
+            (Window::Player { player }, 6usize..=6usize) => {
+                Some((player, Area::Chestplate, index - 6usize))
+            }
+            (Window::Player { player }, 7usize..=7usize) => {
+                Some((player, Area::Leggings, index - 7usize))
+            }
+            (Window::Player { player }, 8usize..=8usize) => {
+                Some((player, Area::Boots, index - 8usize))
+            }
+            (Window::Player { player }, 9usize..=35usize) => {
+                Some((player, Area::Storage, index - 9usize))
+            }
+            (Window::Player { player }, 36usize..=44usize) => {
+                Some((player, Area::Hotbar, index - 36usize))
+            }
+            (Window::Player { player }, 45usize..=45usize) => {
+                Some((player, Area::Offhand, index - 45usize))
+            }
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                0usize..=0usize,
+            ) => Some((blast_furnace, Area::FurnaceIngredient, index - 0usize)),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                1usize..=1usize,
+            ) => Some((blast_furnace, Area::FurnaceFuel, index - 1usize)),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                2usize..=2usize,
+            ) => Some((blast_furnace, Area::FurnaceOutput, index - 2usize)),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                3usize..=29usize,
+            ) => Some((player, Area::Storage, index - 3usize)),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                30usize..=38usize,
+            ) => Some((player, Area::Hotbar, index - 30usize)),
+            (Window::Loom { loom, player }, 0usize..=0usize) => {
+                Some((loom, Area::LoomBanner, index - 0usize))
+            }
+            (Window::Loom { loom, player }, 1usize..=1usize) => {
+                Some((loom, Area::LoomDye, index - 1usize))
+            }
+            (Window::Loom { loom, player }, 2usize..=2usize) => {
+                Some((loom, Area::LoomPattern, index - 2usize))
+            }
+            (Window::Loom { loom, player }, 3usize..=3usize) => {
+                Some((loom, Area::LoomOutput, index - 3usize))
+            }
+            (Window::Loom { loom, player }, 4usize..=30usize) => {
+                Some((player, Area::Storage, index - 4usize))
+            }
+            (Window::Loom { loom, player }, 31usize..=39usize) => {
+                Some((player, Area::Hotbar, index - 31usize))
+            }
+            (Window::Generic9X1 { block, player }, 0usize..=8usize) => {
+                Some((block, Area::Storage, index - 0usize))
+            }
+            (Window::Generic9X1 { block, player }, 9usize..=35usize) => {
+                Some((player, Area::Storage, index - 9usize))
+            }
+            (Window::Generic9X1 { block, player }, 36usize..=44usize) => {
+                Some((player, Area::Hotbar, index - 36usize))
+            }
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                0usize..=0usize,
+            ) => Some((enchantment_table, Area::EnchantmentItem, index - 0usize)),
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                1usize..=1usize,
+            ) => Some((enchantment_table, Area::EnchantmentLapis, index - 1usize)),
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                2usize..=28usize,
+            ) => Some((player, Area::Storage, index - 2usize)),
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                29usize..=37usize,
+            ) => Some((player, Area::Hotbar, index - 29usize)),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                0usize..=0usize,
+            ) => Some((cartography_table, Area::CartographyMap, index - 0usize)),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                1usize..=1usize,
+            ) => Some((cartography_table, Area::CartographyPaper, index - 1usize)),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                2usize..=2usize,
+            ) => Some((cartography_table, Area::CartographyOutput, index - 2usize)),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                3usize..=29usize,
+            ) => Some((player, Area::Storage, index - 3usize)),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                30usize..=38usize,
+            ) => Some((player, Area::Hotbar, index - 30usize)),
+            (Window::Beacon { beacon, player }, 0usize..=0usize) => {
+                Some((beacon, Area::BeaconPayment, index - 0usize))
+            }
+            (Window::Beacon { beacon, player }, 1usize..=27usize) => {
+                Some((player, Area::Storage, index - 1usize))
+            }
+            (Window::Beacon { beacon, player }, 28usize..=36usize) => {
+                Some((player, Area::Hotbar, index - 28usize))
+            }
+            _ => None,
         }
     }
     pub fn slot_to_index(
@@ -673,481 +623,497 @@ impl Window {
         area: Area,
         slot: usize,
     ) -> Option<usize> {
-        match self {
-            Window::Player { player } => {
-                if area == Area::CraftingOutput && player.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::CraftingInput && player.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::Helmet && player.ptr_eq(inventory) {
-                    Some(slot + 5)
-                } else if area == Area::Chestplate && player.ptr_eq(inventory) {
-                    Some(slot + 6)
-                } else if area == Area::Leggings && player.ptr_eq(inventory) {
-                    Some(slot + 7)
-                } else if area == Area::Boots && player.ptr_eq(inventory) {
-                    Some(slot + 8)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 9)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 36)
-                } else if area == Area::Offhand && player.ptr_eq(inventory) {
-                    Some(slot + 45)
-                } else {
-                    None
-                }
+        match (self, area) {
+            (Window::Generic9X3 { block, player }, Area::Storage) if block.ptr_eq(inventory) => {
+                Some(slot + 0usize)
             }
-            Window::Generic9x1 { block, player } => {
-                if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 9)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 36)
-                } else {
-                    None
-                }
+            (Window::Generic9X3 { block, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 27usize)
             }
-            Window::Generic9x2 { block, player } => {
-                if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 18)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 45)
-                } else {
-                    None
-                }
+            (Window::Generic9X3 { block, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 54usize)
             }
-            Window::Generic9x3 { block, player } => {
-                if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 27)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 54)
-                } else {
-                    None
-                }
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                Area::Storage,
+            ) if left_chest.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                Area::Storage,
+            ) if right_chest.ptr_eq(inventory) => Some(slot + 27usize),
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 54usize),
+            (
+                Window::Generic9X6 {
+                    left_chest,
+                    right_chest,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 81usize),
+            (Window::Hopper { hopper, player }, Area::Storage) if hopper.ptr_eq(inventory) => {
+                Some(slot + 0usize)
             }
-            Window::Generic9x4 { block, player } => {
-                if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 36)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 63)
-                } else {
-                    None
-                }
+            (Window::Hopper { hopper, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 4usize)
             }
-            Window::Generic9x5 { block, player } => {
-                if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 45)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 72)
-                } else {
-                    None
-                }
+            (Window::Hopper { hopper, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 31usize)
             }
-            Window::Generic9x6 {
-                left_chest,
-                right_chest,
-                player,
-            } => {
-                if area == Area::Storage && left_chest.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && right_chest.ptr_eq(inventory) {
-                    Some(slot + 27)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 54)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 81)
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, Area::GrindstoneInput1)
+                if grindstone.ptr_eq(inventory) =>
+            {
+                Some(slot + 0usize)
             }
-            Window::Generic3x3 { block, player } => {
-                if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 9)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 36)
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, Area::GrindstoneInput2)
+                if grindstone.ptr_eq(inventory) =>
+            {
+                Some(slot + 1usize)
             }
-            Window::Crafting {
-                crafting_table,
-                player,
-            } => {
-                if area == Area::CraftingOutput && crafting_table.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::CraftingInput && crafting_table.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 10)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 37)
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, Area::GrindstoneOutput)
+                if grindstone.ptr_eq(inventory) =>
+            {
+                Some(slot + 2usize)
             }
-            Window::Furnace { furnace, player } => {
-                if area == Area::FurnaceIngredient && furnace.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::FurnaceFuel && furnace.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::FurnaceOutput && furnace.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 30)
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, Area::Storage)
+                if player.ptr_eq(inventory) =>
+            {
+                Some(slot + 3usize)
             }
-            Window::BlastFurnace {
-                blast_furnace,
-                player,
-            } => {
-                if area == Area::FurnaceIngredient && blast_furnace.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::FurnaceFuel && blast_furnace.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::FurnaceOutput && blast_furnace.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 30)
-                } else {
-                    None
-                }
+            (Window::Grindstone { grindstone, player }, Area::Hotbar)
+                if player.ptr_eq(inventory) =>
+            {
+                Some(slot + 30usize)
             }
-            Window::Smoker { smoker, player } => {
-                if area == Area::FurnaceIngredient && smoker.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::FurnaceFuel && smoker.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::FurnaceOutput && smoker.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 30)
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, Area::FurnaceIngredient)
+                if furnace.ptr_eq(inventory) =>
+            {
+                Some(slot + 0usize)
             }
-            Window::Enchantment {
-                enchantment_table,
-                player,
-            } => {
-                if area == Area::EnchantmentItem && enchantment_table.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::EnchantmentLapis && enchantment_table.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 29)
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, Area::FurnaceFuel)
+                if furnace.ptr_eq(inventory) =>
+            {
+                Some(slot + 1usize)
             }
-            Window::BrewingStand {
-                brewing_stand,
-                player,
-            } => {
-                if area == Area::BrewingBottle && brewing_stand.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::BrewingIngredient && brewing_stand.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::BrewingBlazePowder && brewing_stand.ptr_eq(inventory) {
-                    Some(slot + 4)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 5)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 32)
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, Area::FurnaceOutput)
+                if furnace.ptr_eq(inventory) =>
+            {
+                Some(slot + 2usize)
             }
-            Window::Beacon { beacon, player } => {
-                if area == Area::BeaconPayment && beacon.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 28)
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 3usize)
             }
-            Window::Anvil { anvil, player } => {
-                if area == Area::AnvilInput1 && anvil.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::AnvilInput2 && anvil.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::AnvilOutput && anvil.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 30)
-                } else {
-                    None
-                }
+            (Window::Furnace { furnace, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 30usize)
             }
-            Window::Hopper { hopper, player } => {
-                if area == Area::Storage && hopper.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 4)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 31)
-                } else {
-                    None
-                }
+            (Window::Generic3X3 { block, player }, Area::Storage) if block.ptr_eq(inventory) => {
+                Some(slot + 0usize)
             }
-            Window::ShulkerBox {
-                shulker_box,
-                player,
-            } => {
-                if area == Area::Storage && shulker_box.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 27)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 54)
-                } else {
-                    None
-                }
+            (Window::Generic3X3 { block, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 9usize)
             }
-            Window::Cartography {
-                cartography_table,
-                player,
-            } => {
-                if area == Area::CartographyMap && cartography_table.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::CartographyPaper && cartography_table.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::CartographyOutput && cartography_table.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 30)
-                } else {
-                    None
-                }
+            (Window::Generic3X3 { block, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 36usize)
             }
-            Window::Grindstone { grindstone, player } => {
-                if area == Area::GrindstoneInput1 && grindstone.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::GrindstoneInput2 && grindstone.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::GrindstoneOutput && grindstone.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 30)
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, Area::FurnaceIngredient)
+                if smoker.ptr_eq(inventory) =>
+            {
+                Some(slot + 0usize)
             }
-            Window::Lectern { lectern, player } => {
-                if area == Area::LecternBook && lectern.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 28)
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, Area::FurnaceFuel) if smoker.ptr_eq(inventory) => {
+                Some(slot + 1usize)
             }
-            Window::Loom { loom, player } => {
-                if area == Area::LoomBanner && loom.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::LoomDye && loom.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::LoomPattern && loom.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::LoomOutput && loom.ptr_eq(inventory) {
-                    Some(slot + 3)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 4)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 31)
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, Area::FurnaceOutput)
+                if smoker.ptr_eq(inventory) =>
+            {
+                Some(slot + 2usize)
             }
-            Window::Stonecutter {
-                stonecutter,
-                player,
-            } => {
-                if area == Area::StonecutterInput && stonecutter.ptr_eq(inventory) {
-                    Some(slot)
-                } else if area == Area::StonecutterOutput && stonecutter.ptr_eq(inventory) {
-                    Some(slot + 1)
-                } else if area == Area::Storage && player.ptr_eq(inventory) {
-                    Some(slot + 2)
-                } else if area == Area::Hotbar && player.ptr_eq(inventory) {
-                    Some(slot + 29)
-                } else {
-                    None
-                }
+            (Window::Smoker { smoker, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 3usize)
             }
-        }
-    }
-}
-#[allow(warnings)]
-#[allow(clippy::all)]
-impl Window {
-    /// Returns the `name` property of this `Window`.
-    pub fn name(&self) -> &'static str {
-        match self {
-            Window::Player { .. } => "player",
-            Window::Generic9x1 { .. } => "generic_9x1",
-            Window::Generic9x2 { .. } => "generic_9x2",
-            Window::Generic9x3 { .. } => "generic_9x3",
-            Window::Generic9x4 { .. } => "generic_9x4",
-            Window::Generic9x5 { .. } => "generic_9x5",
-            Window::Generic9x6 { .. } => "generic_9x6",
-            Window::Generic3x3 { .. } => "generic_3x3",
-            Window::Crafting { .. } => "crafting",
-            Window::Furnace { .. } => "furnace",
-            Window::BlastFurnace { .. } => "blast_furnace",
-            Window::Smoker { .. } => "smoker",
-            Window::Enchantment { .. } => "enchantment",
-            Window::BrewingStand { .. } => "brewing_stand",
-            Window::Beacon { .. } => "beacon",
-            Window::Anvil { .. } => "anvil",
-            Window::Hopper { .. } => "hopper",
-            Window::ShulkerBox { .. } => "shulker_box",
-            Window::Cartography { .. } => "cartography",
-            Window::Grindstone { .. } => "grindstone",
-            Window::Lectern { .. } => "lectern",
-            Window::Loom { .. } => "loom",
-            Window::Stonecutter { .. } => "stonecutter",
+            (Window::Smoker { smoker, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 30usize)
+            }
+            (Window::Anvil { anvil, player }, Area::AnvilInput1) if anvil.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Anvil { anvil, player }, Area::AnvilInput2) if anvil.ptr_eq(inventory) => {
+                Some(slot + 1usize)
+            }
+            (Window::Anvil { anvil, player }, Area::AnvilOutput) if anvil.ptr_eq(inventory) => {
+                Some(slot + 2usize)
+            }
+            (Window::Anvil { anvil, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 3usize)
+            }
+            (Window::Anvil { anvil, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 30usize)
+            }
+            (Window::Lectern { lectern, player }, Area::LecternBook)
+                if lectern.ptr_eq(inventory) =>
+            {
+                Some(slot + 0usize)
+            }
+            (Window::Lectern { lectern, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 1usize)
+            }
+            (Window::Lectern { lectern, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 28usize)
+            }
+            (Window::Generic9X4 { block, player }, Area::Storage) if block.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Generic9X4 { block, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 36usize)
+            }
+            (Window::Generic9X4 { block, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 63usize)
+            }
+            (
+                Window::ShulkerBox {
+                    shulker_box,
+                    player,
+                },
+                Area::Storage,
+            ) if shulker_box.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::ShulkerBox {
+                    shulker_box,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 27usize),
+            (
+                Window::ShulkerBox {
+                    shulker_box,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 54usize),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                Area::BrewingBottle,
+            ) if brewing_stand.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                Area::BrewingIngredient,
+            ) if brewing_stand.ptr_eq(inventory) => Some(slot + 3usize),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                Area::BrewingBlazePowder,
+            ) if brewing_stand.ptr_eq(inventory) => Some(slot + 4usize),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 5usize),
+            (
+                Window::BrewingStand {
+                    brewing_stand,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 32usize),
+            (Window::Generic9X5 { block, player }, Area::Storage) if block.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Generic9X5 { block, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 45usize)
+            }
+            (Window::Generic9X5 { block, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 72usize)
+            }
+            (Window::Generic9X2 { block, player }, Area::Storage) if block.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Generic9X2 { block, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 18usize)
+            }
+            (Window::Generic9X2 { block, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 45usize)
+            }
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                Area::StonecutterInput,
+            ) if stonecutter.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                Area::StonecutterOutput,
+            ) if stonecutter.ptr_eq(inventory) => Some(slot + 1usize),
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 2usize),
+            (
+                Window::Stonecutter {
+                    stonecutter,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 29usize),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                Area::CraftingOutput,
+            ) if crafting_table.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                Area::CraftingInput,
+            ) if crafting_table.ptr_eq(inventory) => Some(slot + 1usize),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 10usize),
+            (
+                Window::Crafting {
+                    crafting_table,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 37usize),
+            (Window::Player { player }, Area::CraftingOutput) if player.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Player { player }, Area::CraftingInput) if player.ptr_eq(inventory) => {
+                Some(slot + 1usize)
+            }
+            (Window::Player { player }, Area::Helmet) if player.ptr_eq(inventory) => {
+                Some(slot + 5usize)
+            }
+            (Window::Player { player }, Area::Chestplate) if player.ptr_eq(inventory) => {
+                Some(slot + 6usize)
+            }
+            (Window::Player { player }, Area::Leggings) if player.ptr_eq(inventory) => {
+                Some(slot + 7usize)
+            }
+            (Window::Player { player }, Area::Boots) if player.ptr_eq(inventory) => {
+                Some(slot + 8usize)
+            }
+            (Window::Player { player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 9usize)
+            }
+            (Window::Player { player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 36usize)
+            }
+            (Window::Player { player }, Area::Offhand) if player.ptr_eq(inventory) => {
+                Some(slot + 45usize)
+            }
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                Area::FurnaceIngredient,
+            ) if blast_furnace.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                Area::FurnaceFuel,
+            ) if blast_furnace.ptr_eq(inventory) => Some(slot + 1usize),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                Area::FurnaceOutput,
+            ) if blast_furnace.ptr_eq(inventory) => Some(slot + 2usize),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 3usize),
+            (
+                Window::BlastFurnace {
+                    blast_furnace,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 30usize),
+            (Window::Loom { loom, player }, Area::LoomBanner) if loom.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Loom { loom, player }, Area::LoomDye) if loom.ptr_eq(inventory) => {
+                Some(slot + 1usize)
+            }
+            (Window::Loom { loom, player }, Area::LoomPattern) if loom.ptr_eq(inventory) => {
+                Some(slot + 2usize)
+            }
+            (Window::Loom { loom, player }, Area::LoomOutput) if loom.ptr_eq(inventory) => {
+                Some(slot + 3usize)
+            }
+            (Window::Loom { loom, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 4usize)
+            }
+            (Window::Loom { loom, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 31usize)
+            }
+            (Window::Generic9X1 { block, player }, Area::Storage) if block.ptr_eq(inventory) => {
+                Some(slot + 0usize)
+            }
+            (Window::Generic9X1 { block, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 9usize)
+            }
+            (Window::Generic9X1 { block, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 36usize)
+            }
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                Area::EnchantmentItem,
+            ) if enchantment_table.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                Area::EnchantmentLapis,
+            ) if enchantment_table.ptr_eq(inventory) => Some(slot + 1usize),
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 2usize),
+            (
+                Window::Enchantment {
+                    enchantment_table,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 29usize),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                Area::CartographyMap,
+            ) if cartography_table.ptr_eq(inventory) => Some(slot + 0usize),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                Area::CartographyPaper,
+            ) if cartography_table.ptr_eq(inventory) => Some(slot + 1usize),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                Area::CartographyOutput,
+            ) if cartography_table.ptr_eq(inventory) => Some(slot + 2usize),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                Area::Storage,
+            ) if player.ptr_eq(inventory) => Some(slot + 3usize),
+            (
+                Window::Cartography {
+                    cartography_table,
+                    player,
+                },
+                Area::Hotbar,
+            ) if player.ptr_eq(inventory) => Some(slot + 30usize),
+            (Window::Beacon { beacon, player }, Area::BeaconPayment)
+                if beacon.ptr_eq(inventory) =>
+            {
+                Some(slot + 0usize)
+            }
+            (Window::Beacon { beacon, player }, Area::Storage) if player.ptr_eq(inventory) => {
+                Some(slot + 1usize)
+            }
+            (Window::Beacon { beacon, player }, Area::Hotbar) if player.ptr_eq(inventory) => {
+                Some(slot + 28usize)
+            }
+            _ => None,
         }
     }
 }
 #[derive(Debug, Clone)]
 pub enum InventoryBacking<T> {
+    CraftingTable {
+        crafting_input: [T; 9usize],
+        crafting_output: [T; 1usize],
+    },
     Player {
-        crafting_input: [T; 4],
-        crafting_output: [T; 1],
-        helmet: [T; 1],
-        chestplate: [T; 1],
-        leggings: [T; 1],
-        boots: [T; 1],
-        storage: [T; 27],
-        hotbar: [T; 9],
-        offhand: [T; 1],
+        crafting_input: [T; 4usize],
+        crafting_output: [T; 1usize],
+        helmet: [T; 1usize],
+        chestplate: [T; 1usize],
+        leggings: [T; 1usize],
+        boots: [T; 1usize],
+        storage: [T; 27usize],
+        hotbar: [T; 9usize],
+        offhand: [T; 1usize],
     },
     Chest {
-        storage: [T; 27],
-    },
-    CraftingTable {
-        crafting_input: [T; 9],
-        crafting_output: [T; 1],
+        storage: [T; 27usize],
     },
     Furnace {
-        furnace_ingredient: [T; 1],
-        furnace_fuel: [T; 1],
-        furnace_output: [T; 1],
+        furnace_ingredient: [T; 1usize],
+        furnace_fuel: [T; 1usize],
+        furnace_output: [T; 1usize],
     },
 }
 impl<T> InventoryBacking<T> {
-    pub fn area_slice(&self, area: Area) -> Option<&[T]> {
-        match self {
-            InventoryBacking::Player {
-                crafting_input,
-                crafting_output,
-                helmet,
-                chestplate,
-                leggings,
-                boots,
-                storage,
-                hotbar,
-                offhand,
-            } => match area {
-                Area::CraftingInput => Some(crafting_input.as_ref()),
-                Area::CraftingOutput => Some(crafting_output.as_ref()),
-                Area::Helmet => Some(helmet.as_ref()),
-                Area::Chestplate => Some(chestplate.as_ref()),
-                Area::Leggings => Some(leggings.as_ref()),
-                Area::Boots => Some(boots.as_ref()),
-                Area::Storage => Some(storage.as_ref()),
-                Area::Hotbar => Some(hotbar.as_ref()),
-                Area::Offhand => Some(offhand.as_ref()),
-                _ => None,
-            },
-            InventoryBacking::Chest { storage } => match area {
-                Area::Storage => Some(storage.as_ref()),
-                _ => None,
-            },
-            InventoryBacking::CraftingTable {
-                crafting_input,
-                crafting_output,
-            } => match area {
-                Area::CraftingInput => Some(crafting_input.as_ref()),
-                Area::CraftingOutput => Some(crafting_output.as_ref()),
-                _ => None,
-            },
-            InventoryBacking::Furnace {
-                furnace_ingredient,
-                furnace_fuel,
-                furnace_output,
-            } => match area {
-                Area::FurnaceIngredient => Some(furnace_ingredient.as_ref()),
-                Area::FurnaceFuel => Some(furnace_fuel.as_ref()),
-                Area::FurnaceOutput => Some(furnace_output.as_ref()),
-                _ => None,
-            },
-        }
-    }
-    pub fn areas(&self) -> &'static [Area] {
-        match self {
-            InventoryBacking::Player { .. } => {
-                static AREAS: [Area; 9] = [
-                    Area::CraftingInput,
-                    Area::CraftingOutput,
-                    Area::Helmet,
-                    Area::Chestplate,
-                    Area::Leggings,
-                    Area::Boots,
-                    Area::Storage,
-                    Area::Hotbar,
-                    Area::Offhand,
-                ];
-                &AREAS
-            }
-            InventoryBacking::Chest { .. } => {
-                static AREAS: [Area; 1] = [Area::Storage];
-                &AREAS
-            }
-            InventoryBacking::CraftingTable { .. } => {
-                static AREAS: [Area; 2] = [Area::CraftingInput, Area::CraftingOutput];
-                &AREAS
-            }
-            InventoryBacking::Furnace { .. } => {
-                static AREAS: [Area; 3] = [
-                    Area::FurnaceIngredient,
-                    Area::FurnaceFuel,
-                    Area::FurnaceOutput,
-                ];
-                &AREAS
-            }
+    pub fn crafting_table() -> Self
+    where
+        T: Default,
+    {
+        InventoryBacking::CraftingTable {
+            crafting_input: Default::default(),
+            crafting_output: Default::default(),
         }
     }
     pub fn player() -> Self
@@ -1174,15 +1140,6 @@ impl<T> InventoryBacking<T> {
             storage: Default::default(),
         }
     }
-    pub fn crafting_table() -> Self
-    where
-        T: Default,
-    {
-        InventoryBacking::CraftingTable {
-            crafting_input: Default::default(),
-            crafting_output: Default::default(),
-        }
-    }
     pub fn furnace() -> Self
     where
         T: Default,
@@ -1193,8 +1150,205 @@ impl<T> InventoryBacking<T> {
             furnace_output: Default::default(),
         }
     }
+    pub fn area_slice(&self, area: Area) -> Option<&[T]> {
+        match (self, area) {
+            (
+                InventoryBacking::CraftingTable {
+                    crafting_input,
+                    crafting_output,
+                },
+                Area::CraftingInput,
+            ) => Some(crafting_input),
+            (
+                InventoryBacking::CraftingTable {
+                    crafting_input,
+                    crafting_output,
+                },
+                Area::CraftingOutput,
+            ) => Some(crafting_output),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::CraftingInput,
+            ) => Some(crafting_input),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::CraftingOutput,
+            ) => Some(crafting_output),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Helmet,
+            ) => Some(helmet),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Chestplate,
+            ) => Some(chestplate),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Leggings,
+            ) => Some(leggings),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Boots,
+            ) => Some(boots),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Storage,
+            ) => Some(storage),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Hotbar,
+            ) => Some(hotbar),
+            (
+                InventoryBacking::Player {
+                    crafting_input,
+                    crafting_output,
+                    helmet,
+                    chestplate,
+                    leggings,
+                    boots,
+                    storage,
+                    hotbar,
+                    offhand,
+                },
+                Area::Offhand,
+            ) => Some(offhand),
+            (InventoryBacking::Chest { storage }, Area::Storage) => Some(storage),
+            (
+                InventoryBacking::Furnace {
+                    furnace_ingredient,
+                    furnace_fuel,
+                    furnace_output,
+                },
+                Area::FurnaceIngredient,
+            ) => Some(furnace_ingredient),
+            (
+                InventoryBacking::Furnace {
+                    furnace_ingredient,
+                    furnace_fuel,
+                    furnace_output,
+                },
+                Area::FurnaceFuel,
+            ) => Some(furnace_fuel),
+            (
+                InventoryBacking::Furnace {
+                    furnace_ingredient,
+                    furnace_fuel,
+                    furnace_output,
+                },
+                Area::FurnaceOutput,
+            ) => Some(furnace_output),
+            _ => None,
+        }
+    }
+    pub fn areas(&self) -> &'static [Area] {
+        match self {
+            InventoryBacking::CraftingTable { .. } => &[Area::CraftingInput, Area::CraftingOutput],
+            InventoryBacking::Player { .. } => &[
+                Area::CraftingInput,
+                Area::CraftingOutput,
+                Area::Helmet,
+                Area::Chestplate,
+                Area::Leggings,
+                Area::Boots,
+                Area::Storage,
+                Area::Hotbar,
+                Area::Offhand,
+            ],
+            InventoryBacking::Chest { .. } => &[Area::Storage],
+            InventoryBacking::Furnace { .. } => &[
+                Area::FurnaceIngredient,
+                Area::FurnaceFuel,
+                Area::FurnaceOutput,
+            ],
+        }
+    }
 }
 impl crate::Inventory {
+    pub fn crafting_table() -> Self {
+        Self {
+            backing: std::sync::Arc::new(InventoryBacking::crafting_table()),
+        }
+    }
     pub fn player() -> Self {
         Self {
             backing: std::sync::Arc::new(InventoryBacking::player()),
@@ -1203,11 +1357,6 @@ impl crate::Inventory {
     pub fn chest() -> Self {
         Self {
             backing: std::sync::Arc::new(InventoryBacking::chest()),
-        }
-    }
-    pub fn crafting_table() -> Self {
-        Self {
-            backing: std::sync::Arc::new(InventoryBacking::crafting_table()),
         }
     }
     pub fn furnace() -> Self {

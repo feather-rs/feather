@@ -1,16 +1,16 @@
 use base::{EntityKind, Position};
 use ecs::{EntityBuilder, EntityRef, SysResult};
-use quill_common::{components::OnGround, entity_init::EntityInit};
+use quill_common::components::OnGround;
 use uuid::Uuid;
 
 use crate::{Client, NetworkId};
 
 /// Component that sends the spawn packet for an entity
 /// using its components.
-pub struct SpawnPacketSender(fn(&EntityRef, &Client) -> SysResult);
+pub struct SpawnPacketSender(fn(&EntityRef, &mut Client) -> SysResult);
 
 impl SpawnPacketSender {
-    pub fn send(&self, entity: &EntityRef, client: &Client) -> SysResult {
+    pub fn send(&self, entity: &EntityRef, client: &mut Client) -> SysResult {
         (self.0)(entity, client)
     }
 }
@@ -26,7 +26,7 @@ pub struct PreviousPosition(pub Position);
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousOnGround(pub OnGround);
 
-pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
+pub fn add_entity_components(builder: &mut EntityBuilder, kind: EntityKind) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
     }
@@ -40,20 +40,20 @@ pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     builder
         .add(PreviousPosition(prev_position))
         .add(PreviousOnGround(on_ground));
-    add_spawn_packet(builder, init);
+    add_spawn_packet(builder, &kind);
 }
 
-fn add_spawn_packet(builder: &mut EntityBuilder, init: &EntityInit) {
+fn add_spawn_packet(builder: &mut EntityBuilder, kind: &EntityKind) {
     // TODO: object entities spawned with Spawn Entity
     // (minecarts, items, ...)
-    let spawn_packet = match init {
-        EntityInit::Player => spawn_player,
+    let spawn_packet = match kind {
+        EntityKind::Player => spawn_player,
         _ => spawn_living_entity,
     };
     builder.add(SpawnPacketSender(spawn_packet));
 }
 
-fn spawn_player(entity: &EntityRef, client: &Client) -> SysResult {
+fn spawn_player(entity: &EntityRef, client: &mut Client) -> SysResult {
     let network_id = *entity.get::<NetworkId>()?;
     let uuid = *entity.get::<Uuid>()?;
     let pos = *entity.get::<Position>()?;
@@ -62,7 +62,7 @@ fn spawn_player(entity: &EntityRef, client: &Client) -> SysResult {
     Ok(())
 }
 
-fn spawn_living_entity(entity: &EntityRef, client: &Client) -> SysResult {
+fn spawn_living_entity(entity: &EntityRef, client: &mut Client) -> SysResult {
     let network_id = *entity.get::<NetworkId>()?;
     let uuid = *entity.get::<Uuid>()?;
     let pos = *entity.get::<Position>()?;

@@ -37,12 +37,12 @@ pub struct ConfigContainer {
     pub was_config_created: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub network: Network,
     pub server: ServerConfig,
     pub log: Log,
-    pub world: World,
+    pub worlds: Worlds,
     pub proxy: Proxy,
 }
 
@@ -76,14 +76,14 @@ impl Config {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Network {
     pub address: IpAddr,
     pub port: u16,
     pub compression_threshold: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
     pub online_mode: bool,
     pub motd: String,
@@ -92,26 +92,27 @@ pub struct ServerConfig {
     pub view_distance: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Log {
     #[serde(deserialize_with = "deserialize_log_level")]
     pub level: log::LevelFilter,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct World {
-    pub name: String,
+#[derive(Debug, Deserialize, Clone)]
+pub struct Worlds {
+    pub worlds: Vec<String>,
+    pub default_world: String,
     pub generator: String,
     pub seed: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Proxy {
     pub proxy_mode: ProxyMode,
     pub velocity_secret: String,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ProxyMode {
     None,

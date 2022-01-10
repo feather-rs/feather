@@ -5,30 +5,41 @@ use base::{
     BlockPosition, ChunkPosition, ValidBlockPosition,
 };
 use itertools::Either;
+use quill_common::components::{EntityDimension, EntityWorld};
 
 /// Event triggered when one or more blocks are changed.
 ///
 /// This event can efficiently store bulk block updates
-/// using a variety of different representations. Cloning
-/// is cheap as it is, at worst, cloning an `Arc`.
+/// using a variety of different representations.
 #[derive(Debug, Clone)]
 pub struct BlockChangeEvent {
     changes: BlockChanges,
+    world: EntityWorld,
+    dimension: EntityDimension,
 }
 
 impl BlockChangeEvent {
     /// Creates an event affecting a single block.
-    pub fn single(pos: ValidBlockPosition) -> Self {
+    pub fn single(pos: ValidBlockPosition, world: EntityWorld, dimension: EntityDimension) -> Self {
         Self {
             changes: BlockChanges::Single { pos },
+            world,
+            dimension: dimension.into(),
         }
     }
 
     /// Creates an event corresponding to a block update
     /// that fills an entire chunk section with the same block.
-    pub fn fill_chunk_section(chunk: ChunkPosition, section: u32) -> Self {
+    pub fn fill_chunk_section(
+        chunk: ChunkPosition,
+        section: u32,
+        world: EntityWorld,
+        dimension: EntityDimension,
+    ) -> Self {
         Self {
             changes: BlockChanges::FillChunkSection { chunk, section },
+            world,
+            dimension,
         }
     }
 
@@ -67,6 +78,14 @@ impl BlockChangeEvent {
             }
         }
     }
+
+    pub fn dimension(&self) -> &EntityDimension {
+        &self.dimension
+    }
+
+    pub fn world(&self) -> EntityWorld {
+        self.world
+    }
 }
 
 fn iter_section_blocks(
@@ -96,15 +115,20 @@ enum BlockChanges {
 
 #[cfg(test)]
 mod tests {
+    use crate::base::chunk::SECTION_VOLUME;
     use ahash::AHashSet;
-    use base::chunk::SECTION_VOLUME;
+    use ecs::Entity;
 
     use super::*;
 
     #[test]
     fn create_single() {
         let pos = BlockPosition::new(5, 64, 9).try_into().unwrap();
-        let event = BlockChangeEvent::single(pos);
+        let event = BlockChangeEvent::single(
+            pos,
+            Entity::new(0),
+            EntityDimension("minecraft:overworld".to_string()),
+        );
         assert_eq!(event.count(), 1);
         assert_eq!(event.iter_changed_blocks().collect::<Vec<_>>(), vec![pos]);
         assert_eq!(
@@ -117,7 +141,12 @@ mod tests {
     fn create_chunk_section_fill() {
         let chunk = ChunkPosition::new(10, 15);
         let section_y = 5;
-        let event = BlockChangeEvent::fill_chunk_section(chunk, section_y);
+        let event = BlockChangeEvent::fill_chunk_section(
+            chunk,
+            section_y,
+            Entity::new(0),
+            EntityDimension("minecraft:overworld".to_string()),
+        );
         assert_eq!(event.count(), SECTION_VOLUME);
         assert_eq!(event.iter_changed_blocks().count(), SECTION_VOLUME);
         assert_eq!(

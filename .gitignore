@@ -6,11 +6,10 @@
 # Cargo build configuration
 .cargo
 
-world/
+/worlds/
+/generated/
+/worldgen/
 /config.toml
-
-# Python cache files (libcraft)
-**/__pycache__/
 
 # macOS desktop files
 **/.DS_STORE

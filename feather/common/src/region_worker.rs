@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::{
     collections::hash_map::Entry,
     path::PathBuf,
@@ -9,6 +10,8 @@ use base::anvil::{
     self,
     region::{RegionHandle, RegionPosition},
 };
+use base::biome::BiomeList;
+use base::world::WorldHeight;
 use flume::{Receiver, Sender};
 
 use crate::chunk::worker::{ChunkLoadResult, LoadRequest, LoadedChunk, SaveRequest, WorkerRequest};
@@ -40,12 +43,16 @@ pub struct RegionWorker {
     world_dir: PathBuf,
     region_files: AHashMap<RegionPosition, OpenRegionFile>,
     last_cache_update: Instant,
+    world_height: WorldHeight,
+    biomes: Arc<BiomeList>,
 }
 
 impl RegionWorker {
     pub fn new(
         world_dir: PathBuf,
         request_receiver: Receiver<WorkerRequest>,
+        world_height: WorldHeight,
+        biomes: Arc<BiomeList>,
     ) -> (Self, Receiver<ChunkLoadResult>) {
         let (result_sender, result_receiver) = flume::bounded(256);
         (
@@ -55,6 +62,8 @@ impl RegionWorker {
                 world_dir,
                 region_files: AHashMap::new(),
                 last_cache_update: Instant::now(),
+                world_height,
+                biomes,
             },
             result_receiver,
         )
@@ -87,10 +96,12 @@ impl RegionWorker {
 
     fn save_chunk(&mut self, req: SaveRequest) -> anyhow::Result<()> {
         let reg_pos = RegionPosition::from_chunk(req.pos);
+        let biomes = Arc::clone(&self.biomes);
         let handle = &mut match self.region_file_handle(reg_pos) {
             Some(h) => h,
             None => {
-                let new_handle = anvil::region::create_region(&self.world_dir, reg_pos)?;
+                let new_handle =
+                    anvil::region::create_region(&self.world_dir, reg_pos, self.world_height)?;
                 self.region_files
                     .insert(reg_pos, OpenRegionFile::new(new_handle));
                 self.region_file_handle(reg_pos).unwrap()
@@ -101,6 +112,7 @@ impl RegionWorker {
             &req.chunk.read(),
             &req.entities[..],
             &req.block_entities[..],
+            &*biomes,
         )?;
         Ok(())
     }
@@ -112,13 +124,14 @@ impl RegionWorker {
 
     fn get_chunk_load_result(&mut self, req: LoadRequest) -> ChunkLoadResult {
         let pos = req.pos;
+        let biomes = Arc::clone(&self.biomes);
         let region = RegionPosition::from_chunk(pos);
         let file = match self.region_file_handle(region) {
             Some(file) => file,
             None => return ChunkLoadResult::Missing(pos),
         };
 
-        let chunk = match file.handle.load_chunk(pos) {
+        let chunk = match file.handle.load_chunk(pos, &*biomes) {
             Ok((chunk, _, _)) => chunk,
             Err(e) => match e {
                 anvil::region::Error::ChunkNotExist => return ChunkLoadResult::Missing(pos),
@@ -135,7 +148,8 @@ impl RegionWorker {
         match self.region_files.entry(region) {
             Entry::Occupied(e) => Some(e.into_mut()),
             Entry::Vacant(e) => {
-                let handle = base::anvil::region::load_region(&self.world_dir, region);
+                let handle =
+                    base::anvil::region::load_region(&self.world_dir, region, self.world_height);
                 if let Ok(handle) = handle {
                     Some(e.insert(OpenRegionFile::new(handle)))
                 } else {

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use blocks::BlockKind;
+use libcraft_blocks::BlockKind;
 
 use crate::Game;
 

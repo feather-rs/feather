@@ -1,106 +1,94 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::{
-    chunk::{BlockStore, LightStore, PackedArray, Palette},
-    Chunk, ChunkPosition, ChunkSection,
-};
-
-use super::{block_entity::BlockEntityData, entity::EntityData};
-use bitvec::{bitvec, vec::BitVec};
-use blocks::BlockId;
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use libcraft_core::Biome;
-use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
-use std::io::{Cursor, SeekFrom};
-use std::ops::Deref;
+use std::io::{SeekFrom, Write};
+use std::iter::FromIterator;
+use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::{fs, io, iter};
+
+use bitvec::{bitvec, vec::BitVec};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use konst::{primitive::parse_i32, unwrap_ctx};
+use serde::{Deserialize, Serialize};
+
+use crate::biome::{BiomeId, BiomeList};
+use crate::chunk::paletted_container::{Paletteable, PalettedContainer};
+use crate::chunk::{
+    Chunk, ChunkSection, Heightmap, HeightmapStore, BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
+};
+use crate::chunk::{LightStore, PackedArray};
+use crate::world::WorldHeight;
+use libcraft_blocks::BlockId;
+use libcraft_core::ChunkPosition;
+
+use super::{block_entity::BlockEntityData, entity::EntityData};
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
 
-/// The data version supported by this code, currently corresponding
-/// to 1.16.5.
-const DATA_VERSION: i32 = 2586;
+/// The data version supported by this code
+const DATA_VERSION: i32 = unwrap_ctx!(parse_i32(include_str!(
+    "../../../../constants/WORLD_SAVE_VERSION"
+)));
 
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
 
-/// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "PascalCase")]
-pub struct ChunkRoot {
-    level: ChunkLevel,
+pub struct DataChunk {
+    #[serde(rename = "DataVersion")]
     data_version: i32,
-}
-
-/// Represents the level data for a chunk.
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "PascalCase")]
-pub struct ChunkLevel {
-    // TODO heightmaps, etc.
     #[serde(rename = "xPos")]
     x_pos: i32,
     #[serde(rename = "zPos")]
     z_pos: i32,
+    #[serde(rename = "yPos")]
+    min_y_section: i32,
+    #[serde(rename = "LastUpdate")]
     last_update: i64,
+    #[serde(rename = "InhabitedTime")]
     inhabited_time: i64,
-    #[serde(default)]
     sections: Vec<LevelSection>,
-    #[serde(serialize_with = "nbt::i32_array")]
-    biomes: Vec<i32>,
     #[serde(default)]
     entities: Vec<EntityData>,
-    #[serde(rename = "TileEntities")]
-    #[serde(default)]
     block_entities: Vec<BlockEntityData>,
-    #[serde(rename = "ToBeTicked")]
-    #[serde(default)]
-    awaiting_block_updates: Vec<Vec<i16>>,
-    #[serde(rename = "LiquidsToBeTicked")]
-    #[serde(default)]
-    awaiting_liquid_updates: Vec<Vec<i16>>,
-    #[serde(default)]
+    #[serde(rename = "PostProcessing")]
     post_processing: Vec<Vec<i16>>,
-    #[serde(rename = "TileTicks")]
-    #[serde(default)]
-    scheduled_block_updates: Vec<ScheduledBlockUpdate>,
-    #[serde(rename = "LiquidTicks")]
-    #[serde(default)]
-    scheduled_liquid_updates: Vec<ScheduledBlockUpdate>,
     #[serde(rename = "Status")]
-    #[serde(default)]
     worldgen_status: Cow<'static, str>,
+    #[serde(rename = "Heightmaps")]
+    heightmaps: HashMap<String, Vec<i64>>,
 }
 
 /// Represents a chunk section in a region file.
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "PascalCase")]
 pub struct LevelSection {
+    #[serde(rename = "Y")]
     y: i8,
-    #[serde(serialize_with = "nbt::i64_array", rename = "BlockStates")]
-    #[serde(default)]
-    states: Vec<i64>,
-    #[serde(default)]
-    palette: Vec<LevelPaletteEntry>,
-    #[serde(serialize_with = "nbt::i8_array")]
-    #[serde(default)]
-    block_light: Vec<i8>,
-    #[serde(serialize_with = "nbt::i8_array")]
-    #[serde(default)]
-    sky_light: Vec<i8>,
+    block_states: PaletteAndData<BlockState>,
+    biomes: PaletteAndData<String>,
+    #[serde(rename = "SkyLight")]
+    sky_light: Option<Vec<i8>>,
+    #[serde(rename = "BlockLight")]
+    block_light: Option<Vec<i8>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct PaletteAndData<T> {
+    palette: Vec<T>,
+    data: Option<Vec<i64>>,
 }
 
 /// Represents a palette entry in a region file.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
-pub struct LevelPaletteEntry {
+pub struct BlockState {
     /// The identifier of the type of this block
     name: Cow<'static, str>,
     /// Optional properties for this block
@@ -147,6 +135,7 @@ pub struct RegionHandle {
     header: RegionHeader,
     /// Sector allocator to allocate sectors where we can store chunks.
     allocator: SectorAllocator,
+    world_height: WorldHeight,
 }
 
 impl RegionHandle {
@@ -160,6 +149,7 @@ impl RegionHandle {
     pub fn load_chunk(
         &mut self,
         mut pos: ChunkPosition,
+        biomes: &BiomeList,
     ) -> Result<(Chunk, Vec<EntityData>, Vec<BlockEntityData>), Error> {
         // Get a copy of the original position before clipping
         let original_pos = pos;
@@ -207,40 +197,84 @@ impl RegionHandle {
         let compression_type = buf[0];
 
         // Parse NBT data
-        let cursor = Cursor::new(&buf[1..]);
-        let mut root: ChunkRoot = match compression_type {
-            1 => nbt::from_gzip_reader(cursor).map_err(Error::Nbt)?,
-            2 => nbt::from_zlib_reader(cursor).map_err(Error::Nbt)?,
+        let bytes = &buf[1..];
+        let mut data_chunk: DataChunk = match compression_type {
+            1 => nbt::from_gzip_reader(bytes).map_err(Error::Nbt)?,
+            2 => nbt::from_zlib_reader(bytes).map_err(Error::Nbt)?,
             _ => return Err(Error::InvalidCompression(compression_type)),
         };
 
         // Check data version
-        if root.data_version != DATA_VERSION {
-            return Err(Error::UnsupportedDataVersion(root.data_version));
+        if data_chunk.data_version != DATA_VERSION {
+            return Err(Error::UnsupportedDataVersion(data_chunk.data_version));
         }
 
-        let level = &mut root.level;
-
-        let mut chunk = Chunk::new(original_pos);
+        let mut chunk = Chunk::new(
+            original_pos,
+            self.world_height.into(),
+            data_chunk.min_y_section,
+        );
+        *chunk.heightmaps_mut() = HeightmapStore {
+            motion_blocking: data_chunk
+                .heightmaps
+                .remove("MOTION_BLOCKING")
+                .map(|h| {
+                    Heightmap::from_u64_vec(
+                        unsafe {
+                            let mut h = ManuallyDrop::new(h);
+                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
+                        },
+                        self.world_height,
+                    )
+                })
+                .ok_or(Error::ChunkNotExist)?,
+            motion_blocking_no_leaves: data_chunk
+                .heightmaps
+                .remove("MOTION_BLOCKING_NO_LEAVES")
+                .map(|h| {
+                    Heightmap::from_u64_vec(
+                        unsafe {
+                            let mut h = ManuallyDrop::new(h);
+                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
+                        },
+                        self.world_height,
+                    )
+                })
+                .ok_or(Error::ChunkNotExist)?,
+            ocean_floor: data_chunk
+                .heightmaps
+                .remove("OCEAN_FLOOR")
+                .map(|h| {
+                    Heightmap::from_u64_vec(
+                        unsafe {
+                            let mut h = ManuallyDrop::new(h);
+                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
+                        },
+                        self.world_height,
+                    )
+                })
+                .ok_or(Error::ChunkNotExist)?,
+            world_surface: data_chunk
+                .heightmaps
+                .remove("WORLD_SURFACE")
+                .map(|h| {
+                    Heightmap::from_u64_vec(
+                        unsafe {
+                            let mut h = ManuallyDrop::new(h);
+                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
+                        },
+                        self.world_height,
+                    )
+                })
+                .ok_or(Error::ChunkNotExist)?,
+        };
 
         // Read sections
-        for section in &mut level.sections {
-            read_section_into_chunk(section, &mut chunk)?;
+        for section in std::mem::take(&mut data_chunk.sections) {
+            read_section_into_chunk(section, &mut chunk, data_chunk.min_y_section, biomes)?;
         }
 
-        // Read biomes
-        if level.biomes.len() != 1024 {
-            return Err(Error::IndexOutOfBounds);
-        }
-        for index in 0..1024 {
-            let id = level.biomes[index];
-            chunk.biomes_mut().as_slice_mut()[index] =
-                Biome::from_id(id as u32).ok_or(Error::InvalidBiomeId(id))?;
-        }
-
-        // chunk.recalculate_heightmap();
-
-        Ok((chunk, level.entities.clone(), level.block_entities.clone()))
+        Ok((chunk, data_chunk.entities, data_chunk.block_entities))
     }
 
     /// Checks if the specified chunk position is generated in this region.
@@ -261,6 +295,7 @@ impl RegionHandle {
         chunk: &Chunk,
         entities: &[EntityData],
         block_entities: &[BlockEntityData],
+        biomes: &BiomeList,
     ) -> Result<(), Error> {
         let chunk_pos = chunk.position();
 
@@ -274,14 +309,14 @@ impl RegionHandle {
             self.allocator.free(location.0);
         }
 
-        // Write chunk to `ChunkRoot` tag.
-        let root = chunk_to_chunk_root(chunk, entities, block_entities);
+        // Write chunk to `ChunkData` tag.
+        let data_chunk = chunk_to_data_chunk(chunk, entities, block_entities, biomes);
 
         // Write to intermediate buffer, because we need to know the length.
         let mut buf = Vec::with_capacity(4096);
         buf.write_u8(2).map_err(Error::Io)?; // Compression type: zlib
 
-        nbt::to_zlib_writer(&mut buf, &root, None).map_err(Error::Nbt)?;
+        nbt::to_zlib_writer(&mut buf, &data_chunk, None).map_err(Error::Nbt)?;
 
         let total_len = buf.len() + 4; // 4 bytes for length header
 
@@ -321,12 +356,15 @@ impl RegionHandle {
     }
 }
 
-fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Result<(), Error> {
-    let data = &section.states;
-
-    // Create palette
-    let mut palette = Palette::new();
-    for entry in &section.palette {
+fn read_section_into_chunk(
+    mut section: LevelSection,
+    chunk: &mut Chunk,
+    min_y_section: i32,
+    biome_list: &BiomeList,
+) -> Result<(), Error> {
+    // Create palettes
+    let mut block_palette = Vec::new();
+    for entry in &section.block_states.palette {
         // Construct properties map
         let mut props = BTreeMap::new();
         if let Some(entry_props) = entry.properties.as_ref() {
@@ -334,28 +372,101 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
                 entry_props
                     .props
                     .iter()
-                    .map(|(k, v)| (k.clone().into_owned(), v.clone().into_owned())),
+                    .map(|(k, v)| (k.clone().to_owned(), v.clone().to_owned())),
             );
         }
 
         // Attempt to get block from the given values
-        let block = BlockId::from_identifier_and_properties(&entry.name, &props)
-            .ok_or_else(|| Error::InvalidBlock(entry.name.deref().to_owned()))?;
-        palette.index_or_insert(block);
+        let block = BlockId::from_identifier_and_properties(
+            entry.name.as_ref(),
+            &props
+                .into_iter()
+                .map(|(key, value)| (key.into_owned(), value.into_owned()))
+                .collect(),
+        )
+        .ok_or_else(|| Error::UnknownBlock(entry.name.to_string()))?;
+
+        block_palette.push(block);
     }
 
-    // Create section
-    // TODO don't clone data - need way around this
-    let data = if data.is_empty() {
-        PackedArray::new(4096, 4)
+    let mut block_palette_iter = block_palette.iter();
+    let mut blocks = if let Some(block) = block_palette_iter.next() {
+        let mut blocks = PalettedContainer::SingleValue(*block);
+        for block in block_palette_iter {
+            blocks.index_or_insert(*block);
+        }
+        blocks
     } else {
-        PackedArray::from_u64_vec(data.iter().map(|x| *x as u64).collect(), 4096)
+        PalettedContainer::new()
     };
+
+    let mut biome_palette = Vec::new();
+    for biome in section.biomes.palette {
+        let biome = biome_list
+            .get_index_of(&biome)
+            .unwrap_or_else(|| panic!("Biome not found: {}", biome))
+            .into();
+        biome_palette.push(biome);
+    }
+
+    let mut biome_palette_iter = biome_palette.iter();
+    let mut biomes = if let Some(biome) = biome_palette_iter.next() {
+        let mut biomes = PalettedContainer::SingleValue(*biome);
+        for biome in biome_palette_iter {
+            biomes.index_or_insert(*biome);
+        }
+        biomes
+    } else {
+        PalettedContainer::new()
+    };
+
+    if let Some(blocks_data) = section
+        .block_states
+        .data
+        .map(|data| PackedArray::from_i64_vec(data, SECTION_VOLUME))
+    {
+        blocks.set_data(
+            if blocks_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
+                // Convert to GlobalPalette
+                let mut data = blocks_data
+                    .resized(PalettedContainer::<BlockId>::global_palette_bits_per_value());
+                PalettedContainer::<BlockId>::map_to_global_palette(
+                    blocks.len(),
+                    &block_palette,
+                    &mut data,
+                );
+                data
+            } else {
+                blocks_data
+            },
+        );
+    }
+    if let Some(biomes_data) = section
+        .biomes
+        .data
+        .map(|data| PackedArray::from_i64_vec(data, BIOMES_PER_CHUNK_SECTION))
+    {
+        biomes.set_data(
+            if biomes_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
+                // Convert to GlobalPalette
+                let mut data = biomes_data
+                    .resized(PalettedContainer::<BiomeId>::global_palette_bits_per_value());
+                PalettedContainer::<BiomeId>::map_to_global_palette(
+                    biomes.len(),
+                    &biome_palette,
+                    &mut data,
+                );
+                data
+            } else {
+                biomes_data
+            },
+        );
+    }
 
     // Light
     // convert raw lighting data (4bits / block) into a BitArray
-    let convert_light_data = |light_data: &Vec<i8>| {
-        let data = light_data
+    fn convert_light_data(light_data: &[i8]) -> PackedArray {
+        let data: Vec<u64> = light_data
             .chunks(8)
             .map(|chunk| {
                 // not sure if there's a better (safe) way of doing this..
@@ -372,110 +483,181 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
                 u64::from_le_bytes(chunk)
             })
             .collect();
-        PackedArray::from_u64_vec(data, 4096)
-    };
 
-    if section.sky_light.is_empty() {
-        section.sky_light = vec![0; 2048];
-    }
-    if section.block_light.is_empty() {
-        section.block_light = vec![0; 2048];
+        PackedArray::from_u64_vec(data, SECTION_VOLUME)
     }
 
-    if section.block_light.len() != 2048 || section.sky_light.len() != 2048 {
+    if section.sky_light.is_some() && section.sky_light.as_ref().unwrap().is_empty() {
+        section.sky_light = Some(vec![0; 2048]);
+    }
+    if section.block_light.is_some() && section.block_light.as_ref().unwrap().is_empty() {
+        section.block_light = Some(vec![0; 2048]);
+    }
+
+    if section.sky_light.is_some() && section.sky_light.as_ref().unwrap().len() != 2048
+        || section.block_light.is_some() && section.block_light.as_ref().unwrap().len() != 2048
+    {
         return Err(Error::IndexOutOfBounds);
     }
 
-    let block_light = convert_light_data(&section.block_light);
-    let sky_light = convert_light_data(&section.sky_light);
+    let sky_light = section
+        .sky_light
+        .as_ref()
+        .map(|light| convert_light_data(light));
+    let block_light = section
+        .block_light
+        .as_ref()
+        .map(|light| convert_light_data(light));
 
     let light =
-        LightStore::from_packed_arrays(block_light, sky_light).ok_or(Error::IndexOutOfBounds)?;
-    let blocks = BlockStore::from_raw_parts(Some(palette), data);
+        LightStore::from_packed_arrays(sky_light, block_light).ok_or(Error::IndexOutOfBounds)?;
 
-    let chunk_section = ChunkSection::new(blocks, light);
+    let air_blocks = ChunkSection::count_air_blocks(&blocks);
+    let chunk_section = ChunkSection::new(blocks, biomes, air_blocks, light);
 
-    chunk.set_section_at(section.y as isize, Some(chunk_section));
+    chunk.set_section_at(section.y as isize - min_y_section as isize, chunk_section);
 
     Ok(())
 }
 
-fn chunk_to_chunk_root(
+fn chunk_to_data_chunk(
     chunk: &Chunk,
     entities: &[EntityData],
     block_entities: &[BlockEntityData],
-) -> ChunkRoot {
-    ChunkRoot {
-        level: ChunkLevel {
-            x_pos: chunk.position().x,
-            z_pos: chunk.position().z,
-            last_update: 0,    // TODO
-            inhabited_time: 0, // TODO
-            block_entities: block_entities.into(),
-            sections: chunk
-                .sections()
-                .iter()
-                .enumerate()
-                .filter_map(|(y, sec)| sec.as_ref().map(|sec| (y, sec.clone())))
-                .map(|(y, mut section)| {
-                    let palette = convert_palette(&mut section);
-                    LevelSection {
-                        y: (y as i8) - 1,
-                        states: section
-                            .blocks()
-                            .data()
-                            .as_u64_slice()
-                            .iter()
-                            .map(|x| *x as i64)
-                            .collect(),
-                        palette,
-                        block_light: slice_u64_to_i8(section.light().block_light().as_u64_slice())
-                            .to_vec(),
-                        sky_light: slice_u64_to_i8(section.light().sky_light().as_u64_slice())
-                            .to_vec(),
-                    }
-                })
-                .collect(),
-            biomes: chunk
-                .biomes()
-                .as_slice()
-                .iter()
-                .map(|biome| biome.id() as i32)
-                .collect(),
-            entities: entities.into(),
-            awaiting_block_updates: vec![vec![]; 16], // TODO
-            awaiting_liquid_updates: vec![vec![]; 16], // TODO
-            scheduled_block_updates: vec![],          // TODO
-            scheduled_liquid_updates: vec![],
-            post_processing: vec![vec![]; 16],
-            worldgen_status: "postprocessed".into(),
-        },
+    biome_list: &BiomeList,
+) -> DataChunk {
+    DataChunk {
         data_version: DATA_VERSION,
+        x_pos: chunk.position().x,
+        z_pos: chunk.position().z,
+        min_y_section: chunk.min_y_section(),
+        last_update: 0,    // TODO
+        inhabited_time: 0, // TODO
+        block_entities: block_entities.into(),
+        sections: chunk
+            .sections()
+            .iter()
+            .enumerate()
+            .map(|(y, section)| {
+                LevelSection {
+                    y: (y as i8) - 1,
+                    block_states: match section.blocks() {
+                        PalettedContainer::SingleValue(block) => PaletteAndData {
+                            palette: vec![block_id_to_block_state(block)],
+                            data: None,
+                        },
+                        PalettedContainer::MultipleValues { data, palette } => PaletteAndData {
+                            palette: palette.iter().map(block_id_to_block_state).collect(),
+                            data: Some(bytemuck::cast_slice(data.as_u64_slice()).to_vec()),
+                        },
+                        PalettedContainer::GlobalPalette { data } => {
+                            // Convert to MultipleValues palette
+                            let mut data = data.clone();
+                            let mut palette = Vec::new();
+                            data.iter().for_each(|value| {
+                                let block = BlockId::from_default_palette(value as u32).unwrap();
+                                if !palette.contains(&block) {
+                                    palette.push(block);
+                                }
+                            });
+                            PalettedContainer::<BlockId>::map_from_global_palette(
+                                section.blocks().len(),
+                                &palette,
+                                &mut data,
+                            );
+                            let data = data.resized(
+                                PalettedContainer::<BlockId>::palette_bits_per_value(palette.len()),
+                            );
+                            PaletteAndData {
+                                palette: palette.iter().map(block_id_to_block_state).collect(),
+                                data: Some(bytemuck::cast_slice(data.as_u64_slice()).to_vec()),
+                            }
+                        }
+                    },
+                    biomes: match section.biomes() {
+                        PalettedContainer::SingleValue(biome) => PaletteAndData {
+                            palette: vec![biome_list.get_by_id(biome).unwrap().0.into()],
+                            data: None,
+                        },
+                        PalettedContainer::MultipleValues { data, palette } => PaletteAndData {
+                            palette: palette
+                                .iter()
+                                .map(|biome| biome_list.get_by_id(biome).unwrap().0.into())
+                                .collect(),
+                            data: Some(bytemuck::cast_slice(data.as_u64_slice()).to_vec()),
+                        },
+                        PalettedContainer::GlobalPalette { data } => {
+                            // Convert to MultipleValues palette
+                            let mut data = data.clone();
+                            let mut palette = Vec::new();
+                            data.iter().for_each(|value| {
+                                let block = BiomeId::from_default_palette(value as u32).unwrap();
+                                if !palette.contains(&block) {
+                                    palette.push(block);
+                                }
+                            });
+                            PalettedContainer::<BiomeId>::map_from_global_palette(
+                                section.biomes().len(),
+                                &palette,
+                                &mut data,
+                            );
+                            let data = data.resized(
+                                PalettedContainer::<BiomeId>::palette_bits_per_value(palette.len()),
+                            );
+                            PaletteAndData {
+                                palette: palette
+                                    .iter()
+                                    .map(|biome| biome_list.get_by_id(biome).unwrap().0.into())
+                                    .collect(),
+                                data: Some(bytemuck::cast_slice(data.as_u64_slice()).to_vec()),
+                            }
+                        }
+                    },
+                    sky_light: section
+                        .light()
+                        .sky_light()
+                        .map(|light| slice_u64_to_i8(light.as_u64_slice()).to_vec()),
+                    block_light: section
+                        .light()
+                        .block_light()
+                        .map(|light| slice_u64_to_i8(light.as_u64_slice()).to_vec()),
+                }
+            })
+            .collect(),
+        entities: entities.into(),
+        post_processing: vec![vec![]; 16],
+        worldgen_status: "postprocessed".into(),
+        heightmaps: HashMap::from_iter([
+            (
+                String::from("MOTION_BLOCKING"),
+                bytemuck::cast_slice(chunk.heightmaps().motion_blocking.as_u64_slice())
+                    .iter()
+                    .copied()
+                    .collect(),
+            ),
+            (
+                String::from("MOTION_BLOCKING_NO_LEAVES"),
+                bytemuck::cast_slice(chunk.heightmaps().motion_blocking_no_leaves.as_u64_slice())
+                    .iter()
+                    .copied()
+                    .collect(),
+            ),
+            (
+                String::from("WORLD_SURFACE"),
+                bytemuck::cast_slice(chunk.heightmaps().world_surface.as_u64_slice())
+                    .iter()
+                    .copied()
+                    .collect(),
+            ),
+            (
+                String::from("OCEAN_FLOOR"),
+                bytemuck::cast_slice(chunk.heightmaps().ocean_floor.as_u64_slice())
+                    .iter()
+                    .copied()
+                    .collect(),
+            ),
+        ]),
     }
-}
-
-fn convert_palette(section: &mut ChunkSection) -> Vec<LevelPaletteEntry> {
-    raw_palette_to_palette_entries(section.blocks().palette().unwrap().as_slice())
-}
-
-fn raw_palette_to_palette_entries(palette: &[BlockId]) -> Vec<LevelPaletteEntry> {
-    palette
-        .iter()
-        .map(|block| {
-            let props = block.to_properties_map();
-            let identifier = block.identifier();
-
-            LevelPaletteEntry {
-                name: identifier.into(),
-                properties: Some(LevelProperties {
-                    props: props
-                        .into_iter()
-                        .map(|(k, v)| (Cow::from(k), Cow::from(v)))
-                        .collect(),
-                }),
-            }
-        })
-        .collect()
 }
 
 fn slice_u64_to_i8(input: &[u64]) -> &[i8] {
@@ -598,7 +780,7 @@ pub enum Error {
     /// An IO error occurred
     Io(io::Error),
     /// There was an invalid block in the chunk
-    InvalidBlock(String),
+    UnknownBlock(String),
     /// The chunk does not exist
     ChunkNotExist,
     /// The chunk uses an unsupported data version
@@ -625,7 +807,7 @@ impl Display for Error {
             Error::InvalidCompression(id) => {
                 f.write_str(&format!("Chunk uses invalid compression type {}", id))?
             }
-            Error::InvalidBlock(name) => f.write_str(&format!("Chunk contains invalid block {}", name))?,
+            Error::UnknownBlock(name) => f.write_str(&format!("Chunk contains invalid block {}", name))?,
             Error::ChunkNotExist => f.write_str("The chunk does not exist")?,
             Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.16.5 region files.")?,
             Error::InvalidBlockType => f.write_str("Chunk contains invalid block type")?,
@@ -650,7 +832,11 @@ impl std::error::Error for Error {}
 /// This function does not actually load all the chunks
 /// in the region into memory; it only reads the file's
 /// header so that chunks can be retrieved later.
-pub fn load_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Error> {
+pub fn load_region(
+    dir: &Path,
+    pos: RegionPosition,
+    world_height: WorldHeight,
+) -> Result<RegionHandle, Error> {
     let mut file = {
         let buf = region_file_path(dir, pos);
 
@@ -671,6 +857,7 @@ pub fn load_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Erro
         file,
         header,
         allocator,
+        world_height,
     })
 }
 
@@ -685,7 +872,11 @@ pub fn load_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Erro
 /// If the region file already exist, it will be __overwritten__.
 /// Care must be taken to ensure that this function is only called
 /// for nonexistent regions.
-pub fn create_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Error> {
+pub fn create_region(
+    dir: &Path,
+    pos: RegionPosition,
+    world_height: WorldHeight,
+) -> Result<RegionHandle, Error> {
     create_region_dir(dir).map_err(Error::Io)?;
     let mut file = {
         let buf = region_file_path(dir, pos);
@@ -702,6 +893,7 @@ pub fn create_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Er
         file,
         header,
         allocator,
+        world_height,
     })
 }
 
@@ -863,6 +1055,25 @@ impl RegionPosition {
             x: chunk_coords.x >> 5,
             z: chunk_coords.z >> 5,
         }
+    }
+}
+
+fn block_id_to_block_state(block: &BlockId) -> BlockState {
+    BlockState {
+        name: block.identifier().into(),
+        properties: {
+            let props = block.to_properties_map();
+            if props.is_empty() {
+                None
+            } else {
+                Some(LevelProperties {
+                    props: props
+                        .into_iter()
+                        .map(|(key, value)| (key.into(), value.into()))
+                        .collect(),
+                })
+            }
+        },
     }
 }
 

@@ -1,216 +1,567 @@
-pub mod area_effect_cloud;
-pub use area_effect_cloud::AreaEffectCloud;
-pub mod armor_stand;
-pub use armor_stand::ArmorStand;
-pub mod arrow;
-pub use arrow::Arrow;
-pub mod bat;
-pub use bat::Bat;
-pub mod bee;
-pub use bee::Bee;
-pub mod blaze;
-pub use blaze::Blaze;
-pub mod boat;
-pub use boat::Boat;
-pub mod cat;
-pub use cat::Cat;
-pub mod cave_spider;
-pub use cave_spider::CaveSpider;
-pub mod chicken;
-pub use chicken::Chicken;
-pub mod cod;
-pub use cod::Cod;
-pub mod cow;
-pub use cow::Cow;
-pub mod creeper;
-pub use creeper::Creeper;
-pub mod dolphin;
-pub use dolphin::Dolphin;
-pub mod donkey;
-pub use donkey::Donkey;
-pub mod dragon_fireball;
-pub use dragon_fireball::DragonFireball;
-pub mod drowned;
-pub use drowned::Drowned;
-pub mod elder_guardian;
-pub use elder_guardian::ElderGuardian;
-pub mod end_crystal;
-pub use end_crystal::EndCrystal;
-pub mod ender_dragon;
-pub use ender_dragon::EnderDragon;
-pub mod enderman;
-pub use enderman::Enderman;
-pub mod endermite;
-pub use endermite::Endermite;
-pub mod evoker;
-pub use evoker::Evoker;
-pub mod evoker_fangs;
-pub use evoker_fangs::EvokerFangs;
-pub mod experience_orb;
-pub use experience_orb::ExperienceOrb;
-pub mod eye_of_ender;
-pub use eye_of_ender::EyeOfEnder;
-pub mod falling_block;
-pub use falling_block::FallingBlock;
-pub mod firework_rocket;
-pub use firework_rocket::FireworkRocket;
-pub mod fox;
-pub use fox::Fox;
-pub mod ghast;
-pub use ghast::Ghast;
-pub mod giant;
-pub use giant::Giant;
-pub mod guardian;
-pub use guardian::Guardian;
-pub mod hoglin;
-pub use hoglin::Hoglin;
-pub mod horse;
-pub use horse::Horse;
-pub mod husk;
-pub use husk::Husk;
-pub mod illusioner;
-pub use illusioner::Illusioner;
-pub mod iron_golem;
-pub use iron_golem::IronGolem;
-pub mod item;
-pub use item::Item;
-pub mod item_frame;
-pub use item_frame::ItemFrame;
-pub mod fireball;
-pub use fireball::Fireball;
-pub mod leash_knot;
-pub use leash_knot::LeashKnot;
-pub mod lightning_bolt;
-pub use lightning_bolt::LightningBolt;
-pub mod llama;
-pub use llama::Llama;
-pub mod llama_spit;
-pub use llama_spit::LlamaSpit;
-pub mod magma_cube;
-pub use magma_cube::MagmaCube;
-pub mod minecart;
-pub use minecart::Minecart;
-pub mod chest_minecart;
-pub use chest_minecart::ChestMinecart;
-pub mod command_block_minecart;
-pub use command_block_minecart::CommandBlockMinecart;
-pub mod furnace_minecart;
-pub use furnace_minecart::FurnaceMinecart;
-pub mod hopper_minecart;
-pub use hopper_minecart::HopperMinecart;
-pub mod spawner_minecart;
-pub use spawner_minecart::SpawnerMinecart;
-pub mod tnt_minecart;
-pub use tnt_minecart::TntMinecart;
-pub mod mule;
-pub use mule::Mule;
-pub mod mooshroom;
-pub use mooshroom::Mooshroom;
-pub mod ocelot;
-pub use ocelot::Ocelot;
-pub mod painting;
-pub use painting::Painting;
-pub mod panda;
-pub use panda::Panda;
-pub mod parrot;
-pub use parrot::Parrot;
-pub mod phantom;
-pub use phantom::Phantom;
-pub mod pig;
-pub use pig::Pig;
-pub mod piglin;
-pub use piglin::Piglin;
-pub mod piglin_brute;
-pub use piglin_brute::PiglinBrute;
-pub mod pillager;
-pub use pillager::Pillager;
-pub mod polar_bear;
-pub use polar_bear::PolarBear;
-pub mod tnt;
-pub use tnt::Tnt;
-pub mod pufferfish;
-pub use pufferfish::Pufferfish;
-pub mod rabbit;
-pub use rabbit::Rabbit;
-pub mod ravager;
-pub use ravager::Ravager;
-pub mod salmon;
-pub use salmon::Salmon;
-pub mod sheep;
-pub use sheep::Sheep;
-pub mod shulker;
-pub use shulker::Shulker;
-pub mod shulker_bullet;
-pub use shulker_bullet::ShulkerBullet;
-pub mod silverfish;
-pub use silverfish::Silverfish;
-pub mod skeleton;
-pub use skeleton::Skeleton;
-pub mod skeleton_horse;
-pub use skeleton_horse::SkeletonHorse;
-pub mod slime;
-pub use slime::Slime;
-pub mod small_fireball;
-pub use small_fireball::SmallFireball;
-pub mod snow_golem;
-pub use snow_golem::SnowGolem;
-pub mod snowball;
-pub use snowball::Snowball;
-pub mod spectral_arrow;
-pub use spectral_arrow::SpectralArrow;
-pub mod spider;
-pub use spider::Spider;
-pub mod squid;
-pub use squid::Squid;
-pub mod stray;
-pub use stray::Stray;
-pub mod strider;
-pub use strider::Strider;
-pub mod egg;
-pub use egg::Egg;
-pub mod ender_pearl;
-pub use ender_pearl::EnderPearl;
-pub mod experience_bottle;
-pub use experience_bottle::ExperienceBottle;
-pub mod potion;
-pub use potion::Potion;
-pub mod trident;
-pub use trident::Trident;
-pub mod trader_llama;
-pub use trader_llama::TraderLlama;
-pub mod tropical_fish;
-pub use tropical_fish::TropicalFish;
-pub mod turtle;
-pub use turtle::Turtle;
-pub mod vex;
-pub use vex::Vex;
-pub mod villager;
-pub use villager::Villager;
-pub mod vindicator;
-pub use vindicator::Vindicator;
-pub mod wandering_trader;
-pub use wandering_trader::WanderingTrader;
-pub mod witch;
-pub use witch::Witch;
-pub mod wither;
-pub use wither::Wither;
-pub mod wither_skeleton;
-pub use wither_skeleton::WitherSkeleton;
-pub mod wither_skull;
-pub use wither_skull::WitherSkull;
-pub mod wolf;
-pub use wolf::Wolf;
-pub mod zoglin;
-pub use zoglin::Zoglin;
-pub mod zombie;
-pub use zombie::Zombie;
-pub mod zombie_horse;
-pub use zombie_horse::ZombieHorse;
-pub mod zombie_villager;
-pub use zombie_villager::ZombieVillager;
-pub mod zombified_piglin;
-pub use zombified_piglin::ZombifiedPiglin;
-pub mod player;
-pub use player::Player;
-pub mod fishing_bobber;
-pub use fishing_bobber::FishingBobber;
+// This file is @generated. Please do not edit.
+use bytemuck::{Pod, Zeroable};
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for area_effect_cloud entities."]
+pub struct AreaEffectCloud;
+pod_component_impl!(AreaEffectCloud);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for armor_stand entities."]
+pub struct ArmorStand;
+pod_component_impl!(ArmorStand);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for arrow entities."]
+pub struct Arrow;
+pod_component_impl!(Arrow);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for axolotl entities."]
+pub struct Axolotl;
+pod_component_impl!(Axolotl);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for bat entities."]
+pub struct Bat;
+pod_component_impl!(Bat);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for bee entities."]
+pub struct Bee;
+pod_component_impl!(Bee);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for blaze entities."]
+pub struct Blaze;
+pod_component_impl!(Blaze);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for boat entities."]
+pub struct Boat;
+pod_component_impl!(Boat);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for cat entities."]
+pub struct Cat;
+pod_component_impl!(Cat);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for cave_spider entities."]
+pub struct CaveSpider;
+pod_component_impl!(CaveSpider);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for chicken entities."]
+pub struct Chicken;
+pod_component_impl!(Chicken);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for cod entities."]
+pub struct Cod;
+pod_component_impl!(Cod);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for cow entities."]
+pub struct Cow;
+pod_component_impl!(Cow);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for creeper entities."]
+pub struct Creeper;
+pod_component_impl!(Creeper);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for dolphin entities."]
+pub struct Dolphin;
+pod_component_impl!(Dolphin);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for donkey entities."]
+pub struct Donkey;
+pod_component_impl!(Donkey);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for dragon_fireball entities."]
+pub struct DragonFireball;
+pod_component_impl!(DragonFireball);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for drowned entities."]
+pub struct Drowned;
+pod_component_impl!(Drowned);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for elder_guardian entities."]
+pub struct ElderGuardian;
+pod_component_impl!(ElderGuardian);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for end_crystal entities."]
+pub struct EndCrystal;
+pod_component_impl!(EndCrystal);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for ender_dragon entities."]
+pub struct EnderDragon;
+pod_component_impl!(EnderDragon);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for enderman entities."]
+pub struct Enderman;
+pod_component_impl!(Enderman);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for endermite entities."]
+pub struct Endermite;
+pod_component_impl!(Endermite);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for evoker entities."]
+pub struct Evoker;
+pod_component_impl!(Evoker);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for evoker_fangs entities."]
+pub struct EvokerFangs;
+pod_component_impl!(EvokerFangs);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for experience_orb entities."]
+pub struct ExperienceOrb;
+pod_component_impl!(ExperienceOrb);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for eye_of_ender entities."]
+pub struct EyeOfEnder;
+pod_component_impl!(EyeOfEnder);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for falling_block entities."]
+pub struct FallingBlock;
+pod_component_impl!(FallingBlock);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for firework_rocket entities."]
+pub struct FireworkRocket;
+pod_component_impl!(FireworkRocket);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for fox entities."]
+pub struct Fox;
+pod_component_impl!(Fox);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for ghast entities."]
+pub struct Ghast;
+pod_component_impl!(Ghast);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for giant entities."]
+pub struct Giant;
+pod_component_impl!(Giant);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for glow_item_frame entities."]
+pub struct GlowItemFrame;
+pod_component_impl!(GlowItemFrame);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for glow_squid entities."]
+pub struct GlowSquid;
+pod_component_impl!(GlowSquid);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for goat entities."]
+pub struct Goat;
+pod_component_impl!(Goat);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for guardian entities."]
+pub struct Guardian;
+pod_component_impl!(Guardian);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for hoglin entities."]
+pub struct Hoglin;
+pod_component_impl!(Hoglin);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for horse entities."]
+pub struct Horse;
+pod_component_impl!(Horse);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for husk entities."]
+pub struct Husk;
+pod_component_impl!(Husk);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for illusioner entities."]
+pub struct Illusioner;
+pod_component_impl!(Illusioner);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for iron_golem entities."]
+pub struct IronGolem;
+pod_component_impl!(IronGolem);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for item entities."]
+pub struct Item;
+pod_component_impl!(Item);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for item_frame entities."]
+pub struct ItemFrame;
+pod_component_impl!(ItemFrame);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for fireball entities."]
+pub struct Fireball;
+pod_component_impl!(Fireball);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for leash_knot entities."]
+pub struct LeashKnot;
+pod_component_impl!(LeashKnot);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for lightning_bolt entities."]
+pub struct LightningBolt;
+pod_component_impl!(LightningBolt);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for llama entities."]
+pub struct Llama;
+pod_component_impl!(Llama);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for llama_spit entities."]
+pub struct LlamaSpit;
+pod_component_impl!(LlamaSpit);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for magma_cube entities."]
+pub struct MagmaCube;
+pod_component_impl!(MagmaCube);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for marker entities."]
+pub struct Marker;
+pod_component_impl!(Marker);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for minecart entities."]
+pub struct Minecart;
+pod_component_impl!(Minecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for chest_minecart entities."]
+pub struct ChestMinecart;
+pod_component_impl!(ChestMinecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for command_block_minecart entities."]
+pub struct CommandBlockMinecart;
+pod_component_impl!(CommandBlockMinecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for furnace_minecart entities."]
+pub struct FurnaceMinecart;
+pod_component_impl!(FurnaceMinecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for hopper_minecart entities."]
+pub struct HopperMinecart;
+pod_component_impl!(HopperMinecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for spawner_minecart entities."]
+pub struct SpawnerMinecart;
+pod_component_impl!(SpawnerMinecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for tnt_minecart entities."]
+pub struct TntMinecart;
+pod_component_impl!(TntMinecart);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for mule entities."]
+pub struct Mule;
+pod_component_impl!(Mule);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for mooshroom entities."]
+pub struct Mooshroom;
+pod_component_impl!(Mooshroom);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for ocelot entities."]
+pub struct Ocelot;
+pod_component_impl!(Ocelot);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for painting entities."]
+pub struct Painting;
+pod_component_impl!(Painting);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for panda entities."]
+pub struct Panda;
+pod_component_impl!(Panda);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for parrot entities."]
+pub struct Parrot;
+pod_component_impl!(Parrot);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for phantom entities."]
+pub struct Phantom;
+pod_component_impl!(Phantom);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for pig entities."]
+pub struct Pig;
+pod_component_impl!(Pig);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for piglin entities."]
+pub struct Piglin;
+pod_component_impl!(Piglin);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for piglin_brute entities."]
+pub struct PiglinBrute;
+pod_component_impl!(PiglinBrute);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for pillager entities."]
+pub struct Pillager;
+pod_component_impl!(Pillager);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for polar_bear entities."]
+pub struct PolarBear;
+pod_component_impl!(PolarBear);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for tnt entities."]
+pub struct Tnt;
+pod_component_impl!(Tnt);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for pufferfish entities."]
+pub struct Pufferfish;
+pod_component_impl!(Pufferfish);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for rabbit entities."]
+pub struct Rabbit;
+pod_component_impl!(Rabbit);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for ravager entities."]
+pub struct Ravager;
+pod_component_impl!(Ravager);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for salmon entities."]
+pub struct Salmon;
+pod_component_impl!(Salmon);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for sheep entities."]
+pub struct Sheep;
+pod_component_impl!(Sheep);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for shulker entities."]
+pub struct Shulker;
+pod_component_impl!(Shulker);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for shulker_bullet entities."]
+pub struct ShulkerBullet;
+pod_component_impl!(ShulkerBullet);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for silverfish entities."]
+pub struct Silverfish;
+pod_component_impl!(Silverfish);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for skeleton entities."]
+pub struct Skeleton;
+pod_component_impl!(Skeleton);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for skeleton_horse entities."]
+pub struct SkeletonHorse;
+pod_component_impl!(SkeletonHorse);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for slime entities."]
+pub struct Slime;
+pod_component_impl!(Slime);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for small_fireball entities."]
+pub struct SmallFireball;
+pod_component_impl!(SmallFireball);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for snow_golem entities."]
+pub struct SnowGolem;
+pod_component_impl!(SnowGolem);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for snowball entities."]
+pub struct Snowball;
+pod_component_impl!(Snowball);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for spectral_arrow entities."]
+pub struct SpectralArrow;
+pod_component_impl!(SpectralArrow);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for spider entities."]
+pub struct Spider;
+pod_component_impl!(Spider);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for squid entities."]
+pub struct Squid;
+pod_component_impl!(Squid);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for stray entities."]
+pub struct Stray;
+pod_component_impl!(Stray);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for strider entities."]
+pub struct Strider;
+pod_component_impl!(Strider);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for egg entities."]
+pub struct Egg;
+pod_component_impl!(Egg);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for ender_pearl entities."]
+pub struct EnderPearl;
+pod_component_impl!(EnderPearl);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for experience_bottle entities."]
+pub struct ExperienceBottle;
+pod_component_impl!(ExperienceBottle);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for potion entities."]
+pub struct Potion;
+pod_component_impl!(Potion);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for trident entities."]
+pub struct Trident;
+pod_component_impl!(Trident);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for trader_llama entities."]
+pub struct TraderLlama;
+pod_component_impl!(TraderLlama);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for tropical_fish entities."]
+pub struct TropicalFish;
+pod_component_impl!(TropicalFish);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for turtle entities."]
+pub struct Turtle;
+pod_component_impl!(Turtle);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for vex entities."]
+pub struct Vex;
+pod_component_impl!(Vex);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for villager entities."]
+pub struct Villager;
+pod_component_impl!(Villager);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for vindicator entities."]
+pub struct Vindicator;
+pod_component_impl!(Vindicator);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for wandering_trader entities."]
+pub struct WanderingTrader;
+pod_component_impl!(WanderingTrader);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for witch entities."]
+pub struct Witch;
+pod_component_impl!(Witch);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for wither entities."]
+pub struct Wither;
+pod_component_impl!(Wither);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for wither_skeleton entities."]
+pub struct WitherSkeleton;
+pod_component_impl!(WitherSkeleton);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for wither_skull entities."]
+pub struct WitherSkull;
+pod_component_impl!(WitherSkull);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for wolf entities."]
+pub struct Wolf;
+pod_component_impl!(Wolf);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for zoglin entities."]
+pub struct Zoglin;
+pod_component_impl!(Zoglin);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for zombie entities."]
+pub struct Zombie;
+pod_component_impl!(Zombie);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for zombie_horse entities."]
+pub struct ZombieHorse;
+pod_component_impl!(ZombieHorse);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for zombie_villager entities."]
+pub struct ZombieVillager;
+pod_component_impl!(ZombieVillager);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for zombified_piglin entities."]
+pub struct ZombifiedPiglin;
+pod_component_impl!(ZombifiedPiglin);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for player entities."]
+pub struct Player;
+pod_component_impl!(Player);
+#[derive(Debug, Copy, Clone, Zeroable, Pod)]
+#[repr(C)]
+#[doc = "A marker component for fishing_bobber entities."]
+pub struct FishingBobber;
+pod_component_impl!(FishingBobber);

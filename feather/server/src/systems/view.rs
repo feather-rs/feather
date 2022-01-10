@@ -5,11 +5,13 @@
 
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};
+use common::world::Dimensions;
 use common::{
     events::{ChunkLoadEvent, ViewUpdateEvent},
     Game,
 };
 use ecs::{Entity, SysResult, SystemExecutor};
+use quill_common::components::{EntityDimension, EntityWorld};
 
 use crate::{Client, ClientId, Server};
 
@@ -43,7 +45,7 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
         // As ecs removes the client one tick after it gets removed here, it can
         // happen that a client is still listed in the ecs but actually removed here so
         // we need to check if the client is actually still there.
-        if let Some(client) = server.clients.get(client_id) {
+        if let Some(client) = server.clients.get_mut(client_id) {
             client.update_own_chunk(event.new_view.center());
             update_chunks(
                 game,
@@ -61,14 +63,24 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
 fn update_chunks(
     game: &Game,
     player: Entity,
-    client: &Client,
+    client: &mut Client,
     event: &ViewUpdateEvent,
     position: Position,
     waiting_chunks: &mut WaitingChunks,
 ) -> SysResult {
     // Send chunks that are in the new view but not the old view.
     for &pos in &event.new_chunks {
-        if let Some(chunk) = game.world.chunk_map().chunk_handle_at(pos) {
+        let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
+        let (_, (world, dimension)) = query.iter().find(|(e, _)| *e == player).unwrap();
+        let mut query = game.ecs.query::<&Dimensions>();
+        let dimension = query
+            .iter()
+            .find(|(e, _)| *e == **world)
+            .unwrap()
+            .1
+            .get(&**dimension)
+            .unwrap();
+        if let Some(chunk) = dimension.chunk_map().chunk_handle_at(pos) {
             client.send_chunk(&chunk);
         } else {
             waiting_chunks.insert(player, pos);
@@ -94,7 +106,7 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
             .drain_players_waiting_for(event.position)
         {
             if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
-                if let Some(client) = server.clients.get(*client_id) {
+                if let Some(client) = server.clients.get_mut(*client_id) {
                     client.send_chunk(&event.chunk);
                     spawn_client_if_needed(client, *game.ecs.get::<Position>(player)?);
                 }
@@ -104,9 +116,9 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-fn spawn_client_if_needed(client: &Client, pos: Position) {
-    if !client.knows_own_position() && client.known_chunks() >= 9 * 9 {
-        log::debug!("Sent all chunks to {}; now spawning", client.username());
+fn spawn_client_if_needed(client: &mut Client, pos: Position) {
+    if !client.knows_own_position() && client.known_chunks().contains(&pos.chunk()) {
+        log::debug!("Spawning {}", client.username());
         client.update_own_position(pos);
     }
 }

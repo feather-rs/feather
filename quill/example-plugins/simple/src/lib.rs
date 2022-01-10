@@ -1,7 +1,7 @@
 use quill::{
     components::{CustomName, Name},
     entities::Cow,
-    EntityInit, Game, Gamemode, Plugin, Position, Setup, Uuid,
+    EntityKind, Game, Gamemode, Plugin, Position, Setup, Uuid,
 };
 use rand::Rng;
 
@@ -47,14 +47,14 @@ fn test_system(plugin: &mut SimplePlugin, game: &mut Game) {
     plugin.tick_counter += 1;
 }
 
-fn random_mob() -> EntityInit {
+fn random_mob() -> EntityKind {
     let mut entities = vec![
-        EntityInit::Zombie,
-        EntityInit::Piglin,
-        EntityInit::Zoglin,
-        EntityInit::Skeleton,
-        EntityInit::Enderman,
-        EntityInit::Cow,
+        EntityKind::Zombie,
+        EntityKind::Piglin,
+        EntityKind::Zoglin,
+        EntityKind::Skeleton,
+        EntityKind::Enderman,
+        EntityKind::Cow,
     ];
     let index = rand::thread_rng().gen_range(0..entities.len());
     entities.remove(index)

@@ -12,7 +12,7 @@ fn send_particle_packets(game: &mut Game, server: &mut Server) -> SysResult {
 
     for (entity, (&particle, &position)) in game.ecs.query::<(&Particle, &Position)>().iter() {
         server.broadcast_nearby_with(position, |client| {
-            client.send_particle(&particle, &position);
+            client.send_particle(&particle, false, &position);
         });
 
         entities.push(entity);

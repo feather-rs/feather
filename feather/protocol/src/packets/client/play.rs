@@ -1,7 +1,10 @@
-use base::ValidBlockPosition;
-
-use super::*;
+use crate::io::LengthInferredVecU8;
+use crate::io::VarIntPrefixedVec;
 use crate::packets::server::Hand;
+use crate::Slot;
+use crate::VarInt;
+use base::ValidBlockPosition;
+use uuid::Uuid;
 
 packets! {
     TeleportConfirm {
@@ -42,6 +45,8 @@ packets! {
         chat_colors bool;
         displayed_skin_parts u8;
         main_hand VarInt;
+        enable_text_filtering bool;
+        allow_listing bool;
     }
 }
 
@@ -59,12 +64,6 @@ packets! {
         text String;
     }
 
-    WindowConfirmation {
-        window_id u8;
-        action_number u16;
-        accepted bool;
-    }
-
     ClickWindowButton {
         window_id u8;
         button_id u8;
@@ -72,10 +71,11 @@ packets! {
 
     ClickWindow {
         window_id u8;
+        state_id VarInt;
         slot i16;
         button i8;
-        action_number u16;
         mode VarInt;
+        slots VarIntPrefixedVec<(u16, Slot)>;
         clicked_item Slot;
     }
 
@@ -180,6 +180,10 @@ packets! {
 
     PlayerAbilities {
         flags u8;
+    }
+
+    Pong {
+        id i32;
     }
 
     SetDisplayedRecipe {

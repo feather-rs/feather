@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+#![allow(clippy::identity_op)]
 mod inventory;
 
 use parking_lot::{Mutex, MutexGuard};

@@ -1,6 +1,8 @@
+use std::mem::ManuallyDrop;
+
 /// A packed array of integers where each integer consumes
-/// `n` bits. Used to store block data in chunks.
-#[derive(Debug, Clone)]
+/// `bits_per_value` bits. Used to store block data in chunks.
+#[derive(Debug, Clone, Default)]
 pub struct PackedArray {
     length: usize,
     bits_per_value: usize,
@@ -29,7 +31,7 @@ impl PackedArray {
     /// Creates a `PackedArray` from raw `u64` data
     /// and a length.
     pub fn from_u64_vec(bits: Vec<u64>, length: usize) -> Self {
-        let bits_per_value = bits.len() * 64 / length;
+        let bits_per_value = bits.len() * u64::BITS as usize / length;
         Self {
             length,
             bits_per_value,
@@ -37,11 +39,28 @@ impl PackedArray {
         }
     }
 
+    /// Creates a `PackedArray` from raw `i64` data
+    /// and a length.
+    pub fn from_i64_vec(bits: Vec<i64>, length: usize) -> Self {
+        // SAFETY: i64 and u64 have the same memory layout
+        let mut bits = ManuallyDrop::new(bits);
+        Self::from_u64_vec(
+            unsafe {
+                Vec::from_raw_parts(bits.as_mut_ptr() as *mut u64, bits.len(), bits.capacity())
+            },
+            length,
+        )
+    }
+
     /// Gets the value at the given index.
     #[inline]
     pub fn get(&self, index: usize) -> Option<u64> {
         if index >= self.len() {
             return None;
+        }
+
+        if self.bits_per_value == 0 {
+            return Some(u64::MAX);
         }
 
         let (u64_index, bit_index) = self.indexes(index);
@@ -56,7 +75,7 @@ impl PackedArray {
     /// Panics if `index >= self.length()` or `value > self.max_value()`.
     #[inline]
     pub fn set(&mut self, index: usize, value: u64) {
-        assert!(
+        debug_assert!(
             index < self.len(),
             "index out of bounds: index is {}; length is {}",
             index,
@@ -64,7 +83,7 @@ impl PackedArray {
         );
 
         let mask = self.mask();
-        assert!(value <= mask);
+        debug_assert!(value <= mask);
 
         let (u64_index, bit_index) = self.indexes(index);
 
@@ -103,7 +122,8 @@ impl PackedArray {
     }
 
     /// Resizes this packed array to a new bits per value.
-    pub fn resized(&mut self, new_bits_per_value: usize) -> PackedArray {
+    #[must_use = "method returns a new array and does not mutate the original value"]
+    pub fn resized(&self, new_bits_per_value: usize) -> PackedArray {
         Self::from_iter(self.iter(), new_bits_per_value)
     }
 
@@ -166,7 +186,7 @@ impl PackedArray {
         self.bits_per_value
     }
 
-    #[cfg(feature = "proxy")]
+    /// Sets the number of bits used to represent each value.
     pub fn set_bits_per_value(&mut self, new_value: usize) {
         self.bits_per_value = new_value;
     }
@@ -176,7 +196,7 @@ impl PackedArray {
         &self.bits
     }
 
-    #[cfg(feature = "proxy")]
+    /// Gets the raw mutable `u64` data.
     pub fn as_u64_mut_vec(&mut self) -> &mut Vec<u64> {
         &mut self.bits
     }
@@ -186,18 +206,26 @@ impl PackedArray {
     }
 
     fn needed_u64s(&self) -> usize {
-        (self.length + self.values_per_u64() - 1) / self.values_per_u64()
+        if self.bits_per_value == 0 {
+            0
+        } else {
+            (self.length + self.values_per_u64() - 1) / self.values_per_u64()
+        }
     }
 
     fn values_per_u64(&self) -> usize {
-        64 / self.bits_per_value
+        if self.bits_per_value == 0 {
+            0
+        } else {
+            64 / self.bits_per_value
+        }
     }
 
     fn indexes(&self, index: usize) -> (usize, usize) {
-        let u64_index = index / self.values_per_u64();
-        let bit_index = (index % self.values_per_u64()) * self.bits_per_value;
-
-        (u64_index, bit_index)
+        let vales_per_u64 = self.values_per_u64();
+        let u64_index = index / vales_per_u64;
+        let index = index % vales_per_u64;
+        (u64_index, index * self.bits_per_value)
     }
 }
 

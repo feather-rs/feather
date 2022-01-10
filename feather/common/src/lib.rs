@@ -23,7 +23,7 @@ pub mod chunk;
 mod region_worker;
 
 pub mod world;
-pub use world::World;
+pub use world::Dimension;
 
 pub mod chat;
 pub use chat::ChatBox;

@@ -5,8 +5,11 @@ use base::{
     metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
     EntityMetadata, Position,
 };
+use common::world::Dimensions;
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
+use libcraft_core::Gamemode;
+use quill_common::components::{EntityDimension, EntityWorld, PreviousGamemode};
 use quill_common::{
     components::{OnGround, Sprinting},
     events::{SneakEvent, SprintEvent},
@@ -30,7 +33,20 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
 
 /// Sends entity movement packets.
 fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (&position, prev_position, &on_ground, &network_id, prev_on_ground)) in game
+    for (
+        _,
+        (
+            &position,
+            prev_position,
+            &on_ground,
+            &network_id,
+            prev_on_ground,
+            dimension,
+            world,
+            gamemode,
+            prev_gamemode,
+        ),
+    ) in game
         .ecs
         .query::<(
             &Position,
@@ -38,17 +54,28 @@ fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
             &OnGround,
             &NetworkId,
             &mut PreviousOnGround,
+            &EntityDimension,
+            &EntityWorld,
+            Option<&Gamemode>,
+            Option<&PreviousGamemode>,
         )>()
         .iter()
     {
         if position != prev_position.0 {
-            server.broadcast_nearby_with(position, |client| {
+            let mut query = game.ecs.query::<&Dimensions>();
+            let dimensions = query.iter().find(|(e, _)| *e == **world).unwrap().1;
+            server.broadcast_nearby_with_mut(position, |client| {
                 client.update_entity_position(
                     network_id,
                     position,
                     *prev_position,
                     on_ground,
                     *prev_on_ground,
+                    dimension,
+                    *world,
+                    dimensions,
+                    gamemode.copied(),
+                    prev_gamemode.copied(),
                 );
             });
             prev_position.0 = position;

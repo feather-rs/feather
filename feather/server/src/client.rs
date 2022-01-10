@@ -1,40 +1,44 @@
-use std::{
-    cell::{Cell, RefCell},
-    collections::VecDeque,
-    io::Cursor,
-    sync::Arc,
-};
+use itertools::Itertools;
+use std::collections::HashMap;
+use std::iter::FromIterator;
+use std::{collections::VecDeque, sync::Arc};
 
 use ahash::AHashSet;
+use either::Either;
 use flume::{Receiver, Sender};
+use slab::Slab;
 use uuid::Uuid;
 
+use base::biome::BiomeList;
 use base::{
-    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
-    ProfileProperty, Text, ValidBlockPosition,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle, Position,
+    ProfileProperty, Text, Title, ValidBlockPosition,
 };
+use common::world::Dimensions;
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
 use libcraft_items::InventorySlot;
-use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use packets::server::{SetSlot, SpawnLivingEntity};
 use protocol::packets::server::{
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+    ClearTitles, DimensionCodec, DimensionCodecEntry, DimensionCodecRegistry, EntityPosition,
+    EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities, Respawn,
+    SetTitleSubtitle, SetTitleText, SetTitleTimes,
 };
 use protocol::{
     packets::{
         self,
         server::{
-            AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, JoinGame, KeepAlive,
-            PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer,
-            Title, UnloadChunk, UpdateViewPosition, WindowItems,
+            AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, DestroyEntities,
+            Disconnect, EntityAnimation, EntityHeadLook, JoinGame, KeepAlive, PlayerInfo,
+            PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer, UnloadChunk,
+            UpdateViewPosition, WindowItems,
         },
     },
-    ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
+    ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
-use quill_common::components::{OnGround, PreviousGamemode};
+use quill_common::components::{EntityDimension, EntityWorld, OnGround, PreviousGamemode};
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
@@ -42,7 +46,6 @@ use crate::{
     network_id_registry::NetworkId,
     Options,
 };
-use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -81,6 +84,10 @@ impl Clients {
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
         self.slab.iter().map(|(_i, client)| client)
     }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &'_ mut Client> + '_ {
+        self.slab.iter_mut().map(|(_i, client)| client)
+    }
 }
 
 /// A client connected to a server.
@@ -95,21 +102,24 @@ pub struct Client {
     profile: Vec<ProfileProperty>,
     uuid: Uuid,
 
-    teleport_id_counter: Cell<i32>,
+    teleport_id_counter: i32,
 
     network_id: Option<NetworkId>,
-    sent_entities: RefCell<AHashSet<NetworkId>>,
+    sent_entities: AHashSet<NetworkId>,
 
-    knows_position: Cell<bool>,
-    known_chunks: RefCell<AHashSet<ChunkPosition>>,
+    knows_position: bool,
+    known_chunks: AHashSet<ChunkPosition>,
 
-    chunk_send_queue: RefCell<VecDeque<ChunkData>>,
+    chunk_send_queue: VecDeque<ChunkData>,
 
     /// The previous own position sent by the client.
     /// Used to detect when we need to teleport the client.
-    client_known_position: Cell<Option<Position>>,
+    client_known_position: Option<Position>,
 
-    disconnected: Cell<bool>,
+    disconnected: bool,
+
+    dimension: Option<EntityDimension>,
+    world: Option<EntityWorld>,
 }
 
 impl Client {
@@ -119,25 +129,27 @@ impl Client {
             received_packets: player.received_packets,
             options,
             username: player.username,
-            teleport_id_counter: Cell::new(0),
+            teleport_id_counter: 0,
             network_id: None,
             profile: player.profile,
             uuid: player.uuid,
-            sent_entities: RefCell::new(AHashSet::new()),
-            knows_position: Cell::new(false),
-            known_chunks: RefCell::new(AHashSet::new()),
-            chunk_send_queue: RefCell::new(VecDeque::new()),
-            client_known_position: Cell::new(None),
-            disconnected: Cell::new(false),
+            sent_entities: AHashSet::new(),
+            knows_position: false,
+            known_chunks: AHashSet::new(),
+            chunk_send_queue: VecDeque::new(),
+            client_known_position: None,
+            disconnected: false,
+            dimension: None,
+            world: None,
         }
     }
 
-    pub fn set_client_known_position(&self, pos: Position) {
-        self.client_known_position.set(Some(pos));
+    pub fn set_client_known_position(&mut self, pos: Position) {
+        self.client_known_position = Some(pos);
     }
 
     pub fn client_known_position(&self) -> Option<Position> {
-        self.client_known_position.get()
+        self.client_known_position
     }
 
     pub fn profile(&self) -> &[ProfileProperty] {
@@ -161,27 +173,29 @@ impl Client {
     }
 
     pub fn is_disconnected(&self) -> bool {
-        self.received_packets.is_disconnected() || self.disconnected.get()
+        self.received_packets.is_disconnected() || self.disconnected
     }
 
-    pub fn known_chunks(&self) -> usize {
-        self.known_chunks.borrow().len()
+    pub fn known_chunks(&self) -> &AHashSet<ChunkPosition> {
+        &self.known_chunks
     }
 
     pub fn knows_own_position(&self) -> bool {
-        self.knows_position.get()
+        self.knows_position
     }
 
-    pub fn tick(&self) {
-        let num_to_send = MAX_CHUNKS_PER_TICK.min(self.chunk_send_queue.borrow().len());
-        for packet in self.chunk_send_queue.borrow_mut().drain(0..num_to_send) {
+    pub fn tick(&mut self) {
+        let num_to_send = MAX_CHUNKS_PER_TICK.min(self.chunk_send_queue.len());
+        let packets = self
+            .chunk_send_queue
+            .drain(..num_to_send)
+            .collect::<Vec<_>>();
+        for packet in packets {
             log::trace!(
                 "Sending chunk at {:?} to {}",
-                packet.chunk.read().position(),
+                packet.chunk.as_ref().unwrap_left().read().position(),
                 self.username
             );
-            let chunk = Arc::clone(&packet.chunk);
-            self.send_packet(UpdateLight { chunk });
             self.send_packet(packet);
         }
     }
@@ -189,41 +203,80 @@ impl Client {
     /// Returns whether the entity with the given ID
     /// is currently loaded on the client.
     pub fn is_entity_loaded(&self, network_id: NetworkId) -> bool {
-        self.sent_entities.borrow().contains(&network_id)
+        self.sent_entities.contains(&network_id)
     }
 
     pub fn set_network_id(&mut self, network_id: NetworkId) {
         self.network_id = Some(network_id);
     }
 
-    pub fn send_join_game(&self, gamemode: Gamemode, previous_gamemode: PreviousGamemode) {
+    pub fn send_join_game(
+        &mut self,
+        gamemode: Gamemode,
+        previous_gamemode: PreviousGamemode,
+        dimensions: &Dimensions,
+        biomes: &BiomeList,
+        max_players: i32,
+        dimension: EntityDimension,
+        world: EntityWorld,
+    ) {
         log::trace!("Sending Join Game to {}", self.username);
-        // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
-        let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
-            "../../../assets/dimension_codec.nbt"
-        )))
-        .expect("dimension codec asset is malformed");
-        let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
-            "../../../assets/dimension.nbt"
-        )))
-        .expect("dimension asset is malformed");
+
+        let dimension = dimensions.get(&*dimension).unwrap_or_else(|| panic!("Tried to spawn {} in dimension `{}` but the dimension doesn't exist! Existing dimensions: {}", self.username, *dimension, dimensions.iter().map(|dim| format!("`{}`", dim.info().r#type)).join(", ")));
+        let dimension_codec = DimensionCodec {
+            registries: HashMap::from_iter([
+                (
+                    "minecraft:dimension_type".to_string(),
+                    DimensionCodecRegistry::DimensionType(
+                        dimensions
+                            .iter()
+                            .enumerate()
+                            .map(|(i, dim)| DimensionCodecEntry {
+                                name: dim.info().r#type.to_owned(),
+                                id: i as i16,
+                                element: dim.info().info.clone(),
+                            })
+                            .collect(),
+                    ),
+                ),
+                (
+                    "minecraft:worldgen/biome".to_string(),
+                    DimensionCodecRegistry::WorldgenBiome(
+                        biomes
+                            .iter()
+                            .enumerate()
+                            .map(|(i, (name, biome))| DimensionCodecEntry {
+                                name: name.to_owned(),
+                                id: i as i16,
+                                element: biome.info.clone(),
+                            })
+                            .collect(),
+                    ),
+                ),
+            ]),
+        };
+
+        self.dimension = Some(EntityDimension(dimension.info().r#type.clone()));
+        self.world = Some(world);
 
         self.send_packet(JoinGame {
             entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
             is_hardcore: false,
             gamemode,
             previous_gamemode,
-            world_names: vec!["world".to_owned()],
+            dimension_names: dimensions
+                .iter().map(|dim| dim.info().r#type.clone()).collect(),
             dimension_codec: Nbt(dimension_codec),
-            dimension: Nbt(dimension),
-            world_name: "world".to_owned(),
+            dimension: Nbt(dimension.info().info.clone()),
+            dimension_name: dimension.info().r#type.clone(),
             hashed_seed: 0,
-            max_players: 0,
+            max_players,
             view_distance: self.options.view_distance as i32,
+            simulation_distance: self.options.view_distance as i32,
             reduced_debug_info: false,
             enable_respawn_screen: true,
-            is_debug: false,
-            is_flat: false,
+            is_debug: dimension.is_debug(),
+            is_flat: dimension.is_flat(),
         });
     }
 
@@ -231,7 +284,7 @@ impl Client {
         let mut data = Vec::new();
         "Feather"
             .to_owned()
-            .write(&mut data, ProtocolVersion::V1_16_2)
+            .write(&mut data, ProtocolVersion::V1_18_1)
             .unwrap();
         self.send_plugin_message("minecraft:brand", data)
     }
@@ -245,12 +298,13 @@ impl Client {
         })
     }
 
-    pub fn update_own_position(&self, new_position: Position) {
+    pub fn update_own_position(&mut self, new_position: Position) {
         log::trace!(
             "Updating position of {} to {:?}",
             self.username,
             new_position
         );
+        self.teleport_id_counter += 1;
         self.send_packet(PlayerPositionAndLook {
             x: new_position.x,
             y: new_position.y,
@@ -258,12 +312,41 @@ impl Client {
             yaw: new_position.yaw,
             pitch: new_position.pitch,
             flags: 0,
-            teleport_id: self.teleport_id_counter.get(),
+            teleport_id: self.teleport_id_counter,
+            dismount_vehicle: false,
         });
-        self.teleport_id_counter
-            .set(self.teleport_id_counter.get() + 1);
-        self.knows_position.set(true);
-        self.client_known_position.set(Some(new_position));
+        self.knows_position = true;
+        self.client_known_position = Some(new_position);
+    }
+
+    pub fn move_to_dimension(
+        &mut self,
+        dimension: EntityDimension,
+        dimensions: &Dimensions,
+        gamemode: Gamemode,
+        previous_gamemode: PreviousGamemode,
+        world: EntityWorld,
+    ) {
+        let dimension = dimensions.get(&*dimension).unwrap_or_else(|| panic!("Tried to move {} to dimension `{}` but the dimension doesn't exist! Existing dimensions: {}", self.username, *dimension, dimensions.iter().map(|dim| format!("`{}`", dim.info().r#type)).join(", ")));
+        let dimension_info = dimension.info().info.clone();
+
+        self.dimension = Some(EntityDimension(dimension.info().r#type.clone()));
+        self.world = Some(world);
+
+        self.send_packet(Respawn {
+            dimension: Nbt(dimension_info),
+            dimension_name: dimension.info().r#type.clone(),
+            hashed_seed: 0,
+            gamemode,
+            previous_gamemode,
+            is_debug: dimension.is_debug(),
+            is_flat: dimension.is_flat(),
+            copy_metadata: true,
+        });
+
+        self.knows_position = false;
+        self.client_known_position = None;
+        self.unload_all_entities();
     }
 
     pub fn update_own_chunk(&self, pos: ChunkPosition) {
@@ -274,20 +357,16 @@ impl Client {
         });
     }
 
-    pub fn send_chunk(&self, chunk: &ChunkHandle) {
-        self.chunk_send_queue.borrow_mut().push_back(ChunkData {
-            chunk: Arc::clone(chunk),
-            kind: ChunkDataKind::LoadChunk,
+    pub fn send_chunk(&mut self, chunk: &ChunkHandle) {
+        self.chunk_send_queue.push_back(ChunkData {
+            chunk: Either::Left(Arc::clone(chunk)),
         });
-        self.known_chunks
-            .borrow_mut()
-            .insert(chunk.read().position());
+        self.known_chunks.insert(chunk.read().position());
     }
 
-    pub fn overwrite_chunk_sections(&self, chunk: &ChunkHandle, sections: Vec<usize>) {
+    pub fn overwrite_chunk(&self, chunk: &ChunkHandle) {
         self.send_packet(ChunkData {
-            chunk: Arc::clone(chunk),
-            kind: ChunkDataKind::OverwriteChunk { sections },
+            chunk: Either::Left(Arc::clone(chunk)),
         });
     }
 
@@ -298,13 +377,14 @@ impl Client {
         });
     }
 
-    pub fn unload_chunk(&self, pos: ChunkPosition) {
-        log::trace!("Unloading chunk at {:?} on {}", pos, self.username);
-        self.send_packet(UnloadChunk {
-            chunk_x: pos.x,
-            chunk_z: pos.z,
-        });
-        self.known_chunks.borrow_mut().remove(&pos);
+    pub fn unload_chunk(&mut self, pos: ChunkPosition) {
+        if self.known_chunks.remove(&pos) {
+            log::trace!("Unloading chunk at {:?} on {}", pos, self.username);
+            self.send_packet(UnloadChunk {
+                chunk_x: pos.x,
+                chunk_z: pos.z,
+            });
+        }
     }
 
     pub fn add_tablist_player(
@@ -331,17 +411,29 @@ impl Client {
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
     }
 
-    pub fn unload_entity(&self, id: NetworkId) {
-        log::trace!("Unloading {:?} on {}", id, self.username);
-        self.sent_entities.borrow_mut().remove(&id);
-        self.send_packet(DestroyEntities {
-            entity_ids: vec![id.0.into()],
-        });
+    pub fn unload_entity(&mut self, id: NetworkId) {
+        self.unload_entities(&[id])
     }
 
-    pub fn send_player(&self, network_id: NetworkId, uuid: Uuid, pos: Position) {
+    pub fn unload_all_entities(&mut self) {
+        self.unload_entities(&self.sent_entities.iter().copied().collect_vec())
+    }
+
+    pub fn unload_entities(&mut self, ids: &[NetworkId]) {
+        if !ids.is_empty() {
+            log::trace!("Unloading {:?} on {}", ids, self.username);
+            self.sent_entities.retain(|e| !ids.contains(e));
+            self.send_packet(DestroyEntities {
+                entity_ids: ids.iter().map(|id| VarInt(id.0)).collect(),
+            });
+        } else {
+            log::trace!("Unloading 0 entities on {}", self.username)
+        }
+    }
+
+    pub fn send_player(&mut self, network_id: NetworkId, uuid: Uuid, pos: Position) {
         log::trace!("Sending {:?} to {}", uuid, self.username);
-        assert!(!self.sent_entities.borrow().contains(&network_id));
+        assert!(!self.sent_entities.contains(&network_id));
         self.send_packet(SpawnPlayer {
             entity_id: network_id.0,
             player_uuid: uuid,
@@ -384,65 +476,80 @@ impl Client {
     }
 
     pub fn update_entity_position(
-        &self,
+        &mut self,
         network_id: NetworkId,
         position: Position,
         prev_position: PreviousPosition,
         on_ground: OnGround,
         prev_on_ground: PreviousOnGround,
+        dimension: &EntityDimension,
+        world: EntityWorld,
+        dimensions: &Dimensions,
+        gamemode: Option<Gamemode>,
+        previous_gamemode: Option<PreviousGamemode>,
     ) {
+        let another_dimension =
+            self.world != Some(world) || self.dimension.as_ref() != Some(dimension);
+
         if self.network_id == Some(network_id) {
             // This entity is the client. Only update
             // the position if it has changed from the client's
-            // known position.
-            if Some(position) != self.client_known_position.get() {
+            // known position or dimension/world has changed.
+            if another_dimension {
+                self.move_to_dimension(
+                    dimension.clone(),
+                    dimensions,
+                    gamemode.unwrap(),
+                    previous_gamemode.unwrap(),
+                    world,
+                );
+            } else if Some(position) != self.client_known_position {
                 self.update_own_position(position);
             }
-            return;
-        }
+        } else if !another_dimension {
+            let no_change_yaw = (position.yaw - prev_position.0.yaw).abs() < 0.001;
+            let no_change_pitch = (position.pitch - prev_position.0.pitch).abs() < 0.001;
 
-        let no_change_yaw = (position.yaw - prev_position.0.yaw).abs() < 0.001;
-        let no_change_pitch = (position.pitch - prev_position.0.pitch).abs() < 0.001;
+            // If the entity jumps or falls we should send a teleport packet instead to keep relative movement in sync.
+            if on_ground != prev_on_ground.0 {
+                self.send_packet(EntityTeleport {
+                    entity_id: network_id.0,
+                    x: position.x,
+                    y: position.y,
+                    z: position.z,
+                    yaw: position.yaw,
+                    pitch: position.pitch,
+                    on_ground: *on_ground,
+                });
 
-        // If the entity jumps or falls we should send a teleport packet instead to keep relative movement in sync.
-        if on_ground != prev_on_ground.0 {
-            self.send_packet(EntityTeleport {
-                entity_id: network_id.0,
-                x: position.x,
-                y: position.y,
-                z: position.z,
-                yaw: position.yaw,
-                pitch: position.pitch,
-                on_ground: *on_ground,
-            });
+                return;
+            }
 
-            return;
-        }
+            if no_change_yaw && no_change_pitch {
+                self.send_packet(EntityPosition {
+                    entity_id: network_id.0,
+                    delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                    delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                    delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                    on_ground: on_ground.0,
+                });
+            } else {
+                self.send_packet(EntityPositionAndRotation {
+                    entity_id: network_id.0,
+                    delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                    delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                    delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                    yaw: position.yaw,
+                    pitch: position.pitch,
+                    on_ground: on_ground.0,
+                });
 
-        if no_change_yaw && no_change_pitch {
-            self.send_packet(EntityPosition {
-                entity_id: network_id.0,
-                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
-                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
-                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
-                on_ground: on_ground.0,
-            });
-        } else {
-            self.send_packet(EntityPositionAndRotation {
-                entity_id: network_id.0,
-                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
-                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
-                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
-                yaw: position.yaw,
-                pitch: position.pitch,
-                on_ground: on_ground.0,
-            });
-
-            // Needed for head orientation
-            self.send_packet(EntityHeadLook {
-                entity_id: network_id.0,
-                head_yaw: position.yaw,
-            });
+                // Needed for head orientation
+                self.send_packet(EntityHeadLook {
+                    entity_id: network_id.0,
+                    head_yaw: position.yaw,
+                });
+            }
         }
     }
 
@@ -461,6 +568,11 @@ impl Client {
         })
     }
 
+    pub fn send_message(&self, message: ChatMessage) {
+        let packet = chat_packet(message);
+        self.send_packet(packet);
+    }
+
     pub fn send_chat_message(&self, message: ChatMessage) {
         let packet = chat_packet(message);
         self.send_packet(packet);
@@ -473,21 +585,25 @@ impl Client {
     ///
     /// If the sum of `fade_in`, `stay` and `fade_out` is `0`
     /// This will emit the [`Title::Reset`] packet.
-    pub fn send_title(&self, title: base::Title) {
+    pub fn send_title(&self, title: Title) {
         if title.title.is_none() && title.sub_title.is_none() {
-            self.send_packet(Title::Hide);
+            self.send_packet(ClearTitles { reset: false });
         } else if title.fade_in + title.stay + title.fade_out == 0 {
-            self.send_packet(Title::Reset);
+            self.send_packet(ClearTitles { reset: true });
         } else {
             if let Some(main_title) = title.title {
-                self.send_packet(Title::SetTitle { text: main_title });
+                self.send_packet(SetTitleText {
+                    title_text: main_title,
+                });
             }
 
             if let Some(sub_title) = title.sub_title {
-                self.send_packet(Title::SetSubtitle { text: sub_title })
+                self.send_packet(SetTitleSubtitle {
+                    subtitle_text: sub_title,
+                })
             }
 
-            self.send_packet(Title::SetTimesAndDisplay {
+            self.send_packet(SetTitleTimes {
                 fade_in: title.fade_in as i32,
                 stay: title.stay as i32,
                 fade_out: title.fade_out as i32,
@@ -500,7 +616,7 @@ impl Client {
     ///
     /// Not to be confused with [`Self::hide_title()`]
     pub fn reset_title(&self) {
-        self.send_packet(Title::Reset);
+        self.send_packet(ClearTitles { reset: true });
     }
 
     /// Hides the title for the player, this removes
@@ -509,39 +625,39 @@ impl Client {
     ///
     /// Not to be confused with [`Self::reset_title()`]
     pub fn hide_title(&self) {
-        self.send_packet(Title::Hide);
-    }
-
-    pub fn confirm_window_action(&self, window_id: u8, action_number: i16, is_accepted: bool) {
-        self.send_packet(WindowConfirmation {
-            window_id,
-            action_number,
-            is_accepted,
-        });
+        self.send_packet(ClearTitles { reset: false });
     }
 
     pub fn send_window_items(&self, window: &Window) {
-        log::trace!("Updating window for {}", self.username);
+        log::trace!("Updating inventory for {}", self.username);
         let packet = WindowItems {
             window_id: 0,
+            state_id: 0,
             items: window.inner().to_vec(),
+            cursor_item: window.cursor_item().clone(),
         };
         self.send_packet(packet);
     }
 
-    pub fn set_slot(&self, slot: i16, item: &InventorySlot) {
-        log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
+    pub fn send_inventory_slot(&self, slot: i16, item: &InventorySlot) {
+        log::trace!(
+            "Setting inventory slot {} of {} to {:?}",
+            slot,
+            self.username,
+            item
+        );
         self.send_packet(SetSlot {
             window_id: 0,
+            state_id: 0,
             slot,
             slot_data: item.clone(),
         });
     }
 
-    pub fn send_particle(&self, particle: &base::Particle, position: &Position) {
-        self.send_packet(Particle {
+    pub fn send_particle(&self, particle: &Particle, long_distance: bool, position: &Position) {
+        self.send_packet(packets::server::Particle {
             particle_kind: particle.kind,
-            long_distance: true,
+            long_distance,
             x: position.x,
             y: position.y,
             z: position.z,
@@ -553,16 +669,16 @@ impl Client {
         })
     }
 
-    pub fn set_cursor_slot(&self, item: &InventorySlot) {
+    pub fn send_cursor_slot(&self, item: &InventorySlot) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
-        self.set_slot(-1, item);
+        self.send_inventory_slot(-1, item);
     }
 
-    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+    pub fn send_player_model_flags(&self, network_id: NetworkId, model_flags: u8) {
         let mut entity_metadata = EntityMetadata::new();
-        entity_metadata.set(16, model_flags);
+        entity_metadata.set(17, model_flags);
         self.send_packet(SendEntityMetadata {
-            entity_id: netowrk_id.0,
+            entity_id: network_id.0,
             entries: entity_metadata,
         });
     }
@@ -598,23 +714,33 @@ impl Client {
         });
     }
 
-    pub fn set_hotbar_slot(&self, slot: u8) {
+    pub fn send_hotbar_slot(&self, slot: u8) {
         self.send_packet(HeldItemChange { slot });
     }
 
-    fn register_entity(&self, network_id: NetworkId) {
-        self.sent_entities.borrow_mut().insert(network_id);
+    fn register_entity(&mut self, network_id: NetworkId) {
+        self.sent_entities.insert(network_id);
     }
 
     fn send_packet(&self, packet: impl Into<ServerPlayPacket>) {
-        let _ = self.packets_to_send.try_send(packet.into());
+        let packet = packet.into();
+        log::trace!("Sending packet #{:02X} to {}", packet.id(), self.username);
+        let _ = self.packets_to_send.try_send(packet);
     }
 
-    pub fn disconnect(&self, reason: &str) {
-        self.disconnected.set(true);
+    pub fn disconnect(&mut self, reason: impl Into<Text>) {
+        self.disconnected = true;
         self.send_packet(Disconnect {
-            reason: Text::from(reason.to_owned()).to_string(),
+            reason: reason.into().to_string(),
         });
+    }
+
+    pub fn dimension(&self) -> &Option<EntityDimension> {
+        &self.dimension
+    }
+
+    pub fn world(&self) -> &Option<EntityWorld> {
+        &self.world
     }
 }
 

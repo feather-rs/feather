@@ -8,7 +8,6 @@ use paste::paste;
 use crate::env::PluginEnv;
 use crate::host_function::{NativeHostFunction, WasmHostFunction};
 
-mod block;
 mod component;
 mod entity;
 mod entity_builder;
@@ -45,7 +44,6 @@ macro_rules! host_calls {
     }
 }
 
-use block::*;
 use component::*;
 use entity::*;
 use entity_builder::*;
@@ -65,8 +63,5 @@ host_calls! {
     "entity_exists" => entity_exists,
     "entity_send_message" => entity_send_message,
     "entity_send_title" => entity_send_title,
-    "block_get" => block_get,
-    "block_set" => block_set,
-    "block_fill_chunk_section" => block_fill_chunk_section,
     "plugin_message_send" => plugin_message_send,
 }

@@ -173,6 +173,11 @@ host_component_enum! {
         Player = 205,
         FishingBobber = 206,
         PiglinBrute = 207,
+        Axolotl = 208,
+        GlowItemFrame = 209,
+        GlowSquid = 210,
+        Goat = 211,
+        Marker = 212,
 
         // `bincode` components
         Gamemode = 1000,
@@ -198,7 +203,8 @@ host_component_enum! {
         CanBuild = 1020,
         Instabreak = 1021,
         Invulnerable = 1022,
-
+        EntityDimension = 1023,
+        EntityWorld = 1024,
 
     }
 }

@@ -1,4 +1,5 @@
 # We use rustfmt, and formatting is checked in CI.
 # Please run `cargo fmt` before committing
 
-# Empty config: default settings!
+unstable_features = true
+format_generated_files = true

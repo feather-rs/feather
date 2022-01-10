@@ -24,6 +24,8 @@ mod packet_handlers;
 mod player_count;
 mod systems;
 
+pub const VERSION: &str = include_str!("../../../constants/VERSION");
+
 pub use client::{Client, ClientId, Clients};
 pub use network_id_registry::NetworkId;
 pub use options::Options;
@@ -98,7 +100,7 @@ impl Server {
     pub fn accept_new_players(&mut self) -> Vec<ClientId> {
         let mut clients = Vec::new();
         for player in self.new_players.clone().try_iter() {
-            if let Some(old_client) = self.clients.iter().find(|x| x.uuid() == player.uuid) {
+            if let Some(old_client) = self.clients.iter_mut().find(|x| x.uuid() == player.uuid) {
                 old_client.disconnect("Logged in from another location!");
             }
             let id = self.create_client(player);
@@ -135,6 +137,22 @@ impl Server {
     pub fn broadcast_nearby_with(&self, position: Position, mut callback: impl FnMut(&Client)) {
         for &client_id in self.chunk_subscriptions.subscriptions_for(position.chunk()) {
             if let Some(client) = self.clients.get(client_id) {
+                callback(client);
+            }
+        }
+    }
+
+    /// Sends a packet to all clients currently subscribed
+    /// to the given position. This function should be
+    /// used for entity updates, block updates, etc—
+    /// any packets that need to be sent only to nearby players.
+    pub fn broadcast_nearby_with_mut(
+        &mut self,
+        position: Position,
+        mut callback: impl FnMut(&mut Client),
+    ) {
+        for &client_id in self.chunk_subscriptions.subscriptions_for(position.chunk()) {
+            if let Some(client) = self.clients.get_mut(client_id) {
                 callback(client);
             }
         }

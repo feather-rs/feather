@@ -1,16 +1,5 @@
 //! Traits for reading/writing Minecraft-encoded values.
-
-use crate::{ProtocolVersion, Slot};
-use anyhow::{anyhow, bail, Context};
-use base::{
-    anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
-};
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use libcraft_items::InventorySlot::*;
-use num_traits::{FromPrimitive, ToPrimitive};
-use quill_common::components::PreviousGamemode;
-use serde::{de::DeserializeOwned, Serialize};
+use std::io::ErrorKind;
 use std::{
     borrow::Cow,
     collections::BTreeMap,
@@ -20,8 +9,25 @@ use std::{
     marker::PhantomData,
     num::TryFromIntError,
 };
+
+use anyhow::{anyhow, bail, Context};
+use base::anvil::entity::ItemNbt;
+use base::chunk::paletted_container::{Paletteable, PalettedContainer};
+use base::chunk::PackedArray;
+use base::metadata::MetaEntry;
+use base::{Direction, EntityMetadata, ValidBlockPosition};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use libcraft_blocks::BlockId;
+use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
+
+use crate::{ProtocolVersion, Slot};
+use libcraft_core::{BlockPosition, Gamemode};
+use libcraft_items::InventorySlot::*;
+use libcraft_items::{Item, ItemStackBuilder};
+use quill_common::components::PreviousGamemode;
 
 /// Trait implemented for types which can be read
 /// from a buffer.
@@ -160,31 +166,11 @@ where
 pub struct VarInt(pub i32);
 
 impl Readable for VarInt {
-    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    fn read(buffer: &mut Cursor<&[u8]>, _version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        let mut num_read = 0;
-        let mut result = 0;
-
-        loop {
-            let read = u8::read(buffer, version)?;
-            let value = i32::from(read & 0b0111_1111);
-            result |= value.overflowing_shl(7 * num_read).0;
-
-            num_read += 1;
-
-            if num_read > 5 {
-                bail!(
-                    "VarInt too long (max length: 5, value read so far: {})",
-                    result
-                );
-            }
-            if read & 0b1000_0000 == 0 {
-                break;
-            }
-        }
-        Ok(VarInt(result))
+        Self::read_from(buffer).map_err(Into::into)
     }
 }
 
@@ -214,8 +200,9 @@ impl From<i32> for VarInt {
 }
 
 impl VarInt {
-    pub fn write_to(&self, mut writer: impl Write) -> io::Result<()> {
+    pub fn write_to(&self, mut writer: impl Write) -> io::Result<usize> {
         let mut x = self.0 as u32;
+        let mut i = 0;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
             x >>= 7;
@@ -225,11 +212,35 @@ impl VarInt {
 
             writer.write_all(&[temp])?;
 
+            i += 1;
             if x == 0 {
                 break;
             }
         }
-        Ok(())
+        Ok(i)
+    }
+    pub fn read_from(mut reader: impl Read) -> io::Result<Self> {
+        let mut num_read = 0;
+        let mut result = 0;
+
+        loop {
+            let read = reader.read_u8()?;
+            let value = i32::from(read & 0b0111_1111);
+            result |= value.overflowing_shl(7 * num_read).0;
+
+            num_read += 1;
+
+            if num_read > 5 {
+                return Err(io::Error::new(
+                    ErrorKind::InvalidData,
+                    "VarInt too long (max length: 5)",
+                ));
+            }
+            if read & 0b1000_0000 == 0 {
+                break;
+            }
+        }
+        Ok(VarInt(result))
     }
 }
 
@@ -596,9 +607,9 @@ impl Readable for EntityMetadata {
         let mut values = BTreeMap::new();
 
         loop {
-            let index = u8::read(buffer, version)?;
+            let index = i8::read(buffer, version)?;
 
-            if index == 0xFF {
+            if index == -1 {
                 break;
             }
 
@@ -792,8 +803,12 @@ impl Readable for ValidBlockPosition {
         let val = i64::read(buffer, version)?;
 
         let x = (val >> 38) as i32;
-        let y = (val & 0xFFF) as i32;
+        let mut y = (val & 0xFFF) as i32;
         let z = (val << 26 >> 38) as i32;
+
+        if y >= 1 << 11 {
+            y -= 1 << 12
+        }
 
         Ok(BlockPosition { x, y, z }.try_into()?)
     }
@@ -854,7 +869,7 @@ impl Readable for BlockId {
         let id = VarInt::read(buffer, version)?.0;
 
         let block = BlockId::from_vanilla_id(id.try_into()?);
-        Ok(block)
+        Ok(block.unwrap_or_default())
     }
 }
 
@@ -907,5 +922,118 @@ impl Readable for PreviousGamemode {
 impl Writeable for PreviousGamemode {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         self.id().write(buffer, version)
+    }
+}
+
+macro_rules! tuple_impl {
+    ($($item: ident),*) => {
+        impl<$($item: Readable),*> Readable for ($($item,)*) {
+            fn read(#[allow(unused)] buffer: &mut Cursor<&[u8]>, #[allow(unused)] version: ProtocolVersion) -> anyhow::Result<Self>
+                where
+                    Self: Sized,
+                {
+                    Ok(($($item::read(buffer, version)?,)*))
+                }
+        }
+        impl<$($item: Writeable),*> Writeable for ($($item,)*) {
+            fn write(&self, #[allow(unused)] buffer: &mut Vec<u8>, #[allow(unused)] version: ProtocolVersion) -> anyhow::Result<()> {
+                #[allow(non_snake_case)]
+                let ($($item,)*): &($($item,)*) = self;
+                $($item.write(buffer, version)?;)*
+                Ok(())
+            }
+        }
+    };
+}
+
+tuple_impl!();
+tuple_impl!(T1);
+tuple_impl!(T1, T2);
+tuple_impl!(T1, T2, T3);
+
+// TODO remove and use bitvec instead
+#[derive(Default)]
+pub struct BitMask(Vec<u64>);
+
+impl BitMask {
+    // pushes a bit to this bitmask
+    pub fn set(&mut self, i: usize, bit: bool) {
+        let n = i / 64;
+        while n >= self.0.len() {
+            self.0.push(0);
+        }
+        self.0[n] |= (bit as u64) << (i % 64);
+    }
+
+    pub fn is_set(&self, i: usize) -> bool {
+        let n = i / 64;
+        if n >= self.0.len() {
+            false
+        } else {
+            self.0[n] & (1 << (i % 64)) != 0
+        }
+    }
+
+    pub fn max_len(&self) -> usize {
+        self.0.len() * u64::BITS as usize / 8
+    }
+}
+
+impl Writeable for BitMask {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        VarInt(self.0.len() as i32).write(buffer, version)?;
+        for long in &self.0 {
+            long.write(buffer, version)?
+        }
+        Ok(())
+    }
+}
+
+impl Readable for BitMask {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let mut bitmask = Vec::new();
+        for _ in 0..VarInt::read(buffer, version)?.0 {
+            bitmask.push(u64::read(buffer, version)?);
+        }
+        Ok(BitMask(bitmask))
+    }
+}
+
+impl<T> Writeable for PalettedContainer<T>
+where
+    T: Paletteable,
+{
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        let data = self.data();
+        (data.map(PackedArray::bits_per_value).unwrap_or_default() as u8).write(buffer, version)?;
+
+        match self {
+            PalettedContainer::SingleValue(value) => {
+                VarInt(value.default_palette_index() as i32).write(buffer, version)?
+            }
+            PalettedContainer::MultipleValues { palette, .. } => {
+                VarInt(palette.len() as i32).write(buffer, version)?;
+                for item in palette {
+                    VarInt(item.default_palette_index() as i32).write(buffer, version)?;
+                }
+            }
+            PalettedContainer::GlobalPalette { .. } => {}
+        }
+
+        VarInt(
+            data.map(|data| data.as_u64_slice().len())
+                .unwrap_or_default() as i32,
+        )
+        .write(buffer, version)?;
+        if let Some(data) = data {
+            for u64 in data.as_u64_slice() {
+                u64.write(buffer, version)?;
+            }
+        }
+
+        Ok(())
     }
 }

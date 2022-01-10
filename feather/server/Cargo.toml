@@ -52,6 +52,11 @@ slab = "0.4"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
+either = "1.6.1"
+itertools = "0.10.3"
+konst = "0.2.13"
+const_format = "0.2.22"
+data-generators = { path = "../../data_generators" }
 
 [features]
 default = [ "plugin-cranelift" ]

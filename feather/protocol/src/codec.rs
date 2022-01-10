@@ -1,4 +1,4 @@
-use crate::{io::VarInt, ProtocolVersion, Readable, Writeable};
+use crate::{ProtocolVersion, Readable, VarInt, Writeable};
 use aes::Aes128;
 use bytes::BytesMut;
 use cfb8::{
@@ -68,7 +68,7 @@ impl MinecraftCodec {
 
     /// Writes a packet into the provided writer.
     pub fn encode(&mut self, packet: &impl Writeable, output: &mut Vec<u8>) -> anyhow::Result<()> {
-        packet.write(&mut self.staging_buf, ProtocolVersion::V1_16_2)?;
+        packet.write(&mut self.staging_buf, ProtocolVersion::V1_18_1)?;
 
         if let Some(threshold) = self.compression {
             self.encode_compressed(output, threshold)?;
@@ -104,8 +104,8 @@ impl MinecraftCodec {
             .unwrap();
 
         let packet_length = data_length_bytes.position() as usize + data.len();
-        VarInt(packet_length as i32).write(output, ProtocolVersion::V1_16_2)?;
-        VarInt(data_length as i32).write(output, ProtocolVersion::V1_16_2)?;
+        VarInt(packet_length as i32).write(output, ProtocolVersion::V1_18_1)?;
+        VarInt(data_length as i32).write(output, ProtocolVersion::V1_18_1)?;
         output.extend_from_slice(data);
 
         self.compression_target.clear();
@@ -129,7 +129,7 @@ impl MinecraftCodec {
         // TODO: we should probably be able to determine the length without writing the packet,
         // which could remove an unnecessary copy.
         let length = self.staging_buf.len() as i32;
-        VarInt(length).write(output, ProtocolVersion::V1_16_2)?;
+        VarInt(length).write(output, ProtocolVersion::V1_18_1)?;
         output.extend_from_slice(&self.staging_buf);
 
         Ok(())
@@ -153,7 +153,7 @@ impl MinecraftCodec {
         T: Readable,
     {
         let mut cursor = Cursor::new(&self.received_buf[..]);
-        let packet = if let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2) {
+        let packet = if let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_18_1) {
             let length_field_length = cursor.position() as usize;
 
             if self.received_buf.len() - length_field_length >= length.0 as usize {
@@ -163,7 +163,7 @@ impl MinecraftCodec {
                 );
 
                 if self.compression.is_some() {
-                    let data_length = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2)?;
+                    let data_length = VarInt::read(&mut cursor, ProtocolVersion::V1_18_1)?;
                     if data_length.0 != 0 {
                         let mut decoder =
                             ZlibDecoder::new(&cursor.get_ref()[cursor.position() as usize..]);
@@ -172,7 +172,7 @@ impl MinecraftCodec {
                     }
                 }
 
-                let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
+                let packet = T::read(&mut cursor, ProtocolVersion::V1_18_1)?;
 
                 let bytes_read = length.0 as usize + length_field_length;
                 self.received_buf = self.received_buf.split_off(bytes_read);

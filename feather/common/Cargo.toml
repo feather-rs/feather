@@ -8,7 +8,6 @@ edition = "2018"
 ahash = "0.7"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
-blocks = { path = "../blocks", package = "feather-blocks" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 flume = "0.10"
 itertools = "0.10"
@@ -21,6 +20,8 @@ uuid = { version = "0.8", features = [ "v4" ] }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-inventory = { path = "../../libcraft/inventory" }
 libcraft-items = { path = "../../libcraft/items" }
+libcraft-blocks = { path = "../../libcraft/blocks" }
 rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 rand = "0.8"
+derive_more = "0.99.17"

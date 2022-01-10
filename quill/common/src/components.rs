@@ -5,7 +5,7 @@
 
 use std::fmt::Display;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use smartstring::{LazyCompact, SmartString};
 
 use libcraft_core::Gamemode;
@@ -221,6 +221,7 @@ bincode_component_impl!(Sneaking);
     Copy,
     Clone,
     Debug,
+    Default,
     PartialEq,
     Eq,
     Hash,
@@ -284,3 +285,34 @@ impl Sprinting {
     }
 }
 bincode_component_impl!(Sprinting);
+
+#[derive(
+    Clone, PartialEq, Debug, derive_more::Deref, derive_more::DerefMut, Serialize, Deserialize,
+)]
+pub struct EntityDimension(pub String);
+bincode_component_impl!(EntityDimension);
+
+#[derive(Copy, Clone, PartialEq, Debug, derive_more::Deref, derive_more::DerefMut)]
+pub struct EntityWorld(pub ecs::Entity);
+
+impl Serialize for EntityWorld {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.to_bits().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for EntityWorld {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(EntityWorld(ecs::Entity::from_bits(u64::deserialize(
+            deserializer,
+        )?)))
+    }
+}
+
+bincode_component_impl!(EntityWorld);

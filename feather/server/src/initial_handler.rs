@@ -3,7 +3,9 @@
 use crate::{connection_worker::Worker, favicon::Favicon};
 use anyhow::bail;
 use base::{ProfileProperty, Text};
+use const_format::concatcp;
 use flume::{Receiver, Sender};
+use konst::{primitive::parse_i32, unwrap_ctx};
 use md5::Digest;
 use num_bigint::BigInt;
 use once_cell::sync::Lazy;
@@ -27,8 +29,10 @@ use uuid::Uuid;
 
 use self::proxy::ProxyData;
 
-const SERVER_NAME: &str = "Feather 1.16.5";
-const PROTOCOL_VERSION: i32 = 754;
+const SERVER_NAME: &str = concatcp!("Feather ", crate::VERSION);
+pub const PROTOCOL_VERSION: i32 = unwrap_ctx!(parse_i32(include_str!(
+    "../../../constants/PROTOCOL_VERSION"
+)));
 
 mod proxy;
 

@@ -1,20 +1,22 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, ChunkPosition, Position, Text, Title, ValidBlockPosition};
+use base::{Position, Text, Title};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,
 };
-use quill_common::{entities::Player, entity_init::EntityInit};
+use libcraft_core::EntityKind;
+use quill_common::entities::Player;
 
+use crate::events::PlayerRespawnEvent;
 use crate::{
     chat::{ChatKind, ChatMessage},
     chunk::entities::ChunkEntities,
-    events::{BlockChangeEvent, EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
-    ChatBox, World,
+    events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
+    ChatBox,
 };
 
-type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
+type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, EntityKind)>;
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -28,13 +30,6 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 /// as "drop item" or "kill entity." These high-level methods
 /// should be preferred over raw interaction with the ECS.
 pub struct Game {
-    /// Contains chunks and blocks.
-    ///
-    /// NB: use methods on `Game` to update
-    /// blocks, not direct methods on `World`.
-    /// The `Game` methods will automatically
-    /// trigger the necessary `BlockChangeEvent`s.
-    pub world: World,
     /// Contains entities, including players.
     pub ecs: Ecs,
     /// Contains systems.
@@ -66,7 +61,6 @@ impl Game {
     /// Creates a new, empty `Game`.
     pub fn new() -> Self {
         Self {
-            world: World::new(),
             ecs: Ecs::new(),
             system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
             resources: Arc::new(Resources::new()),
@@ -79,7 +73,7 @@ impl Game {
 
     /// Inserts a new resource.
     ///
-    /// An existing resource with type `T` is overriden.
+    /// An existing resource with type `T` is overridden.
     ///
     /// # Panics
     /// Panics if any resources are currently borrowed.
@@ -99,7 +93,7 @@ impl Game {
     /// before they are built.
     pub fn add_entity_spawn_callback(
         &mut self,
-        callback: impl FnMut(&mut EntityBuilder, &EntityInit) + 'static,
+        callback: impl FnMut(&mut EntityBuilder, EntityKind) + 'static,
     ) {
         self.entity_spawn_callbacks.push(Box::new(callback));
     }
@@ -112,10 +106,10 @@ impl Game {
 
     /// Creates an entity builder with the default components
     /// for an entity of type `init`.
-    pub fn create_entity_builder(&mut self, position: Position, init: EntityInit) -> EntityBuilder {
+    pub fn create_entity_builder(&mut self, position: Position, kind: EntityKind) -> EntityBuilder {
         let mut builder = mem::take(&mut self.entity_builder);
         builder.add(position);
-        self.invoke_entity_spawn_callbacks(&mut builder, init);
+        self.invoke_entity_spawn_callbacks(&mut builder, kind);
         builder
     }
 
@@ -131,10 +125,10 @@ impl Game {
         entity
     }
 
-    fn invoke_entity_spawn_callbacks(&mut self, builder: &mut EntityBuilder, init: EntityInit) {
+    fn invoke_entity_spawn_callbacks(&mut self, builder: &mut EntityBuilder, kind: EntityKind) {
         let mut callbacks = mem::take(&mut self.entity_spawn_callbacks);
         for callback in &mut callbacks {
-            callback(builder, &init);
+            callback(builder, kind);
         }
         self.entity_spawn_callbacks = callbacks;
     }
@@ -146,6 +140,9 @@ impl Game {
         if self.ecs.get::<Player>(entity).is_ok() {
             self.ecs
                 .insert_entity_event(entity, PlayerJoinEvent)
+                .unwrap();
+            self.ecs
+                .insert_entity_event(entity, PlayerRespawnEvent)
                 .unwrap();
         }
     }
@@ -178,56 +175,6 @@ impl Game {
         let mut mailbox = self.ecs.get_mut::<ChatBox>(entity)?;
         mailbox.send_title(title);
         Ok(())
-    }
-
-    /// Gets the block at the given position.
-    pub fn block(&self, pos: ValidBlockPosition) -> Option<BlockId> {
-        self.world.block_at(pos)
-    }
-
-    /// Sets the block at the given position.
-    ///
-    /// Triggers necessary `BlockChangeEvent`s.
-    pub fn set_block(&mut self, pos: ValidBlockPosition, block: BlockId) -> bool {
-        let was_successful = self.world.set_block_at(pos, block);
-        if was_successful {
-            self.ecs.insert_event(BlockChangeEvent::single(pos));
-        }
-        was_successful
-    }
-
-    /// Fills the given chunk section (16x16x16 blocks).
-    ///
-    /// All blocks in the chunk section are overwritten with `block`.
-    pub fn fill_chunk_section(
-        &mut self,
-        chunk_pos: ChunkPosition,
-        section_y: usize,
-        block: BlockId,
-    ) -> bool {
-        let mut chunk = match self.world.chunk_map().chunk_at_mut(chunk_pos) {
-            Some(chunk) => chunk,
-            None => return false,
-        };
-
-        let was_successful = chunk.fill_section(section_y + 1, block);
-
-        if !was_successful {
-            return false;
-        }
-
-        self.ecs.insert_event(BlockChangeEvent::fill_chunk_section(
-            chunk_pos,
-            section_y as u32,
-        ));
-
-        true
-    }
-
-    /// Breaks the block at the given position, propagating any
-    /// necessary block updates.
-    pub fn break_block(&mut self, pos: ValidBlockPosition) -> bool {
-        self.set_block(pos, BlockId::air())
     }
 }
 

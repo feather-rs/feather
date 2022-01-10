@@ -10,20 +10,21 @@ use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 
 pub mod anvil;
+pub mod biome;
 mod block;
 pub mod chunk;
 pub mod chunk_lock;
 pub mod inventory;
 pub mod metadata;
+pub mod world;
 
 pub use block::{BlockPositionValidationError, ValidBlockPosition};
-pub use blocks::*;
-pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
+pub use chunk::{Chunk, ChunkSection, CHUNK_WIDTH};
 pub use chunk_lock::*;
 
-pub use libcraft_blocks::{BlockKind, BlockState};
+pub use libcraft_blocks::{BlockId, BlockKind};
 pub use libcraft_core::{
-    position, vec3, Biome, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d,
+    position, vec3, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d,
 };
 pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackError};

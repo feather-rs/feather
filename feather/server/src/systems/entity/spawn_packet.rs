@@ -22,7 +22,7 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 /// and despawn entities when they become invisible, based on the client's view.
 pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResult {
     for (player, (event, &client_id)) in game.ecs.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
-        let client = match server.clients.get(client_id) {
+        let client = match server.clients.get_mut(client_id) {
             Some(client) => client,
             None => continue,
         };
@@ -64,7 +64,7 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
         .iter()
     {
         let entity_ref = game.ecs.entity(entity)?;
-        server.broadcast_nearby_with(position, |client| {
+        server.broadcast_nearby_with_mut(position, |client| {
             spawn_packet
                 .send(&entity_ref, client)
                 .expect("failed to create spawn packet")
@@ -81,7 +81,7 @@ fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResu
         .query::<(&EntityRemoveEvent, &Position, &NetworkId)>()
         .iter()
     {
-        server.broadcast_nearby_with(position, |client| client.unload_entity(network_id));
+        server.broadcast_nearby_with_mut(position, |client| client.unload_entity(network_id));
     }
 
     Ok(())
@@ -108,14 +108,14 @@ fn update_entities_on_chunk_cross(game: &mut Game, server: &mut Server) -> SysRe
             .collect();
 
         for left_client in old_clients.difference(&new_clients) {
-            if let Some(client) = server.clients.get(*left_client) {
+            if let Some(client) = server.clients.get_mut(*left_client) {
                 client.unload_entity(network_id);
             }
         }
 
         let entity_ref = game.ecs.entity(entity)?;
         for send_client in new_clients.difference(&old_clients) {
-            if let Some(client) = server.clients.get(*send_client) {
+            if let Some(client) = server.clients.get_mut(*send_client) {
                 spawn_packet.send(&entity_ref, client)?;
             }
         }

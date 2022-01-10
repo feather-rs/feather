@@ -2,7 +2,8 @@
 //! metadata format. See <https://wiki.vg/Entity_metadata>
 //! for the specification.
 
-use crate::{Direction, ValidBlockPosition};
+use crate::block::ValidBlockPosition;
+use crate::Direction;
 use bitflags::bitflags;
 use libcraft_items::InventorySlot;
 use std::collections::BTreeMap;
@@ -13,16 +14,14 @@ pub type OptChat = Option<String>;
 pub type OptVarInt = Option<i32>;
 
 // Meta index constants.
-pub const META_INDEX_ENTITY_BITMASK: u8 = 0;
-pub const META_INDEX_AIR: u8 = 1;
-pub const META_INDEX_CUSTOM_NAME: u8 = 2;
-pub const META_INDEX_IS_CUSTOM_NAME_VISIBLE: u8 = 3;
-pub const META_INDEX_IS_SILENT: u8 = 4;
-pub const META_INDEX_NO_GRAVITY: u8 = 5;
-
-pub const META_INDEX_POSE: u8 = 6;
-
-pub const META_INDEX_FALLING_BLOCK_SPAWN_POSITION: u8 = 7;
+pub const META_INDEX_ENTITY_BITMASK: i8 = 0;
+pub const META_INDEX_AIR: i8 = 1;
+pub const META_INDEX_CUSTOM_NAME: i8 = 2;
+pub const META_INDEX_IS_CUSTOM_NAME_VISIBLE: i8 = 3;
+pub const META_INDEX_IS_SILENT: i8 = 4;
+pub const META_INDEX_NO_GRAVITY: i8 = 5;
+pub const META_INDEX_POSE: i8 = 6;
+pub const META_INDEX_TICK_FROZEN_IN_POWDER_SNOW: i8 = 7;
 
 bitflags! {
     pub struct EntityBitMask: u8 {
@@ -52,7 +51,7 @@ pub enum MetaEntry {
     Direction(Direction),
     OptUuid(OptUuid),
     OptBlockId(Option<i32>),
-    Nbt(nbt::Blob),
+    Nbt(nbt::Value),
     Particle,
     VillagerData(i32, i32, i32),
     OptVarInt(OptVarInt),
@@ -175,7 +174,7 @@ impl ToMetaEntry for OptVarInt {
 
 #[derive(Clone, Debug)]
 pub struct EntityMetadata {
-    pub values: BTreeMap<u8, MetaEntry>,
+    pub values: BTreeMap<i8, MetaEntry>,
 }
 
 impl EntityMetadata {
@@ -189,14 +188,16 @@ impl EntityMetadata {
     pub fn entity_base() -> Self {
         Self::new()
             .with(META_INDEX_ENTITY_BITMASK, EntityBitMask::empty().bits())
-            .with(META_INDEX_AIR, 0i32)
+            .with(META_INDEX_AIR, 300i32)
             .with(META_INDEX_CUSTOM_NAME, OptChat::None)
             .with(META_INDEX_IS_CUSTOM_NAME_VISIBLE, false)
             .with(META_INDEX_IS_SILENT, false)
             .with(META_INDEX_NO_GRAVITY, false)
+            .with(META_INDEX_POSE, Pose::Standing)
+            .with(META_INDEX_TICK_FROZEN_IN_POWDER_SNOW, 0i32)
     }
 
-    pub fn with_many(mut self, values: &[(u8, MetaEntry)]) -> Self {
+    pub fn with_many(mut self, values: &[(i8, MetaEntry)]) -> Self {
         for val in values {
             self.values.insert(val.0, val.1.clone());
         }
@@ -204,20 +205,20 @@ impl EntityMetadata {
         self
     }
 
-    pub fn set(&mut self, index: u8, entry: impl ToMetaEntry) {
+    pub fn set(&mut self, index: i8, entry: impl ToMetaEntry) {
         self.values.insert(index, entry.to_meta_entry());
     }
 
-    pub fn with(mut self, index: u8, entry: impl ToMetaEntry) -> Self {
+    pub fn with(mut self, index: i8, entry: impl ToMetaEntry) -> Self {
         self.set(index, entry);
         self
     }
 
-    pub fn get(&self, index: u8) -> Option<MetaEntry> {
+    pub fn get(&self, index: i8) -> Option<MetaEntry> {
         self.values.get(&index).cloned()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (u8, &MetaEntry)> {
+    pub fn iter(&self) -> impl Iterator<Item = (i8, &MetaEntry)> {
         self.values.iter().map(|(key, entry)| (*key, entry))
     }
 }

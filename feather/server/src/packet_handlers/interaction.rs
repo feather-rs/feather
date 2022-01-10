@@ -1,7 +1,8 @@
-use crate::{ClientId, NetworkId, Server};
 use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
+use base::BlockId;
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
+use common::world::Dimensions;
 use common::{Game, Window};
 use ecs::{Entity, EntityRef, SysResult};
 use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
@@ -10,14 +11,18 @@ use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
+use quill_common::components::{EntityDimension, EntityWorld};
 use quill_common::{
     events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
     EntityId,
 };
+
+use crate::{ClientId, NetworkId, Server};
+
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
     game: &mut Game,
-    _server: &mut Server,
+    server: &mut Server,
     packet: PlayerBlockPlacement,
     player: Entity,
 ) -> SysResult {
@@ -27,7 +32,7 @@ pub fn handle_player_block_placement(
         _ => {
             let client_id = game.ecs.get::<ClientId>(player).unwrap();
 
-            let client = _server.clients.get(*client_id).unwrap();
+            let client = server.clients.get_mut(*client_id).unwrap();
 
             client.disconnect("Malformed Packet!");
 
@@ -54,13 +59,24 @@ pub fn handle_player_block_placement(
     );
 
     let block_kind = {
-        let result = game.block(packet.position);
+        let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
+        let (_, (player_world, player_dimension)) =
+            query.iter().find(|(e, _)| *e == player).unwrap();
+        let mut query = game.ecs.query::<&Dimensions>();
+        let dimension = query
+            .iter()
+            .find(|(world, _)| *world == **player_world)
+            .unwrap()
+            .1
+            .get(&**player_dimension)
+            .unwrap();
+        let result = dimension.block_at(packet.position);
         match result {
             Some(block) => block.kind(),
             None => {
                 let client_id = game.ecs.get::<ClientId>(player).unwrap();
 
-                let client = _server.clients.get(*client_id).unwrap();
+                let client = server.clients.get_mut(*client_id).unwrap();
 
                 client.disconnect("Attempted to interact with an unloaded block!");
 
@@ -120,7 +136,18 @@ pub fn handle_player_digging(
     log::trace!("Got player digging with status {:?}", packet.status);
     match packet.status {
         PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
-            game.break_block(packet.position);
+            let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
+            let (_, (player_world, player_dimension)) =
+                query.iter().find(|(e, _)| *e == player).unwrap();
+            let mut query = game.ecs.query::<&Dimensions>();
+            let dimension = query
+                .iter()
+                .find(|(world, _)| *world == **player_world)
+                .unwrap()
+                .1
+                .get(&**player_dimension)
+                .unwrap();
+            dimension.set_block_at(packet.position, BlockId::air());
             Ok(())
         }
         PlayerDiggingStatus::SwapItemInHand => {
@@ -151,7 +178,7 @@ pub fn handle_player_digging(
 
 pub fn handle_interact_entity(
     game: &mut Game,
-    _server: &mut Server,
+    server: &mut Server,
     packet: InteractEntity,
     player: Entity,
 ) -> SysResult {
@@ -168,7 +195,7 @@ pub fn handle_interact_entity(
             None => {
                 let client_id = game.ecs.get::<ClientId>(player).unwrap();
 
-                let client = _server.clients.get(*client_id).unwrap();
+                let client = server.clients.get_mut(*client_id).unwrap();
 
                 client.disconnect("Interacted with an invalid entity!");
 

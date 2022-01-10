@@ -1,11 +1,14 @@
 use std::{path::PathBuf, sync::Arc};
 
 use anyhow::bail;
+use flume::{Receiver, Sender};
+
+use base::biome::BiomeList;
+use base::world::{Sections, WorldHeight};
 use base::{
     anvil::{block_entity::BlockEntityData, entity::EntityData},
     Chunk, ChunkHandle, ChunkPosition,
 };
-use flume::{Receiver, Sender};
 use worldgen::WorldGenerator;
 
 use crate::region_worker::RegionWorker;
@@ -51,13 +54,23 @@ pub struct ChunkWorker {
     send_gen: Sender<LoadedChunk>,
     recv_gen: Receiver<LoadedChunk>, // Chunk generation should be infallible.
     recv_load: Receiver<ChunkLoadResult>,
+    sections: Sections,
+    min_y: i32,
+    biomes: Arc<BiomeList>,
 }
 
 impl ChunkWorker {
-    pub fn new(world_dir: impl Into<PathBuf>, generator: Arc<dyn WorldGenerator>) -> Self {
+    pub fn new(
+        world_dir: impl Into<PathBuf>,
+        generator: Arc<dyn WorldGenerator>,
+        height: WorldHeight,
+        min_y: i32,
+        biomes: Arc<BiomeList>,
+    ) -> Self {
         let (send_req, recv_req) = flume::unbounded();
         let (send_gen, recv_gen) = flume::unbounded();
-        let (region_worker, recv_load) = RegionWorker::new(world_dir.into(), recv_req);
+        let (region_worker, recv_load) =
+            RegionWorker::new(world_dir.into(), recv_req, height, Arc::clone(&biomes));
         region_worker.start();
         Self {
             generator,
@@ -65,13 +78,16 @@ impl ChunkWorker {
             send_gen,
             recv_gen,
             recv_load,
+            sections: height.into(),
+            min_y,
+            biomes,
         }
     }
     pub fn queue_load(&mut self, request: LoadRequest) {
         self.send_req.send(WorkerRequest::Load(request)).unwrap()
     }
 
-    /// Helper function for poll_loaded_chunk. Attemts to receive a freshly generated chunk.
+    /// Helper function for poll_loaded_chunk. Attempts to receive a freshly generated chunk.
     /// Function signature identical to that of poll_loaded_chunk for ease of use.
     fn try_recv_gen(&mut self) -> Result<Option<LoadedChunk>, anyhow::Error> {
         match self.recv_gen.try_recv() {
@@ -91,9 +107,12 @@ impl ChunkWorker {
                         // chunk does not exist, queue it for generation
                         let send_gen = self.send_gen.clone();
                         let gen = self.generator.clone();
+                        let sections = self.sections;
+                        let min_y = self.min_y;
+                        let biomes = Arc::clone(&self.biomes);
                         rayon::spawn(move || {
                             // spawn task to generate chunk
-                            let chunk = gen.generate_chunk(pos);
+                            let chunk = gen.generate_chunk(pos, sections, min_y, &*biomes);
                             send_gen.send(LoadedChunk { pos, chunk }).unwrap()
                         });
                         self.try_recv_gen() // check for generated chunks

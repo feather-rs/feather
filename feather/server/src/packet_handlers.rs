@@ -82,7 +82,6 @@ pub fn handle_packet(
         | ClientPlayPacket::SetDifficulty(_)
         | ClientPlayPacket::ClientStatus(_)
         | ClientPlayPacket::TabComplete(_)
-        | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
         | ClientPlayPacket::CloseWindow(_)
         | ClientPlayPacket::PluginMessage(_)
@@ -109,7 +108,8 @@ pub fn handle_packet(
         | ClientPlayPacket::UpdateStructureBlock(_)
         | ClientPlayPacket::UpdateSign(_)
         | ClientPlayPacket::Spectate(_)
-        | ClientPlayPacket::UseItem(_) => Ok(()),
+        | ClientPlayPacket::UseItem(_)
+        | ClientPlayPacket::Pong(_) => Ok(()),
     }
 }
 
