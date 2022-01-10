@@ -287,12 +287,20 @@ impl Sprinting {
 bincode_component_impl!(Sprinting);
 
 #[derive(
-    Clone, PartialEq, Debug, derive_more::Deref, derive_more::DerefMut, Serialize, Deserialize,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Debug,
+    derive_more::Deref,
+    derive_more::DerefMut,
+    Serialize,
+    Deserialize,
 )]
 pub struct EntityDimension(pub String);
 bincode_component_impl!(EntityDimension);
 
-#[derive(Copy, Clone, PartialEq, Debug, derive_more::Deref, derive_more::DerefMut)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, derive_more::Deref, derive_more::DerefMut)]
 pub struct EntityWorld(pub ecs::Entity);
 
 impl Serialize for EntityWorld {

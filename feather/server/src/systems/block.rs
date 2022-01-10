@@ -65,7 +65,7 @@ fn broadcast_block_change_chunk_overwrite(
                 0.0,
                 (chunk_pos.z * CHUNK_WIDTH as i32) as f64,
             );
-            server.broadcast_nearby_with(position, |client| {
+            server.broadcast_nearby_with(event.world(), event.dimension(), position, |client| {
                 client.overwrite_chunk(&chunk);
             })
         }
@@ -84,9 +84,12 @@ fn broadcast_block_change_simple(event: &BlockChangeEvent, game: &Game, server: 
     for pos in event.iter_changed_blocks() {
         let new_block = dimension.block_at(pos);
         if let Some(new_block) = new_block {
-            server.broadcast_nearby_with(pos.position(), |client| {
-                client.send_block_change(pos, new_block)
-            });
+            server.broadcast_nearby_with(
+                event.world(),
+                event.dimension(),
+                pos.position(),
+                |client| client.send_block_change(pos, new_block),
+            );
         }
     }
 }

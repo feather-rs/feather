@@ -2,13 +2,22 @@
 
 use std::{sync::Arc, time::Instant};
 
-use base::Position;
+use flume::Receiver;
+
 use chunk_subscriptions::ChunkSubscriptions;
+pub use client::{Client, ClientId, Clients};
 use common::Game;
 use ecs::SystemExecutor;
-use flume::Receiver;
 use initial_handler::NewPlayer;
+use libcraft_core::Position;
 use listener::Listener;
+pub use network_id_registry::NetworkId;
+pub use options::Options;
+use player_count::PlayerCount;
+use quill_common::components::{EntityDimension, EntityWorld};
+use systems::view::WaitingChunks;
+
+use crate::chunk_subscriptions::DimensionChunkPosition;
 
 mod chunk_subscriptions;
 pub mod client;
@@ -25,12 +34,6 @@ mod player_count;
 mod systems;
 
 pub const VERSION: &str = include_str!("../../../constants/VERSION");
-
-pub use client::{Client, ClientId, Clients};
-pub use network_id_registry::NetworkId;
-pub use options::Options;
-use player_count::PlayerCount;
-use systems::view::WaitingChunks;
 
 /// A Minecraft server.
 ///
@@ -134,8 +137,21 @@ impl Server {
     /// to the given position. This function should be
     /// used for entity updates, block updates, etc—
     /// any packets that need to be sent only to nearby players.
-    pub fn broadcast_nearby_with(&self, position: Position, mut callback: impl FnMut(&Client)) {
-        for &client_id in self.chunk_subscriptions.subscriptions_for(position.chunk()) {
+    pub fn broadcast_nearby_with(
+        &self,
+        world: EntityWorld,
+        dimension: &EntityDimension,
+        position: Position,
+        mut callback: impl FnMut(&Client),
+    ) {
+        for &client_id in self
+            .chunk_subscriptions
+            .subscriptions_for(DimensionChunkPosition(
+                world,
+                dimension.clone(),
+                position.chunk(),
+            ))
+        {
             if let Some(client) = self.clients.get(client_id) {
                 callback(client);
             }
@@ -148,10 +164,19 @@ impl Server {
     /// any packets that need to be sent only to nearby players.
     pub fn broadcast_nearby_with_mut(
         &mut self,
+        world: EntityWorld,
+        dimension: &EntityDimension,
         position: Position,
         mut callback: impl FnMut(&mut Client),
     ) {
-        for &client_id in self.chunk_subscriptions.subscriptions_for(position.chunk()) {
+        for &client_id in self
+            .chunk_subscriptions
+            .subscriptions_for(DimensionChunkPosition(
+                world,
+                dimension.clone(),
+                position.chunk(),
+            ))
+        {
             if let Some(client) = self.clients.get_mut(client_id) {
                 callback(client);
             }
