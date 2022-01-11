@@ -174,7 +174,7 @@ where
                             data: {
                                 let mut data = data.resized(Self::global_palette_bits_per_value());
                                 // Update items to use global IDs instead of palette indices
-                                Self::map_to_global_palette(len, &palette, &mut data);
+                                Self::map_to_global_palette(len, palette, &mut data);
                                 data
                             },
                         }
