@@ -24,4 +24,4 @@ libcraft-blocks = { path = "../../libcraft/blocks" }
 rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 rand = "0.8"
-derive_more = "0.99.17"
+derive_more = "0.99 "

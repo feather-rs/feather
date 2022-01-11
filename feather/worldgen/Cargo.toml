@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 base = { path = "../base", package = "feather-base" }
-log = "0.4.14"
+log = "0.4"

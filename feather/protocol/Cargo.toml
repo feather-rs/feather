@@ -24,7 +24,7 @@ uuid = "0.8"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
 libcraft-blocks = { path = "../../libcraft/blocks" }
-either = "1.6.1"
+either = "1"
 
 [features]
 proxy = ["base/proxy"]
