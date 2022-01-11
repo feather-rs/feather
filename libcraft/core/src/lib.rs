@@ -1,6 +1,5 @@
 //! Foundational types and constants for Minecraft.
 
-mod biome;
 pub mod block;
 mod consts;
 mod entity;

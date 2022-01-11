@@ -155,7 +155,7 @@ pub enum BiomeGrassColorModifier {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(from = "String", into = "String")] // quartz_nbt serialized enum variants by their index, not name
+#[serde(rename_all = "snake_case")]
 pub enum BiomeCategory {
     Ocean,
     Plains,
@@ -176,59 +176,6 @@ pub enum BiomeCategory {
     Mountain,
     Underground,
     None,
-}
-
-impl From<BiomeCategory> for String {
-    fn from(category: BiomeCategory) -> Self {
-        match category {
-            BiomeCategory::Ocean => "ocean",
-            BiomeCategory::Plains => "plains",
-            BiomeCategory::Desert => "desert",
-            BiomeCategory::Forest => "forest",
-            BiomeCategory::ExtremeHills => "extreme_hills",
-            BiomeCategory::Taiga => "taiga",
-            BiomeCategory::Swamp => "swamp",
-            BiomeCategory::River => "river",
-            BiomeCategory::Nether => "nether",
-            BiomeCategory::TheEnd => "the_end",
-            BiomeCategory::Icy => "icy",
-            BiomeCategory::Mushroom => "mushroom",
-            BiomeCategory::Beach => "beach",
-            BiomeCategory::Jungle => "jungle",
-            BiomeCategory::Mesa => "mesa",
-            BiomeCategory::Savanna => "savanna",
-            BiomeCategory::Mountain => "mountain",
-            BiomeCategory::Underground => "underground",
-            BiomeCategory::None => "none",
-        }
-        .to_owned()
-    }
-}
-
-impl From<String> for BiomeCategory {
-    fn from(s: String) -> Self {
-        match &s[..] {
-            "ocean" => BiomeCategory::Ocean,
-            "plains" => BiomeCategory::Plains,
-            "desert" => BiomeCategory::Desert,
-            "forest" => BiomeCategory::Forest,
-            "extreme_hills" => BiomeCategory::ExtremeHills,
-            "taiga" => BiomeCategory::Taiga,
-            "swamp" => BiomeCategory::Swamp,
-            "river" => BiomeCategory::River,
-            "nether" => BiomeCategory::Nether,
-            "the_end" => BiomeCategory::TheEnd,
-            "icy" => BiomeCategory::Icy,
-            "mushroom" => BiomeCategory::Mushroom,
-            "beach" => BiomeCategory::Beach,
-            "jungle" => BiomeCategory::Jungle,
-            "mesa" => BiomeCategory::Mesa,
-            "savanna" => BiomeCategory::Savanna,
-            "mountain" => BiomeCategory::Mountain,
-            "underground" => BiomeCategory::Underground,
-            _ => BiomeCategory::None,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
