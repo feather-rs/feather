@@ -850,7 +850,7 @@ dependencies = [
  "smallvec",
  "thiserror",
  "uuid",
- "vek",
+ "vek 0.14.1",
 ]
 
 [[package]]
@@ -1528,6 +1528,7 @@ dependencies = [
  "once_cell",
  "serde",
  "thiserror",
+ "vek 0.15.4",
 ]
 
 [[package]]
@@ -1540,7 +1541,7 @@ dependencies = [
  "serde",
  "strum",
  "strum_macros",
- "vek",
+ "vek 0.14.1",
 ]
 
 [[package]]
@@ -3305,6 +3306,20 @@ name = "vek"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04d6626f32b226e2c5b35f23ea87eaf683f3d93eaeb16b4084d0683479616f0f"
+dependencies = [
+ "approx",
+ "num-integer",
+ "num-traits",
+ "rustc_version 0.2.3",
+ "serde",
+ "static_assertions",
+]
+
+[[package]]
+name = "vek"
+version = "0.15.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "343a216b8dcc20237304602200d904ef88d9208d7d9b7014554db0e1e8da7ee9"
 dependencies = [
  "approx",
  "num-integer",
