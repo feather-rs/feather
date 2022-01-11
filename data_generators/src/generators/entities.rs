@@ -19,10 +19,10 @@ pub fn generate() {
         u32,
         entities
             .iter()
-            .map(|e| (
-                e.name.to_case(Case::UpperCamel),
-                e.id.to_string().parse().unwrap()
-            ))
+            .map(|e| (e.name.to_case(Case::UpperCamel), {
+                let id = e.id;
+                quote! { #id }
+            }))
             .collect(),
         true
     ));
@@ -59,10 +59,10 @@ pub fn generate() {
         &str,
         entities
             .iter()
-            .map(|e| (
-                e.name.to_case(Case::UpperCamel),
-                format!("\"{}\"", e.name).parse().unwrap()
-            ))
+            .map(|e| (e.name.to_case(Case::UpperCamel), {
+                let name = &e.name;
+                quote! { #name }
+            }))
             .collect(),
         true,
         &'static str
@@ -74,10 +74,10 @@ pub fn generate() {
         &str,
         entities
             .iter()
-            .map(|e| (
-                e.name.to_case(Case::UpperCamel),
-                format!("\"minecraft:{}\"", e.name).parse().unwrap()
-            ))
+            .map(|e| (e.name.to_case(Case::UpperCamel), {
+                let namespaced_id = format!("minecraft:{}", e.name);
+                quote! { #namespaced_id }
+            }))
             .collect(),
         true,
         &'static str

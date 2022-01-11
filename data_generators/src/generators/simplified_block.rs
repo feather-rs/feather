@@ -1,8 +1,8 @@
 use convert_case::{Case, Casing};
+use indexmap::map::IndexMap;
 use regex::Regex;
 
 use crate::utils::*;
-use indexmap::map::IndexMap;
 
 pub fn generate() {
     let simplified_blocks: SimplifiedBlocks = load_libcraft_json("simplified_block.json").unwrap();
@@ -36,10 +36,10 @@ pub fn generate() {
         SimplifiedBlockKind,
         mappings
             .into_iter()
-            .map(|(key, value)| (
-                key,
-                format!("SimplifiedBlockKind::{}", value).parse().unwrap()
-            ))
+            .map(|(key, value)| (key, {
+                let kind = format_ident!("{}", value);
+                quote! { SimplifiedBlockKind::#kind }
+            }))
             .collect(),
     ));
 

@@ -19,10 +19,10 @@ pub fn generate() {
         "id",
         u32,
         data.iter()
-            .map(|item| (
-                item.name.to_case(Case::UpperCamel),
-                item.id.to_string().parse().unwrap()
-            ))
+            .map(|item| (item.name.to_case(Case::UpperCamel), {
+                let id = item.id;
+                quote! { #id }
+            }))
             .collect(),
         true
     ));
@@ -31,10 +31,10 @@ pub fn generate() {
         "name",
         &str,
         data.iter()
-            .map(|item| (
-                item.name.to_case(Case::UpperCamel),
-                format!("\"{}\"", item.name).parse().unwrap()
-            ))
+            .map(|item| (item.name.to_case(Case::UpperCamel), {
+                let name = &item.name;
+                quote! { #name }
+            }))
             .collect(),
         true,
         &'static str
@@ -44,10 +44,10 @@ pub fn generate() {
         "namespaced_id",
         &str,
         data.iter()
-            .map(|item| (
-                item.name.to_case(Case::UpperCamel),
-                format!("\"minecraft:{}\"", item.name).parse().unwrap()
-            ))
+            .map(|item| (item.name.to_case(Case::UpperCamel), {
+                let namespaced_id = format!("minecraft:{}", item.name);
+                quote! { #namespaced_id }
+            }))
             .collect(),
         true,
         &'static str
@@ -58,10 +58,10 @@ pub fn generate() {
         u32,
         data.iter()
             .map(|item| {
-                (
-                    item.name.to_case(Case::UpperCamel),
-                    item.stack_size.to_string().parse().unwrap(),
-                )
+                (item.name.to_case(Case::UpperCamel), {
+                    let stack_size = item.stack_size;
+                    quote! { #stack_size }
+                })
             })
             .collect(),
     ));
@@ -73,10 +73,11 @@ pub fn generate() {
             .map(|item| {
                 (
                     item.name.to_case(Case::UpperCamel),
-                    item.max_durability
-                        .map_or("None".parse().unwrap(), |durability| {
-                            format!("Some({})", durability).parse().unwrap()
-                        }),
+                    if let Some(max_durability) = item.max_durability {
+                        quote! { Some(#max_durability) }
+                    } else {
+                        quote! { None }
+                    },
                 )
             })
             .collect(),
@@ -87,21 +88,16 @@ pub fn generate() {
         Vec<&str>,
         data.iter()
             .map(|item| {
-                (
-                    item.name.to_case(Case::UpperCamel),
-                    format!(
-                        "vec![{}]",
-                        item.fixed_with
-                            .par_iter()
-                            .flatten()
-                            .map(|c| format!("\"{}\", ", c))
-                            .collect::<String>()
-                    )
-                    .parse()
-                    .unwrap(),
-                )
+                (item.name.to_case(Case::UpperCamel), {
+                    let fixed_with = item.fixed_with.clone().unwrap_or_default();
+                    quote! {
+                        vec![#(#fixed_with),*]
+                    }
+                })
             })
             .collect(),
+        false,
+        Vec<&'static str>
     ));
     out.extend(quote! {
         use std::convert::TryFrom;
@@ -148,7 +144,7 @@ struct Item {
     name: String,
     #[allow(dead_code)]
     display_name: String,
-    stack_size: i32,
+    stack_size: u32,
     max_durability: Option<u32>,
     fixed_with: Option<Vec<String>>,
 }
