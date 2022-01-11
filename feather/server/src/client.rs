@@ -210,6 +210,7 @@ impl Client {
         self.network_id = Some(network_id);
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn send_join_game(
         &mut self,
         gamemode: Gamemode,
@@ -475,6 +476,7 @@ impl Client {
         });
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update_entity_position(
         &mut self,
         network_id: NetworkId,

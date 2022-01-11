@@ -112,6 +112,7 @@ fn broadcast_player_leave(game: &Game, username: &Name) {
     game.broadcast_chat(ChatKind::System, message);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn create_player_data(
     position: Position,
     gamemode: Gamemode,

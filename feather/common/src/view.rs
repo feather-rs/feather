@@ -61,7 +61,7 @@ fn update_view_on_join(game: &mut Game) -> SysResult {
         )>()
         .iter()
     {
-        let event = ViewUpdateEvent::new(&View::empty(world, dimension.clone()), &view);
+        let event = ViewUpdateEvent::new(&View::empty(world, dimension.clone()), view);
         events.push((player, event));
         log::trace!("View of {} has been updated (player joined)", name);
     }

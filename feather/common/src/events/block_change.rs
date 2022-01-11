@@ -24,7 +24,7 @@ impl BlockChangeEvent {
         Self {
             changes: BlockChanges::Single { pos },
             world,
-            dimension: dimension.into(),
+            dimension,
         }
     }
 
