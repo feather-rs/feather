@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use convert_case::{Case, Casing};
 use regex::Regex;
 
@@ -13,7 +11,7 @@ pub fn generate() {
     let mut out = quote! { use crate::BlockKind; };
 
     let mappings = blocks
-        .into_par_iter()
+        .into_iter()
         .map(|block| {
             (
                 block.name.to_case(Case::UpperCamel),
@@ -26,7 +24,7 @@ pub fn generate() {
                     .unwrap_or_else(|| block.name.to_case(Case::UpperCamel)),
             )
         })
-        .collect::<HashMap<_, _>>();
+        .collect::<IndexMap<_, _>>();
 
     let mut variants = mappings.values().collect::<Vec<_>>();
     variants.sort();

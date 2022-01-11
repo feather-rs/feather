@@ -147,11 +147,11 @@ macro_rules! generate_enum_property {
         )
     };
     ($enum_name: ident, $property_name: literal, $typ: ty, $mapping: expr, $reverse: expr, $return_type: ty, $needs_bindings: expr $(,)?) => {{
+        use indexmap::IndexMap;
         use proc_macro2::TokenStream;
-        use std::collections::HashMap;
 
         let property_name: &str = $property_name;
-        let mapping: HashMap<String, TokenStream> = $mapping;
+        let mapping: IndexMap<String, TokenStream> = $mapping;
         let reverse: bool = $reverse;
         let needs_bindings: bool = $needs_bindings;
 

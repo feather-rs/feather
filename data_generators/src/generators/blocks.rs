@@ -1,21 +1,19 @@
-use std::collections::HashMap;
-
 use convert_case::{Case, Casing};
+use indexmap::IndexMap;
 
 use crate::utils::*;
 
 pub fn generate() {
-    let item_names_by_id: HashMap<u32, String> =
-        load_minecraft_json::<Vec<IdAndName>>("items.json")
-            .unwrap()
-            .into_par_iter()
-            .map(|IdAndName { id, name }| (id, name))
-            .collect();
-    let material_dig_multipliers: HashMap<String, HashMap<u32, f32>> =
+    let item_names_by_id = load_minecraft_json::<Vec<IdAndName>>("items.json")
+        .unwrap()
+        .into_iter()
+        .map(|IdAndName { id, name }| (id, name))
+        .collect::<IndexMap<_, _>>();
+    let material_dig_multipliers: IndexMap<String, IndexMap<u32, f32>> =
         load_minecraft_json("materials.json").unwrap();
     let blocks: Vec<Block> = load_minecraft_json("blocks.json").unwrap();
 
-    let mut material_constant_refs = HashMap::new();
+    let mut material_constant_refs = IndexMap::new();
 
     let mut dig_multiplier_constants = Vec::new();
     for (name, dig_multipliers) in material_dig_multipliers {
@@ -287,7 +285,7 @@ pub fn generate() {
                             .map(|item| {
                                 format_ident!(
                                     "{}",
-                                    item_names_by_id[&item.parse().unwrap()]
+                                    item_names_by_id[&item.parse::<u32>().unwrap()]
                                         .to_case(Case::UpperCamel)
                                 )
                             })
@@ -350,7 +348,7 @@ struct Block {
     max_state_id: u16,
     #[allow(dead_code)]
     states: Vec<State>,
-    harvest_tools: Option<HashMap<String, bool>>,
+    harvest_tools: Option<IndexMap<String, bool>>,
     drops: Vec<u32>,
     bounding_box: String,
 }

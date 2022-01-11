@@ -3,7 +3,6 @@ use indexmap::IndexMap;
 use proc_macro2::TokenStream;
 use serde::de::{Error, Unexpected};
 use serde::Deserializer;
-use std::collections::HashMap;
 
 use crate::utils::*;
 
@@ -19,7 +18,7 @@ pub fn generate() {
             .collect::<Vec<_>>()
     );
 
-    let mut window_offsets = HashMap::new();
+    let mut window_offsets = IndexMap::new();
     for (name, window) in &inventories.windows {
         let mut offset = 0;
         let mut offsets = IndexMap::new();
@@ -186,8 +185,8 @@ pub fn generate() {
 #[derive(Deserialize)]
 struct Inventories {
     areas: Vec<AreaName>,
-    inventories: HashMap<InventoryName, IndexMap<AreaName, usize>>,
-    windows: HashMap<WindowName, WindowInfo>,
+    inventories: IndexMap<InventoryName, IndexMap<AreaName, usize>>,
+    windows: IndexMap<WindowName, WindowInfo>,
 }
 
 #[derive(Deserialize)]
