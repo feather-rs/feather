@@ -1,18 +1,18 @@
 use fs_extra::dir::CopyOptions;
 use std::path::PathBuf;
 
-const VERSION: &str = include_str!("../../constants/VERSION");
+use feather_base::{SERVER_DOWNLOAD_URL, VERSION_STRING};
 
 pub fn extract_vanilla_data() {
     const SERVER_JAR: &str = "server.jar";
 
-    if std::fs::read_to_string("generated/.version").ok() != Some(VERSION.to_string()) {
+    if std::fs::read_to_string("generated/.version").ok() != Some(VERSION_STRING.to_string()) {
         let _ = std::fs::remove_dir_all("generated");
         if !PathBuf::from(SERVER_JAR).is_file() {
             log::info!("Downloading Minecraft server jar");
             std::fs::write(
                 SERVER_JAR,
-                reqwest::blocking::get(include_str!("../../constants/SERVER_DOWNLOAD_URL"))
+                reqwest::blocking::get(SERVER_DOWNLOAD_URL)
                     .unwrap()
                     .bytes()
                     .unwrap(),
@@ -33,7 +33,7 @@ pub fn extract_vanilla_data() {
             .unwrap()
             .wait()
             .unwrap();
-        std::fs::write("generated/.version", VERSION).unwrap();
+        std::fs::write("generated/.version", VERSION_STRING).unwrap();
         std::fs::remove_file(SERVER_JAR).unwrap();
         std::fs::remove_dir_all("libraries").unwrap();
         std::fs::remove_dir_all("logs").unwrap();

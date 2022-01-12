@@ -4,24 +4,13 @@
 //! * The block ID system
 //! * The chunk data structure
 
-use std::time::Duration;
-
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
-
-pub mod anvil;
-pub mod biome;
-mod block;
-pub mod chunk;
-pub mod chunk_lock;
-pub mod inventory;
-pub mod metadata;
-pub mod world;
 
 pub use block::{BlockPositionValidationError, ValidBlockPosition};
 pub use chunk::{Chunk, ChunkSection, CHUNK_WIDTH};
 pub use chunk_lock::*;
-
+pub use consts::*;
 pub use libcraft_blocks::{BlockId, BlockKind};
 pub use libcraft_core::{
     position, vec3, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d,
@@ -33,15 +22,15 @@ pub use libcraft_text::{deserialize_text, Text, Title};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
 
-/// Number of updates (ticks) to do per second.
-pub const TPS: u32 = 20;
-/// The number of milliseconds per tick.
-pub const TICK_MILLIS: u32 = 1000 / TPS;
-/// The duration of a tick.
-pub const TICK_DURATION: Duration = Duration::from_millis(TICK_MILLIS as u64);
-
-/// Default port for Minecraft servers.
-pub const DEFAULT_PORT: u16 = 25565;
+pub mod anvil;
+pub mod biome;
+mod block;
+pub mod chunk;
+pub mod chunk_lock;
+mod consts;
+pub mod inventory;
+pub mod metadata;
+pub mod world;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, FromPrimitive, ToPrimitive)]
 pub enum Direction {

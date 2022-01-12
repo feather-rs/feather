@@ -14,7 +14,6 @@ use std::{fs, io, iter};
 
 use bitvec::{bitvec, vec::BitVec};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use konst::{primitive::parse_i32, unwrap_ctx};
 use serde::{Deserialize, Serialize};
 
 use crate::biome::{BiomeId, BiomeList};
@@ -26,16 +25,12 @@ use crate::chunk::{LightStore, PackedArray};
 use crate::world::WorldHeight;
 use libcraft_blocks::BlockId;
 use libcraft_core::ChunkPosition;
+use crate::ANVIL_VERSION;
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
-
-/// The data version supported by this code
-const DATA_VERSION: i32 = unwrap_ctx!(parse_i32(include_str!(
-    "../../../../constants/WORLD_SAVE_VERSION"
-)));
 
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
@@ -205,7 +200,7 @@ impl RegionHandle {
         };
 
         // Check data version
-        if data_chunk.data_version != DATA_VERSION {
+        if data_chunk.data_version != ANVIL_VERSION {
             return Err(Error::UnsupportedDataVersion(data_chunk.data_version));
         }
 
@@ -527,7 +522,7 @@ fn chunk_to_data_chunk(
     biome_list: &BiomeList,
 ) -> DataChunk {
     DataChunk {
-        data_version: DATA_VERSION,
+        data_version: ANVIL_VERSION,
         x_pos: chunk.position().x,
         z_pos: chunk.position().z,
         min_y_section: chunk.min_y_section(),

@@ -17,3 +17,4 @@ indexmap = { version = "1", features = [ "serde" ] }
 bincode = "1"
 fs_extra = "1"
 log = "0.4"
+feather-base = { path = "../feather/base" }

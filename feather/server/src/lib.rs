@@ -33,8 +33,6 @@ mod packet_handlers;
 mod player_count;
 mod systems;
 
-pub const VERSION: &str = include_str!("../../../constants/VERSION");
-
 /// A Minecraft server.
 ///
 /// Call [`link_with_game`](Server::link_with_game) to register the server

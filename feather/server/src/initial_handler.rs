@@ -1,14 +1,21 @@
 //! Initial handling of a connection.
 
-use crate::{connection_worker::Worker, favicon::Favicon};
+use std::convert::TryInto;
+
 use anyhow::bail;
-use base::{ProfileProperty, Text};
 use const_format::concatcp;
 use flume::{Receiver, Sender};
-use konst::{primitive::parse_i32, unwrap_ctx};
 use md5::Digest;
 use num_bigint::BigInt;
 use once_cell::sync::Lazy;
+use rand::rngs::OsRng;
+use rsa::{PaddingScheme, PublicKeyParts, RsaPrivateKey};
+use serde::{Deserialize, Serialize};
+use sha1::Sha1;
+use uuid::Uuid;
+
+use base::{PROTOCOL_VERSION, VERSION_STRING};
+use base::{ProfileProperty, Text};
 use protocol::{
     codec::CryptKey,
     packets::{
@@ -20,19 +27,12 @@ use protocol::{
     ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
 };
-use rand::rngs::OsRng;
-use rsa::{PaddingScheme, PublicKeyParts, RsaPrivateKey};
-use serde::{Deserialize, Serialize};
-use sha1::Sha1;
-use std::convert::TryInto;
-use uuid::Uuid;
+
+use crate::{connection_worker::Worker, favicon::Favicon};
 
 use self::proxy::ProxyData;
 
-const SERVER_NAME: &str = concatcp!("Feather ", crate::VERSION);
-pub const PROTOCOL_VERSION: i32 = unwrap_ctx!(parse_i32(include_str!(
-    "../../../constants/PROTOCOL_VERSION"
-)));
+const SERVER_NAME: &str = concatcp!("Feather ", VERSION_STRING);
 
 mod proxy;
 
