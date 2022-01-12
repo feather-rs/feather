@@ -36,9 +36,6 @@ pub fn init(level: LevelFilter) {
             ));
         })
         .level(level)
-        // cranelift_codegen spams debug-level logs
-        .level_for("cranelift_codegen", LevelFilter::Info)
-        .level_for("regalloc", LevelFilter::Off)
         .chain(std::io::stdout())
         .apply()
         .unwrap();
