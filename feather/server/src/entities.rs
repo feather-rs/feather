@@ -40,10 +40,10 @@ pub fn add_entity_components(builder: &mut EntityBuilder, kind: EntityKind) {
     builder
         .add(PreviousPosition(prev_position))
         .add(PreviousOnGround(on_ground));
-    add_spawn_packet(builder, &kind);
+    add_spawn_packet(builder, kind);
 }
 
-fn add_spawn_packet(builder: &mut EntityBuilder, kind: &EntityKind) {
+fn add_spawn_packet(builder: &mut EntityBuilder, kind: EntityKind) {
     // TODO: object entities spawned with Spawn Entity
     // (minecarts, items, ...)
     let spawn_packet = match kind {
