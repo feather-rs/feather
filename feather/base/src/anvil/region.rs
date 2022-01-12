@@ -3,6 +3,7 @@
 
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap};
+use std::convert::TryInto;
 use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
@@ -23,9 +24,9 @@ use crate::chunk::{
 };
 use crate::chunk::{LightStore, PackedArray};
 use crate::world::WorldHeight;
+use crate::ANVIL_VERSION;
 use libcraft_blocks::BlockId;
 use libcraft_core::ChunkPosition;
-use crate::ANVIL_VERSION;
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
 
@@ -421,7 +422,11 @@ fn read_section_into_chunk(
         .map(|data| PackedArray::from_i64_vec(data, SECTION_VOLUME))
     {
         blocks.set_data(
-            if blocks_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
+            if blocks_data.bits_per_value()
+                > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY
+                    .try_into()
+                    .unwrap()
+            {
                 // Convert to GlobalPalette
                 let mut data = blocks_data
                     .resized(PalettedContainer::<BlockId>::global_palette_bits_per_value());
@@ -442,7 +447,11 @@ fn read_section_into_chunk(
         .map(|data| PackedArray::from_i64_vec(data, BIOMES_PER_CHUNK_SECTION))
     {
         biomes.set_data(
-            if biomes_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
+            if biomes_data.bits_per_value()
+                > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY
+                    .try_into()
+                    .unwrap()
+            {
                 // Convert to GlobalPalette
                 let mut data = biomes_data
                     .resized(PalettedContainer::<BiomeId>::global_palette_bits_per_value());

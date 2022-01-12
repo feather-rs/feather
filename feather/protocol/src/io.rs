@@ -13,7 +13,6 @@ use std::{
 use anyhow::{anyhow, bail, Context};
 use base::anvil::entity::ItemNbt;
 use base::chunk::paletted_container::{Paletteable, PalettedContainer};
-use base::chunk::PackedArray;
 use base::metadata::MetaEntry;
 use base::{Direction, EntityMetadata, ValidBlockPosition};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
@@ -1008,7 +1007,10 @@ where
 {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let data = self.data();
-        (data.map(PackedArray::bits_per_value).unwrap_or_default() as u8).write(buffer, version)?;
+        (data
+            .map(|arr| arr.bits_per_value().get())
+            .unwrap_or_default() as u8)
+            .write(buffer, version)?;
 
         match self {
             PalettedContainer::SingleValue(value) => {

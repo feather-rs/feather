@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::marker::PhantomData;
 
 use libcraft_blocks::{BlockId, SimplifiedBlockKind};
@@ -115,7 +116,9 @@ where
         Self {
             heights: PackedArray::new(
                 SECTION_WIDTH * SECTION_WIDTH,
-                (*height as f64 + 1.0).log2().ceil() as usize,
+                ((*height as f64 + 1.0).log2().ceil() as usize)
+                    .try_into()
+                    .unwrap(),
             ),
             height,
             _marker: PhantomData,

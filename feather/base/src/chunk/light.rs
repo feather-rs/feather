@@ -1,4 +1,5 @@
 use crate::chunk::ChunkSection;
+use std::convert::TryInto;
 
 use super::{PackedArray, SECTION_VOLUME};
 
@@ -21,8 +22,8 @@ impl LightStore {
     /// Creates a `LightStore` with all light set to 15.
     pub fn new() -> Self {
         let mut this = LightStore {
-            sky_light: Some(PackedArray::new(SECTION_VOLUME, 4)),
-            block_light: Some(PackedArray::new(SECTION_VOLUME, 4)),
+            sky_light: Some(PackedArray::new(SECTION_VOLUME, 4.try_into().unwrap())),
+            block_light: Some(PackedArray::new(SECTION_VOLUME, 4.try_into().unwrap())),
         };
         fill_with_default_light(this.sky_light.as_mut().unwrap());
         fill_with_default_light(this.block_light.as_mut().unwrap());
@@ -31,8 +32,8 @@ impl LightStore {
     /// Creates a `LightStore` with all light set to 0.
     pub fn empty() -> Self {
         LightStore {
-            block_light: Some(PackedArray::new(SECTION_VOLUME, 4)),
-            sky_light: Some(PackedArray::new(SECTION_VOLUME, 4)),
+            block_light: Some(PackedArray::new(SECTION_VOLUME, 4.try_into().unwrap())),
+            sky_light: Some(PackedArray::new(SECTION_VOLUME, 4.try_into().unwrap())),
         }
     }
 
@@ -43,10 +44,10 @@ impl LightStore {
     ) -> Option<Self> {
         if (sky_light.is_some()
             && (sky_light.as_ref().unwrap().len() != SECTION_VOLUME
-                || sky_light.as_ref().unwrap().bits_per_value() != 4))
+                || sky_light.as_ref().unwrap().bits_per_value() != 4.try_into().unwrap()))
             || (block_light.is_some()
                 && (block_light.as_ref().unwrap().len() != SECTION_VOLUME
-                    || block_light.as_ref().unwrap().bits_per_value() != 4))
+                    || block_light.as_ref().unwrap().bits_per_value() != 4.try_into().unwrap()))
         {
             None
         } else {

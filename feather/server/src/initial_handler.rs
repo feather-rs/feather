@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 use sha1::Sha1;
 use uuid::Uuid;
 
-use base::{PROTOCOL_VERSION, VERSION_STRING};
 use base::{ProfileProperty, Text};
+use base::{PROTOCOL_VERSION, VERSION_STRING};
 use protocol::{
     codec::CryptKey,
     packets::{

@@ -1,4 +1,6 @@
+use std::convert::TryInto;
 use std::fmt::Debug;
+use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use libcraft_blocks::HIGHEST_ID;
@@ -134,12 +136,15 @@ where
         T::ENTRIES_PER_CHUNK_SECTION
     }
 
-    pub fn global_palette_bits_per_value() -> usize {
+    pub fn global_palette_bits_per_value() -> NonZeroUsize {
         Self::palette_bits_per_value(T::length())
     }
 
-    pub fn palette_bits_per_value(palette_len: usize) -> usize {
-        (palette_len as f64).log2().ceil() as usize
+    pub fn palette_bits_per_value(palette_len: usize) -> NonZeroUsize {
+        ((palette_len as f64).log2().ceil() as usize)
+            .max(T::MIN_BITS_PER_ENTRY.into())
+            .try_into()
+            .unwrap()
     }
 
     fn get_palette_index(&mut self, item: T) -> Option<u32> {
@@ -159,15 +164,15 @@ where
         match self {
             PalettedContainer::SingleValue(value) => {
                 *self = PalettedContainer::MultipleValues {
-                    data: PackedArray::new(len, T::MIN_BITS_PER_ENTRY),
+                    data: PackedArray::new(len, T::MIN_BITS_PER_ENTRY.try_into().unwrap()),
                     palette: vec![*value],
                 }
             }
             PalettedContainer::MultipleValues { data, palette } => {
                 if palette.len() >= data.max_value() as usize {
                     // Resize to either the global palette or a new section palette size.
-                    let new_size = data.bits_per_value() + 1;
-                    if new_size <= T::MAX_BITS_PER_ENTRY {
+                    let new_size = (data.bits_per_value().get() + 1).try_into().unwrap();
+                    if new_size <= T::MAX_BITS_PER_ENTRY.try_into().unwrap() {
                         *data = data.resized(new_size);
                     } else {
                         *self = Self::GlobalPalette {
@@ -243,6 +248,7 @@ where
 }
 
 pub trait Paletteable: Default + Copy + PartialEq + Debug {
+    // TODO make it NonZeroUsize when const_option or nonzero_ops is stabilized
     const MIN_BITS_PER_ENTRY: usize;
     const MAX_BITS_PER_ENTRY: usize = Self::MIN_BITS_PER_ENTRY * 2;
     const ENTRIES_PER_CHUNK_SECTION: usize;
