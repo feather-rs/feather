@@ -145,7 +145,6 @@ impl Worker {
         tokio::task::spawn(async move {
             let result = reader.race(writer).await.expect("task panicked");
             if let Err(e) = result {
-                log::trace!("Panic error is: {}", e);
                 let message = disconnected_message(e);
                 log::debug!("{} lost connection: {}", username, message);
             }
