@@ -412,6 +412,7 @@ impl ChunkSection {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::convert::TryInto;
 
     #[test]
     fn chunk_new() {
@@ -534,7 +535,7 @@ mod tests {
         let mut palette = PalettedContainer::new();
         let stone_index = palette.index_or_insert(BlockId::stone());
 
-        let mut data = PackedArray::new(16 * SECTION_WIDTH * SECTION_WIDTH, 5);
+        let mut data = PackedArray::new(16 * SECTION_WIDTH * SECTION_WIDTH, 5.try_into().unwrap());
         for i in 0..4096 {
             data.set(i, stone_index as u64);
         }

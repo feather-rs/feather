@@ -142,7 +142,7 @@ where
 
     pub fn palette_bits_per_value(palette_len: usize) -> NonZeroUsize {
         ((palette_len as f64).log2().ceil() as usize)
-            .max(T::MIN_BITS_PER_ENTRY.into())
+            .max(T::MIN_BITS_PER_ENTRY)
             .try_into()
             .unwrap()
     }

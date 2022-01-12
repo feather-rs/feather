@@ -234,7 +234,7 @@ mod tests {
         let length = 100;
         let mut array = PackedArray::new(length, 10.try_into().unwrap());
         assert_eq!(array.len(), length);
-        assert_eq!(array.bits_per_value(), 10);
+        assert_eq!(array.bits_per_value().get(), 10);
         assert_eq!(array.bits.len(), 17);
 
         for i in 0..length {
@@ -293,7 +293,7 @@ mod tests {
                 assert_eq!(array.get(i), Some(oracle_value));
             }
 
-            array = array.resized(new_bits_per_value);
+            array = array.resized(new_bits_per_value.try_into().unwrap());
 
             for (i, &oracle_value) in oracle.iter().enumerate() {
                 assert_eq!(array.get(i), Some(oracle_value));
