@@ -146,23 +146,21 @@ fn init_dimensions(game: &mut Game, config: &Config) {
 fn init_biomes(game: &mut Game) {
     let mut biomes = BiomeList::default();
 
-    for dir in std::fs::read_dir("worldgen/").unwrap() {
-        if let Ok(dir) = dir {
-            for file in std::fs::read_dir(dir.path().join("worldgen/biome")).unwrap() {
-                if let Some(file_name) = file.as_ref().unwrap().file_name().to_str() {
-                    if file_name.ends_with(".json") {
-                        let biome: BiomeGeneratorInfo = serde_json::from_str(
-                            &std::fs::read_to_string(file.as_ref().unwrap().path()).unwrap(),
-                        )
-                        .unwrap();
-                        let name = format!(
-                            "{}:{}",
-                            dir.file_name().to_str().unwrap(),
-                            file_name.strip_suffix(".json").unwrap()
-                        );
-                        log::trace!("Loaded biome: {}", name);
-                        biomes.insert(name, biome);
-                    }
+    for dir in std::fs::read_dir("worldgen/").unwrap().flatten() {
+        for file in std::fs::read_dir(dir.path().join("worldgen/biome")).unwrap() {
+            if let Some(file_name) = file.as_ref().unwrap().file_name().to_str() {
+                if file_name.ends_with(".json") {
+                    let biome: BiomeGeneratorInfo = serde_json::from_str(
+                        &std::fs::read_to_string(file.as_ref().unwrap().path()).unwrap(),
+                    )
+                    .unwrap();
+                    let name = format!(
+                        "{}:{}",
+                        dir.file_name().to_str().unwrap(),
+                        file_name.strip_suffix(".json").unwrap()
+                    );
+                    log::trace!("Loaded biome: {}", name);
+                    biomes.insert(name, biome);
                 }
             }
         }
