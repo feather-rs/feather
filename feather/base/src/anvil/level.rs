@@ -164,7 +164,7 @@ impl LevelData {
         match self.generator_name.to_lowercase().as_str() {
             "default" => LevelGeneratorType::Default,
             "flat" => LevelGeneratorType::Flat,
-            "largeBiomes" => LevelGeneratorType::LargeBiomes,
+            "largebiomes" => LevelGeneratorType::LargeBiomes,
             "amplified" => LevelGeneratorType::Amplified,
             "buffet" => LevelGeneratorType::Buffet,
             "debug_all_block_states" => LevelGeneratorType::Debug,
