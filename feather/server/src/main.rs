@@ -1,8 +1,4 @@
-use std::path::PathBuf;
-use std::{cell::RefCell, rc::Rc, sync::Arc};
-
 use anyhow::Context;
-
 use base::anvil::level::SuperflatGeneratorOptions;
 use base::biome::{BiomeGeneratorInfo, BiomeList};
 use base::world::DimensionInfo;
@@ -12,6 +8,8 @@ use data_generators::extract_vanilla_data;
 use ecs::SystemExecutor;
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
+use std::path::PathBuf;
+use std::{cell::RefCell, rc::Rc, sync::Arc};
 use worldgen::{SuperflatWorldGenerator, WorldGenerator};
 
 mod logging;
@@ -151,26 +149,22 @@ fn init_biomes(game: &mut Game) {
     for dir in std::fs::read_dir("worldgen/").unwrap() {
         if let Ok(dir) = dir {
             for file in std::fs::read_dir(dir.path().join("worldgen/biome")).unwrap() {
-                let biome: BiomeGeneratorInfo = serde_json::from_str(
-                    &std::fs::read_to_string(file.as_ref().unwrap().path()).unwrap(),
-                )
-                .unwrap();
-                let name = format!(
-                    "{}:{}",
-                    dir.file_name().to_str().unwrap(),
-                    file.unwrap()
-                        .file_name()
-                        .to_str()
-                        .unwrap()
-                        .strip_suffix(".json")
-                        .unwrap()
-                        .to_owned()
-                );
-                log::trace!("Loaded biome: {}", name);
-                biomes.insert(name, biome);
+                if let Some(file_name) = file.as_ref().unwrap().file_name().to_str() {
+                    if file_name.ends_with(".json") {
+                        let biome: BiomeGeneratorInfo = serde_json::from_str(
+                            &std::fs::read_to_string(file.as_ref().unwrap().path()).unwrap(),
+                        )
+                        .unwrap();
+                        let name = format!(
+                            "{}:{}",
+                            dir.file_name().to_str().unwrap(),
+                            file_name.strip_suffix(".json").unwrap()
+                        );
+                        log::trace!("Loaded biome: {}", name);
+                        biomes.insert(name, biome);
+                    }
+                }
             }
-        } else {
-            log::warn!("Invalid directory name found in worldgen/")
         }
     }
     game.insert_resource(Arc::new(biomes))
