@@ -3,7 +3,6 @@
 
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap};
-use std::convert::TryInto;
 use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
@@ -422,11 +421,7 @@ fn read_section_into_chunk(
         .map(|data| PackedArray::from_i64_vec(data, SECTION_VOLUME))
     {
         blocks.set_data(
-            if blocks_data.bits_per_value()
-                > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY
-                    .try_into()
-                    .unwrap()
-            {
+            if blocks_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
                 // Convert to GlobalPalette
                 let mut data = blocks_data
                     .resized(PalettedContainer::<BlockId>::global_palette_bits_per_value());
@@ -447,11 +442,7 @@ fn read_section_into_chunk(
         .map(|data| PackedArray::from_i64_vec(data, BIOMES_PER_CHUNK_SECTION))
     {
         biomes.set_data(
-            if biomes_data.bits_per_value()
-                > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY
-                    .try_into()
-                    .unwrap()
-            {
+            if biomes_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
                 // Convert to GlobalPalette
                 let mut data = biomes_data
                     .resized(PalettedContainer::<BiomeId>::global_palette_bits_per_value());
