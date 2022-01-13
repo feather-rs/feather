@@ -178,23 +178,6 @@ pub struct ItemData {
     pub nbt: Option<ItemNbt>,
 }
 
-impl From<ItemData> for ItemStack {
-    fn from(item: ItemData) -> Self {
-        ItemStack::from(&item)
-    }
-}
-
-// Can't do proper Borrow trait impl because of orphan rule
-impl From<&ItemData> for ItemStack {
-    fn from(item: &ItemData) -> Self {
-        ItemNbt::item_stack(
-            &item.nbt,
-            Item::from_name(item.item.as_str()).unwrap(),
-            item.count as u8,
-        )
-    }
-}
-
 impl<S> From<S> for ItemData
 where
     S: std::borrow::Borrow<ItemStack>,
