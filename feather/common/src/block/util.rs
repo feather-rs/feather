@@ -1,11 +1,50 @@
-use base::{
-    categories::SupportType, BlockId, BlockKind, BlockPosition, FacingCardinal,
-    FacingCardinalAndDown, FacingCubic,
-};
-use libcraft_core::BlockFace;
+use std::convert::TryFrom;
 
 use crate::World;
-
+use base::{
+    categories::SupportType, BlockId, BlockKind, BlockPosition, EastNlt, FacingCardinal,
+    FacingCardinalAndDown, FacingCubic, NorthNlt, SouthNlt, WestNlt,
+};
+use libcraft_core::BlockFace;
+use std::convert::TryInto;
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum Nlt {
+    None,
+    Low,
+    Tall,
+}
+impl TryFrom<u16> for Nlt {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(Nlt::None),
+            1u16 => Ok(Nlt::Low),
+            2u16 => Ok(Nlt::Tall),
+            x => Err(anyhow::anyhow!("invalid value {} for Nlt", x)),
+        }
+    }
+}
+macro_rules! impl_conversions {
+    ($ty:ident) => {
+        impl From<Nlt> for $ty {
+            fn from(nlt: Nlt) -> Self {
+                (nlt as u16).try_into().unwrap()
+            }
+        }
+        impl From<$ty> for Nlt {
+            fn from(other_nlt: $ty) -> Self {
+                (other_nlt as u16).try_into().unwrap()
+            }
+        }
+    };
+    ($($ty:ident),+) => {
+        $(
+            impl_conversions!($ty);
+        )+
+    }
+}
+impl_conversions!(EastNlt, WestNlt, NorthNlt, SouthNlt);
 pub trait AdjacentBlockHelper {
     fn adjacent_block(&self, pos: BlockPosition, face: BlockFace) -> Option<BlockId>;
 
