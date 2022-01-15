@@ -318,49 +318,69 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
                 | BlackstoneWall
                 | PolishedBlackstoneBrickWall
                 | PolishedBlackstoneWall
-                | IronBars
         )
     };
     let is_wall_compatible =
         |block| is_wall(block) || matches!(block.simplified_kind(), GlassPane | IronBars);
     if is_wall_compatible(block) {
-        east_connected = east_connected || east.is_full_block() || is_wall_compatible(east);
-        west_connected = west_connected || west.is_full_block() || is_wall_compatible(west);
-        north_connected = north_connected || north.is_full_block() || is_wall_compatible(north);
-        south_connected = south_connected || south.is_full_block() || is_wall_compatible(south);
+        east_connected |= east.is_opaque() || is_wall_compatible(east);
+        west_connected |= west.is_opaque() || is_wall_compatible(west);
+        north_connected |= north.is_opaque() || is_wall_compatible(north);
+        south_connected |= south.is_opaque() || is_wall_compatible(south);
         if block.has_up() {
-            block.set_up(
-                !((east_connected ^ west_connected) && (north_connected ^ south_connected)),
-            );
+            block.set_up((east_connected ^ west_connected) || (north_connected ^ south_connected));
         }
     }
-    if matches!(block.simplified_kind(), Fence) {
-        east_connected |= east.is_full_block() || east.simplified_kind() == FenceGate;
-        west_connected |= west.is_full_block() || west.simplified_kind() == FenceGate;
-        north_connected |= north.is_full_block() || north.simplified_kind() == FenceGate;
-        south_connected |= south.is_full_block() || south.simplified_kind() == FenceGate;
+    if is_wall(block) || matches!(block.simplified_kind(), Fence) {
+        let gate_ew = |block: BlockId| {
+            matches!(
+                block.facing_cardinal(),
+                Some(FacingCardinal::North | FacingCardinal::South)
+            )
+        };
+        let gate_ns = |block: BlockId| {
+            matches!(
+                block.facing_cardinal(),
+                Some(FacingCardinal::West | FacingCardinal::East)
+            )
+        };
+        east_connected |=
+            east.is_opaque() || (east.simplified_kind() == FenceGate && gate_ew(east));
+        west_connected |=
+            west.is_opaque() || (west.simplified_kind() == FenceGate && gate_ew(west));
+        north_connected |=
+            north.is_opaque() || (north.simplified_kind() == FenceGate && gate_ns(north));
+        south_connected |=
+            south.is_opaque() || (south.simplified_kind() == FenceGate && gate_ns(south));
     }
     // TODO: walls are tall when stacked
-    block.set_east_nlt(if east_connected {
-        EastNlt::Low
+    if is_wall(block) {
+        block.set_east_nlt(if east_connected {
+            EastNlt::Low
+        } else {
+            EastNlt::None
+        });
+        block.set_west_nlt(if west_connected {
+            WestNlt::Low
+        } else {
+            WestNlt::None
+        });
+        block.set_north_nlt(if north_connected {
+            NorthNlt::Low
+        } else {
+            NorthNlt::None
+        });
+        block.set_south_nlt(if south_connected {
+            SouthNlt::Low
+        } else {
+            SouthNlt::None
+        });
     } else {
-        EastNlt::None
-    });
-    block.set_west_nlt(if west_connected {
-        WestNlt::Low
-    } else {
-        WestNlt::None
-    });
-    block.set_north_nlt(if north_connected {
-        NorthNlt::Low
-    } else {
-        NorthNlt::None
-    });
-    block.set_south_nlt(if south_connected {
-        SouthNlt::Low
-    } else {
-        SouthNlt::None
-    });
+        block.set_east_connected(east_connected);
+        block.set_west_connected(west_connected);
+        block.set_north_connected(north_connected);
+        block.set_south_connected(south_connected);
+    }
     world.set_block_at(pos, block);
 
     Some(())
