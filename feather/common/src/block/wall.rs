@@ -77,16 +77,38 @@ fn set_face_nlt(block: &mut BlockId, face: BlockFace, nlt: Nlt) -> bool {
     use BlockFace::*;
     match face {
         Bottom | Top => false,
+        East => block.set_east_nlt(nlt.into()),
+        West => block.set_west_nlt(nlt.into()),
         North => block.set_north_nlt(nlt.into()),
         South => block.set_south_nlt(nlt.into()),
-        West => block.set_west_nlt(nlt.into()),
-        East => block.set_east_nlt(nlt.into()),
+    }
+}
+fn is_nlt_connected(block: BlockId, face: BlockFace) -> Option<bool> {
+    use BlockFace::*;
+    let f = |n: Nlt| matches!(n, Nlt::Low | Nlt::Tall);
+    match face {
+        Bottom | Top => Some(false),
+        East => block.east_nlt().map(|n| f(n.into())),
+        West => block.west_nlt().map(|n| f(n.into())),
+        North => block.north_nlt().map(|n| f(n.into())),
+        South => block.south_nlt().map(|n| f(n.into())),
+    }
+}
+fn is_face_connected(block: BlockId, face: BlockFace) -> Option<bool> {
+    use BlockFace::*;
+    match face {
+        Bottom | Top => Some(false),
+        East => block.east_connected(),
+        West => block.west_connected(),
+        North => block.north_connected(),
+        South => block.south_connected(),
     }
 }
 
 pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Option<()> {
     use base::SimplifiedBlockKind::*;
     let mut block = world.block_at(pos)?;
+    let up = adjacent_or_default(world, pos, BlockFace::Top, BlockId::air());
     let (mut east_connected, mut west_connected, mut north_connected, mut south_connected) =
         (false, false, false, false);
     for (block_face, connected_flag) in [
@@ -109,18 +131,46 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
         *connected_flag |= facing.simplified_kind() == block.simplified_kind();
 
         if is_wall(block) {
-            // TODO: walls are tall when stacked
             set_face_nlt(
                 &mut block,
                 block_face,
-                if *connected_flag { Nlt::Low } else { Nlt::None },
+                if *connected_flag {
+                    if is_face_connected(up, block_face).unwrap_or(false)
+                        || is_nlt_connected(up, block_face).unwrap_or(false)
+                        || gate_connects_to_face(up, block_face)
+                        || up.is_opaque()
+                    {
+                        Nlt::Tall
+                    } else {
+                        Nlt::Low
+                    }
+                } else {
+                    Nlt::None
+                },
             );
         } else {
             set_face_connected(&mut block, block_face, *connected_flag);
         }
     }
     if is_wall(block) {
-        block.set_up((east_connected ^ west_connected) || (north_connected ^ south_connected));
+        let up_from_wall_cross =
+            (east_connected ^ west_connected) || (north_connected ^ south_connected);
+        let up_has_up = up.up().unwrap_or(false);
+        let up_ends = [
+            (BlockFace::East, east_connected),
+            (BlockFace::West, west_connected),
+            (BlockFace::North, north_connected),
+            (BlockFace::South, south_connected),
+        ]
+        .iter()
+        .any(|&(f, con)| {
+            con && !is_nlt_connected(up, f)
+                .or_else(|| is_face_connected(up, f))
+                .unwrap_or(true)
+        });
+        // TODO: Query this property at runtime because it is a tag.
+        let wall_post_override = false;
+        block.set_up(up_from_wall_cross || up_has_up || up_ends || wall_post_override);
     }
     world.set_block_at(pos, block);
 

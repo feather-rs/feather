@@ -15,9 +15,11 @@ pub fn block_update(game: &mut Game) -> SysResult {
                 BlockFace::West,
                 BlockFace::North,
                 BlockFace::South,
+                BlockFace::Bottom,
             ]
             .iter()
-            .map(|&d| pos.adjacent(d))
+            .map(|&d| [pos.adjacent(d), pos.adjacent(BlockFace::Bottom).adjacent(d)])
+            .flatten()
             {
                 if connect_neighbours_and_up(&mut game.world, adjacent).is_none() {
                     continue;
