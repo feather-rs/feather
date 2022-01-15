@@ -4,7 +4,7 @@ use libcraft_core::BlockFace;
 
 use crate::{events::BlockChangeEvent, Game};
 
-use super::util::connect_neighbours_and_up;
+use super::wall::connect_neighbours_and_up;
 
 /// TODO: send updated blocks to player
 pub fn block_update(game: &mut Game) -> SysResult {

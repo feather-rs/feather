@@ -1,4 +1,4 @@
-use super::util::{connect_neighbours_and_up, AdjacentBlockHelper};
+use super::{util::AdjacentBlockHelper, wall::connect_neighbours_and_up};
 use crate::chunk::entities::ChunkEntities;
 use crate::entities::player::HotbarSlot;
 use crate::events::BlockChangeEvent;
