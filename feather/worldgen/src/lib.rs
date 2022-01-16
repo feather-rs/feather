@@ -364,6 +364,18 @@ impl BiomeGenerator for StaticBiomeGenerator {
     }
 }
 
+pub fn seed_from_string(s: &str) -> u64 {
+    s.parse().unwrap_or_else(|_| {
+        if s.is_empty() {
+            rand::random()
+        } else {
+            s.chars()
+                .fold(0i32, |val, ch| val.wrapping_mul(31).wrapping_add(ch as i32))
+                as i64
+        }
+    }) as u64
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -467,5 +479,11 @@ mod tests {
         assert_eq!(biomes.get_at_block(16, 0, 16), Biome::Taiga);
         assert_eq!(biomes.get_at_block(-1, 0, -1), Biome::Plains);
         assert_eq!(biomes.get_at_block(-1, 0, 0), Biome::BirchForest);
+    }
+
+    #[test]
+    fn test_seed_from_config() {
+        assert_eq!(seed_from_string("42"), 42);
+        assert_eq!(seed_from_string("Hello"), 69609650);
     }
 }
