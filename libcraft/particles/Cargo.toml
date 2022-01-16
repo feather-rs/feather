@@ -8,7 +8,7 @@ edition = "2018"
 
 libcraft-blocks = { path = "../blocks"}
 libcraft-items = { path = "../items" }
-ordinalizer = "0.1.0"
+ordinalizer = "0.1"
 bytemuck = { version = "1", features = ["derive"] }
 num-derive = "0.3"
 num-traits = "0.2"

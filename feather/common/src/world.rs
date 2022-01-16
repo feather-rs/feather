@@ -5,12 +5,11 @@ use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use uuid::Uuid;
 
 use base::anvil::player::PlayerData;
-use base::{
-    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition, CHUNK_HEIGHT,
-};
-use blocks::BlockId;
-use ecs::{Ecs, SysResult};
-use worldgen::{ComposableGenerator, WorldGenerator};
+use base::biome::BiomeList;
+use base::world::{DimensionInfo, WorldHeight};
+use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition};
+use libcraft_blocks::BlockId;
+use worldgen::WorldGenerator;
 
 use crate::{
     chunk::cache::ChunkCache,
@@ -18,50 +17,91 @@ use crate::{
     events::ChunkLoadEvent,
 };
 
-/// Stores all blocks and chunks in a world,
-/// along with global world data like weather, time,
-/// and the [`WorldSource`](crate::world_source::WorldSource).
+#[derive(Clone, Debug, derive_more::Deref, derive_more::Constructor)]
+pub struct WorldName(String);
+
+#[derive(Clone, Debug, derive_more::Deref, derive_more::Constructor)]
+pub struct WorldPath(PathBuf);
+
+impl WorldPath {
+    pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
+        base::anvil::player::load_player_data(&self.0, uuid)
+    }
+
+    pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
+        base::anvil::player::save_player_data(&self.0, uuid, data)
+    }
+}
+
+#[derive(Default, derive_more::Deref, derive_more::DerefMut)]
+pub struct Dimensions(Vec<Dimension>);
+
+impl Dimensions {
+    pub fn get(&self, dimension: &str) -> Option<&Dimension> {
+        self.0.iter().find(|d| d.info().r#type == dimension)
+    }
+
+    pub fn get_mut(&mut self, dimension: &str) -> Option<&mut Dimension> {
+        self.0.iter_mut().find(|d| d.info().r#type == dimension)
+    }
+
+    pub fn add(&mut self, dimension: Dimension) {
+        self.0.push(dimension)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Dimension> {
+        self.0.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Dimension> {
+        self.0.iter_mut()
+    }
+}
+
+/// Stores all blocks and chunks in a dimension
 ///
-/// NB: _not_ what most Rust ECSs call "world."
 /// This does not store entities; it only contains blocks.
-pub struct World {
+pub struct Dimension {
     chunk_map: ChunkMap,
     pub cache: ChunkCache,
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
-    world_dir: PathBuf,
+    dimension_info: DimensionInfo,
+    /// Debug mode dimensions cannot be modified and have predefined blocks
+    debug: bool,
+    /// If true, has a different void fog and horizon at y=min
+    flat: bool,
 }
 
-impl Default for World {
-    fn default() -> Self {
-        Self {
-            chunk_map: ChunkMap::new(),
-            chunk_worker: ChunkWorker::new(
-                "world",
-                Arc::new(ComposableGenerator::default_with_seed(0)),
-            ),
-            cache: ChunkCache::new(),
-            loading_chunks: AHashSet::new(),
-            canceled_chunk_loads: AHashSet::new(),
-            world_dir: "world".into(),
-        }
-    }
-}
-
-impl World {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn with_gen_and_path(
+impl Dimension {
+    pub fn new(
+        dimension_info: DimensionInfo,
         generator: Arc<dyn WorldGenerator>,
         world_dir: impl Into<PathBuf> + Clone,
+        debug: bool,
+        flat: bool,
+        biomes: Arc<BiomeList>,
     ) -> Self {
+        assert_eq!(dimension_info.info.height % 16, 0);
         Self {
-            world_dir: world_dir.clone().into(),
-            chunk_worker: ChunkWorker::new(world_dir, generator),
-            ..Default::default()
+            chunk_map: ChunkMap::new(
+                WorldHeight(dimension_info.info.height as usize),
+                dimension_info.info.min_y,
+            ),
+            cache: Default::default(),
+            chunk_worker: ChunkWorker::new(
+                world_dir,
+                generator,
+                WorldHeight(dimension_info.info.height as usize),
+                dimension_info.info.min_y,
+                biomes,
+            ),
+            loading_chunks: Default::default(),
+            canceled_chunk_loads: Default::default(),
+            dimension_info,
+            debug,
+            flat,
         }
     }
 
@@ -71,7 +111,7 @@ impl World {
         if self.cache.contains(&pos) {
             // Move the chunk from the cache to the map
             self.chunk_map
-                .0
+                .inner
                 .insert(pos, self.cache.remove(pos).unwrap());
             self.chunk_map.chunk_handle_at(pos).unwrap().set_loaded();
         } else {
@@ -82,7 +122,8 @@ impl World {
 
     /// Loads any chunks that have been loaded asynchronously
     /// after a call to [`World::queue_chunk_load`].
-    pub fn load_chunks(&mut self, ecs: &mut Ecs) -> SysResult {
+    pub fn load_chunks(&mut self) -> anyhow::Result<Vec<ChunkLoadEvent>> {
+        let mut events = Vec::new();
         while let Some(loaded) = self.chunk_worker.poll_loaded_chunk()? {
             self.loading_chunks.remove(&loaded.pos);
             if self.canceled_chunk_loads.remove(&loaded.pos) {
@@ -91,18 +132,19 @@ impl World {
             let chunk = loaded.chunk;
 
             self.chunk_map.insert_chunk(chunk);
-            ecs.insert_event(ChunkLoadEvent {
-                chunk: Arc::clone(&self.chunk_map.0[&loaded.pos]),
+            events.push(ChunkLoadEvent {
+                chunk: Arc::clone(&self.chunk_map.inner[&loaded.pos]),
                 position: loaded.pos,
+                dimension: self.info().r#type.clone(),
             });
             log::trace!("Loaded chunk {:?}", loaded.pos);
         }
-        Ok(())
+        Ok(events)
     }
 
     /// Unloads the given chunk.
     pub fn unload_chunk(&mut self, pos: ChunkPosition) -> anyhow::Result<()> {
-        if let Some((pos, handle)) = self.chunk_map.0.remove_entry(&pos) {
+        if let Some(handle) = self.chunk_map.inner.remove(&pos) {
             handle.set_unloaded()?;
             self.chunk_worker.queue_chunk_save(SaveRequest {
                 pos,
@@ -117,13 +159,12 @@ impl World {
             self.canceled_chunk_loads.insert(pos);
         }
 
-        log::trace!("Unloaded chunk {:?}", pos);
         Ok(())
     }
 
     /// Returns whether the given chunk is loaded.
     pub fn is_chunk_loaded(&self, pos: ChunkPosition) -> bool {
-        self.chunk_map.0.contains_key(&pos)
+        self.chunk_map.inner.contains_key(&pos)
     }
 
     /// Returns whether the given chunk is queued to be loaded.
@@ -159,15 +200,20 @@ impl World {
         &mut self.chunk_map
     }
 
-    pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
-        Ok(base::anvil::player::load_player_data(
-            &self.world_dir,
-            uuid,
-        )?)
+    pub fn info(&self) -> &DimensionInfo {
+        &self.dimension_info
     }
 
-    pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
-        base::anvil::player::save_player_data(&self.world_dir, uuid, data)
+    pub fn height(&self) -> WorldHeight {
+        WorldHeight(self.dimension_info.info.height as usize)
+    }
+
+    pub fn is_debug(&self) -> bool {
+        self.debug
+    }
+
+    pub fn is_flat(&self) -> bool {
+        self.flat
     }
 }
 
@@ -181,104 +227,91 @@ pub type ChunkMapInner = AHashMap<ChunkPosition, ChunkHandle>;
 /// of the world in parallel. Mutable access to this
 /// type is only required for inserting and removing
 /// chunks.
-#[derive(Default)]
-pub struct ChunkMap(ChunkMapInner);
+pub struct ChunkMap {
+    inner: ChunkMapInner,
+    height: WorldHeight,
+    min_y: i32,
+}
 
 impl ChunkMap {
     /// Creates a new, empty world.
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(world_height: WorldHeight, min_y: i32) -> Self {
+        ChunkMap {
+            inner: ChunkMapInner::default(),
+            height: world_height,
+            min_y,
+        }
     }
 
     /// Retrieves a handle to the chunk at the given
     /// position, or `None` if it is not loaded.
     pub fn chunk_at(&self, pos: ChunkPosition) -> Option<RwLockReadGuard<Chunk>> {
-        self.0.get(&pos).map(|lock| lock.read())
+        self.inner.get(&pos).map(|lock| lock.read())
     }
 
     /// Retrieves a handle to the chunk at the given
     /// position, or `None` if it is not loaded.
     pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
-        self.0.get(&pos).map(|lock| lock.write()).flatten()
+        self.inner.get(&pos).map(|lock| lock.write()).flatten()
     }
 
     /// Returns an `Arc<RwLock<Chunk>>` at the given position.
     pub fn chunk_handle_at(&self, pos: ChunkPosition) -> Option<ChunkHandle> {
-        self.0.get(&pos).map(Arc::clone)
+        self.inner.get(&pos).map(Arc::clone)
     }
 
     pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
-        check_coords(pos)?;
+        check_coords(pos, self.height, self.min_y)?;
 
         let (x, y, z) = chunk_relative_pos(pos.into());
         self.chunk_at(pos.chunk())
-            .map(|chunk| chunk.block_at(x, y, z))
+            .map(|chunk| chunk.block_at(x, (y - self.min_y as isize) as usize, z))
             .flatten()
     }
 
     pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
-        if check_coords(pos).is_none() {
+        if check_coords(pos, self.height, self.min_y).is_none() {
             return false;
         }
 
         let (x, y, z) = chunk_relative_pos(pos.into());
 
         self.chunk_at_mut(pos.chunk())
-            .map(|mut chunk| chunk.set_block_at(x, y, z, block))
+            .map(|mut chunk| {
+                chunk.set_block_at(x, (y - self.min_y as isize) as usize, z, block, true)
+            })
             .is_some()
     }
 
     /// Returns an iterator over chunks.
     pub fn iter_chunks(&self) -> impl IntoIterator<Item = &ChunkHandle> {
-        self.0.values()
+        self.inner.values()
     }
 
     /// Inserts a new chunk into the chunk map.
     pub fn insert_chunk(&mut self, chunk: Chunk) {
-        self.0
+        self.inner
             .insert(chunk.position(), Arc::new(ChunkLock::new(chunk, true)));
     }
 
     /// Removes the chunk at the given position, returning `true` if it existed.
     pub fn remove_chunk(&mut self, pos: ChunkPosition) -> bool {
-        self.0.remove(&pos).is_some()
+        self.inner.remove(&pos).is_some()
     }
 }
 
-fn check_coords(pos: ValidBlockPosition) -> Option<()> {
-    if pos.y() >= 0 && pos.y() < CHUNK_HEIGHT as i32 {
+fn check_coords(pos: ValidBlockPosition, world_height: WorldHeight, min_y: i32) -> Option<()> {
+    if pos.y() >= min_y && pos.y() < *world_height as i32 + min_y {
         Some(())
     } else {
         None
     }
 }
 
-fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
+fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, isize, usize) {
     (
         block_pos.x as usize & 0xf,
-        block_pos.y as usize,
+        block_pos.y as isize,
         block_pos.z as usize & 0xf,
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use std::convert::TryInto;
-
-    use super::*;
-
-    #[test]
-    fn world_out_of_bounds() {
-        let mut world = World::new();
-        world
-            .chunk_map_mut()
-            .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));
-
-        assert!(world
-            .block_at(BlockPosition::new(0, -1, 0).try_into().unwrap())
-            .is_none());
-        assert!(world
-            .block_at(BlockPosition::new(0, 0, 0).try_into().unwrap())
-            .is_some());
-    }
 }

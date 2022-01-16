@@ -4,11 +4,12 @@ use base::anvil::entity::{AnimalData, BaseEntityData};
 use base::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
 use base::{Gamemode, Inventory, Position, Text};
 use common::entities::player::HotbarSlot;
+use common::world::WorldPath;
 use common::{chat::ChatKind, Game};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::components::{
-    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
-    Invulnerable, Name, PreviousGamemode, WalkSpeed,
+    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
+    Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
 };
 
 use crate::{ClientId, Server};
@@ -61,11 +62,18 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
         )>()
         .iter()
     {
+        let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
+        let (world, dimension) = query.iter().find(|(e, _)| *e == player).unwrap().1;
         let client = server.clients.get(client_id).unwrap();
         if client.is_disconnected() {
             entities_to_remove.push(player);
             broadcast_player_leave(game, name);
-            game.world
+            game.ecs
+                .query::<&WorldPath>()
+                .iter()
+                .find(|(e, _)| *e == **world)
+                .unwrap()
+                .1
                 .save_player_data(
                     client.uuid(),
                     &create_player_data(
@@ -84,6 +92,7 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
                         },
                         *hotbar_slot,
                         inventory,
+                        dimension,
                     ),
                 )
                 .unwrap_or_else(|e| panic!("Couldn't save data for {}: {}", client.username(), e));
@@ -103,6 +112,7 @@ fn broadcast_player_leave(game: &Game, username: &Name) {
     game.broadcast_chat(ChatKind::System, message);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn create_player_data(
     position: Position,
     gamemode: Gamemode,
@@ -111,6 +121,7 @@ fn create_player_data(
     abilities: PlayerAbilities,
     hotbar_slot: HotbarSlot,
     inventory: &Inventory,
+    dimension: &EntityDimension,
 ) -> PlayerData {
     PlayerData {
         animal: AnimalData {
@@ -123,6 +134,7 @@ fn create_player_data(
         },
         gamemode: gamemode.to_i32().unwrap(),
         previous_gamemode: previous_gamemode.id() as i32,
+        dimension: dimension.0.clone(),
         inventory: inventory
             .to_vec()
             .iter()

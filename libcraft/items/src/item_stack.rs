@@ -290,7 +290,7 @@ impl ItemStack {
         match &mut self.meta.clone().unwrap().damage {
             Some(damage) => {
                 *damage += amount;
-                if let Some(durability) = self.item.durability() {
+                if let Some(durability) = self.item.max_durability() {
                     // This unwrap would only fail if our generated file contains an erroneous
                     // default damage value.
                     *damage >= durability.try_into().unwrap()

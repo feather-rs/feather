@@ -1,5 +1,5 @@
 packets! {
-    Request {}
+    Request
 
     Ping {
         payload i64;

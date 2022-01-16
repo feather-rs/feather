@@ -1,6 +1,5 @@
 //! Implements level.dat file loading.
 
-use libcraft_core::Biome;
 use libcraft_items::Item;
 use serde::{Deserialize, Serialize};
 use std::io::{Cursor, Read, Write};
@@ -82,9 +81,9 @@ impl LevelData {
         let mut buf = vec![];
         file.read_to_end(&mut buf)?;
 
-        nbt::from_gzip_reader::<_, Root>(Cursor::new(&buf))
+        nbt::from_gzip_reader(Cursor::new(buf))
             .map_err(Into::into)
-            .map(|root| root.data)
+            .map(|root: Root| root.data)
     }
 
     pub fn save_to_file(&self, file: &mut File) -> anyhow::Result<()> {
@@ -137,7 +136,7 @@ impl Default for SuperflatGeneratorOptions {
                     height: 1,
                 },
             ],
-            biome: Biome::Plains.name().to_string(),
+            biome: "minecraft:plains".to_string(),
         }
     }
 }
@@ -145,7 +144,7 @@ impl Default for SuperflatGeneratorOptions {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct SuperflatLayer {
     pub block: String, // TODO: Use "Block" enum and implement (de)serialization
-    pub height: u8,
+    pub height: u32,
 }
 
 /// The type of world generator for a level.
@@ -176,13 +175,12 @@ impl LevelData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Cursor;
 
     #[test]
     fn test_deserialize_level_file() {
-        let cursor = Cursor::new(include_bytes!("level.dat").to_vec());
-
-        let level = nbt::from_gzip_reader::<_, Root>(cursor).unwrap().data;
+        let level = nbt::from_gzip_reader::<_, Root>(Cursor::new(include_bytes!("level.dat")))
+            .unwrap()
+            .data;
 
         assert!(!level.allow_commands);
         assert_eq!(level.clear_weather_time, 0);

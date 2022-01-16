@@ -40,29 +40,28 @@ pub fn handle_click_window(
     player: EntityRef,
     packet: ClickWindow,
 ) -> SysResult {
-    let result = _handle_click_window(&player, &packet);
+    let mut window = player.get_mut::<Window>().unwrap();
+    let result = _handle_click_window(&packet, &mut window);
 
-    let client = server.clients.get(*player.get::<ClientId>()?).unwrap();
-    client.confirm_window_action(
-        packet.window_id,
-        packet.action_number as i16,
-        result.is_ok(),
-    );
-
-    let window = player.get::<Window>()?;
+    let client = server
+        .clients
+        .get(*player.get::<ClientId>().unwrap())
+        .unwrap();
 
     if packet.slot >= 0 {
-        client.set_slot(packet.slot, &*window.item(packet.slot as usize)?);
+        let item = window.item(packet.slot as usize)?.clone();
+        let old_cursor_item = window.cursor_item();
+        client.send_inventory_slot(packet.slot, old_cursor_item);
+        window.set_cursor_item(item);
     }
-    client.set_cursor_slot(window.cursor_item());
+    client.send_cursor_slot(window.cursor_item());
 
     client.send_window_items(&*window);
 
     result
 }
 
-fn _handle_click_window(player: &EntityRef, packet: &ClickWindow) -> SysResult {
-    let mut window = player.get_mut::<Window>()?;
+fn _handle_click_window(packet: &ClickWindow, window: &mut Window) -> SysResult {
     match packet.mode {
         0 => match packet.button {
             0 => window.left_click(packet.slot as usize)?,
@@ -79,6 +78,5 @@ fn _handle_click_window(player: &EntityRef, packet: &ClickWindow) -> SysResult {
         },
         _ => bail!("unsupported window click mode"),
     };
-
     Ok(())
 }

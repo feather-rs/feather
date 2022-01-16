@@ -1,28 +1,17 @@
+use once_cell::sync::Lazy;
 use std::usize;
 
-use ::blocks::BlockId;
-use libcraft_core::Biome;
+pub use heightmap::{Heightmap, HeightmapFunction, HeightmapStore};
+pub use light::LightStore;
+pub use packed_array::PackedArray;
 
-use crate::ChunkPosition;
+use crate::biome::BiomeId;
+use crate::chunk::paletted_container::PalettedContainer;
+use crate::world::Sections;
+use libcraft_blocks::{BlockId, HIGHEST_ID};
+use libcraft_core::ChunkPosition;
 
-/// The number of bits used for each block
-/// in the global palette.
-pub const GLOBAL_BITS_PER_BLOCK: u8 = 15;
-
-/// The minimum bits per block allowed when
-/// using a section palette.
-/// Bits per block values lower than this
-/// value will be offsetted to this value.
-pub const MIN_BITS_PER_BLOCK: u8 = 4;
-
-/// The maximum number of bits per block
-/// allowed when using a section palette.
-/// Values above this will use the global palette
-/// instead.
-pub const MAX_BITS_PER_BLOCK: u8 = 8;
-
-/// The height in blocks of a chunk column.
-pub const CHUNK_HEIGHT: usize = 256;
+pub const BIOME_SAMPLE_RATE: usize = 4;
 /// The width in blocks of a chunk column.
 pub const CHUNK_WIDTH: usize = 16;
 
@@ -33,72 +22,36 @@ pub const SECTION_HEIGHT: usize = 16;
 pub const SECTION_WIDTH: usize = CHUNK_WIDTH;
 
 /// The volume in blocks of a chunk section.
-pub const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH) as usize;
+pub const SECTION_VOLUME: usize = SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH;
 
-/// The number of chunk sections in a column.
-pub const NUM_SECTIONS: usize = 16;
+pub const BIOMES_PER_CHUNK_SECTION: usize = (CHUNK_WIDTH / BIOME_SAMPLE_RATE)
+    * (CHUNK_WIDTH / BIOME_SAMPLE_RATE)
+    * (SECTION_HEIGHT / BIOME_SAMPLE_RATE);
 
-mod biome_store;
-mod blocks;
 mod heightmap;
 mod light;
 mod packed_array;
-mod palette;
+pub mod paletted_container;
 
-pub use self::blocks::BlockStore;
-pub use biome_store::BiomeStore;
-pub use heightmap::{Heightmap, HeightmapFunction, HeightmapStore};
-pub use light::LightStore;
-pub use packed_array::PackedArray;
-pub use palette::Palette;
-
-/// A 16x256x16 chunk of blocks plus associated
+/// A 16 x height x 16 chunk of blocks plus associated
 /// light, biome, and heightmap data.
-/// Consists of 16 `ChunkSection`s.
 #[derive(Debug, Clone)]
 pub struct Chunk {
-    sections: [Option<ChunkSection>; NUM_SECTIONS + 2],
-
-    biomes: BiomeStore,
-
+    sections: Vec<ChunkSection>,
     heightmaps: HeightmapStore,
-
     position: ChunkPosition,
-}
-
-impl Default for Chunk {
-    fn default() -> Self {
-        let sections = [
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None,
-        ];
-        Self {
-            sections,
-            biomes: BiomeStore::default(),
-            position: ChunkPosition::new(0, 0),
-            heightmaps: HeightmapStore::new(),
-        }
-    }
+    min_y_section: i32,
 }
 
 impl Chunk {
-    /// Creates a new empty chunk with the
-    /// specified position.
-    ///
-    /// Biomes are initialized to plains.
-    pub fn new(position: ChunkPosition) -> Self {
-        Self::new_with_default_biome(position, Biome::Plains)
-    }
-
     /// Creates a new empty chunk with the specified
     /// position.
-    ///
-    /// Biomes are initialized to `biome`.
-    pub fn new_with_default_biome(position: ChunkPosition, default_biome: Biome) -> Self {
+    pub fn new(position: ChunkPosition, sections: Sections, min_y: i32) -> Self {
         Self {
+            sections: vec![ChunkSection::default(); *sections + 2],
             position,
-            biomes: BiomeStore::new(default_biome),
-            ..Default::default()
+            heightmaps: HeightmapStore::new(sections.into()),
+            min_y_section: min_y / 16,
         }
     }
 
@@ -116,44 +69,55 @@ impl Chunk {
     ///
     /// Returns `None` if the coordinates are out of bounds.
     pub fn block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockId> {
-        let section = self.section_for_y(y)?;
-        match section {
-            Some(section) => section.block_at(x, y % SECTION_HEIGHT, z),
-            None => Some(BlockId::air()),
-        }
+        self.section_for_y(y)?.block_at(x, y % SECTION_HEIGHT, z)
     }
 
     /// Sets the block at the given position within this chunk.
     ///
     /// Returns `None` if the coordinates are out of bounds.
-    /// FIXME: Do not update heightmap when it is not neccessary
-    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> Option<()> {
-        let old_block = self.block_at(x, y, z)?;
-        let section = self.section_for_y_mut(y)?;
-        let result = match section {
-            Some(section) => {
-                let result = section.set_block_at(x, y % SECTION_HEIGHT, z, block);
-                // If the block update caused the section to contain only
-                // air, free it to conserve memory.
-                if section.is_empty() {
-                    self.clear_section(y);
-                }
-                result
-            }
-            None => {
-                if !block.is_air() {
-                    let mut section = ChunkSection::default();
-                    let result = section.set_block_at(x, y % SECTION_HEIGHT, z, block);
-                    self.set_section_at((y / SECTION_HEIGHT) as isize, Some(section));
-                    result
-                } else {
-                    Some(())
-                }
-            }
-        };
-        self.heightmaps
-            .update(x, y, z, old_block, block, Self::block_at_fn(&self.sections));
-        result
+    pub fn set_block_at(
+        &mut self,
+        x: usize,
+        y: usize,
+        z: usize,
+        block: BlockId,
+        update_heightmaps: bool,
+    ) -> Option<()> {
+        if update_heightmaps {
+            let old_block = self.block_at(x, y, z)?;
+            let result = self
+                .section_for_y_mut(y)?
+                .set_block_at(x, y % SECTION_HEIGHT, z, block);
+            self.heightmaps
+                .update(x, y, z, old_block, block, Self::block_at_fn(&self.sections));
+            result
+        } else {
+            self.section_for_y_mut(y)?
+                .set_block_at(x, y % SECTION_HEIGHT, z, block)
+        }
+    }
+
+    /// Gets the biome at the given position within this chunk.
+    ///
+    /// Returns `None` if the coordinates are out of bounds.
+    pub fn biome_at(&self, x: usize, y: usize, z: usize) -> Option<BiomeId> {
+        self.section_for_y(y)?.biome_at(
+            x / BIOME_SAMPLE_RATE,
+            (y / BIOME_SAMPLE_RATE) % SECTION_HEIGHT,
+            z / BIOME_SAMPLE_RATE,
+        )
+    }
+
+    /// Sets the biome at the given position within this chunk.
+    ///
+    /// Returns `None` if the coordinates are out of bounds.
+    pub fn set_biome_at(&mut self, x: usize, y: usize, z: usize, biome: BiomeId) -> Option<()> {
+        self.section_for_y_mut(y)?.set_biome_at(
+            x / BIOME_SAMPLE_RATE,
+            (y / BIOME_SAMPLE_RATE) % SECTION_HEIGHT,
+            z / BIOME_SAMPLE_RATE,
+            biome,
+        )
     }
 
     /// Fills the given chunk section with `block`.
@@ -163,12 +127,7 @@ impl Chunk {
             None => return false,
         };
 
-        if block == BlockId::air() {
-            *section = None;
-        } else {
-            let section = section.get_or_insert_with(Default::default);
-            section.fill(block);
-        }
+        section.fill(block);
 
         true
     }
@@ -179,68 +138,39 @@ impl Chunk {
             .recalculate(Self::block_at_fn(&self.sections))
     }
 
-    fn block_at_fn(
-        sections: &[Option<ChunkSection>],
-    ) -> impl Fn(usize, usize, usize) -> BlockId + '_ {
+    fn block_at_fn(sections: &[ChunkSection]) -> impl Fn(usize, usize, usize) -> BlockId + '_ {
         move |x, y, z| {
-            let section = &sections[(y / SECTION_HEIGHT) + 1];
-            match section {
-                Some(section) => section.block_at(x, y % SECTION_HEIGHT, z).unwrap(),
-                None => BlockId::air(),
-            }
+            sections[(y / SECTION_HEIGHT) + 1]
+                .block_at(x, y % SECTION_HEIGHT, z)
+                .unwrap()
         }
     }
 
     pub fn block_light_at(&self, x: usize, y: usize, z: usize) -> Option<u8> {
-        match self.section_for_y(y)? {
-            Some(s) => s.block_light_at(x, y % SECTION_HEIGHT, z),
-            None => Some(15),
-        }
+        self.section_for_y(y)?
+            .block_light_at(x, y % SECTION_HEIGHT, z)
     }
 
     pub fn sky_light_at(&self, x: usize, y: usize, z: usize) -> Option<u8> {
-        match self.section_for_y(y)? {
-            Some(s) => s.sky_light_at(x, y % SECTION_HEIGHT, z),
-            None => Some(15),
-        }
+        self.section_for_y(y)?
+            .sky_light_at(x, y % SECTION_HEIGHT, z)
     }
 
     pub fn set_block_light_at(&mut self, x: usize, y: usize, z: usize, light: u8) -> Option<()> {
-        if let Some(section) = self.section_for_y_mut(y)? {
-            section.set_block_light_at(x, y, z, light)
-        } else {
-            Some(())
-        }
+        self.section_for_y_mut(y)?
+            .set_block_light_at(x, y, z, light)
     }
 
     pub fn set_sky_light_at(&mut self, x: usize, y: usize, z: usize, light: u8) -> Option<()> {
-        if let Some(section) = self.section_for_y_mut(y)? {
-            section.set_sky_light_at(x, y, z, light)
-        } else {
-            Some(())
-        }
+        self.section_for_y_mut(y)?.set_sky_light_at(x, y, z, light)
     }
 
-    fn section_for_y(&self, y: usize) -> Option<&Option<ChunkSection>> {
+    fn section_for_y(&self, y: usize) -> Option<&ChunkSection> {
         self.sections.get((y / SECTION_HEIGHT) + 1)
     }
 
-    fn section_for_y_mut(&mut self, y: usize) -> Option<&mut Option<ChunkSection>> {
+    fn section_for_y_mut(&mut self, y: usize) -> Option<&mut ChunkSection> {
         self.sections.get_mut((y / SECTION_HEIGHT) + 1)
-    }
-
-    fn clear_section(&mut self, y: usize) {
-        self.sections[(y / SECTION_HEIGHT) + 1] = None;
-    }
-
-    /// Gets the [`BiomeStore`] for this chunk.
-    pub fn biomes(&self) -> &BiomeStore {
-        &self.biomes
-    }
-
-    /// Mutably gets the [`BiomeStore`] for this chunk.
-    pub fn biomes_mut(&mut self) -> &mut BiomeStore {
-        &mut self.biomes
     }
 
     /// Gets the [`HeightmapStore`] for this chunk.
@@ -255,44 +185,73 @@ impl Chunk {
 
     /// Gets the chunk section at index `y`.
     pub fn section(&self, y: isize) -> Option<&ChunkSection> {
-        self.sections.get((y + 1) as usize)?.as_ref()
+        self.sections.get((y + 1) as usize)
     }
 
     /// Mutably gets the chunk section at index `y`.
     pub fn section_mut(&mut self, y: isize) -> Option<&mut ChunkSection> {
-        self.sections.get_mut((y + 1) as usize)?.as_mut()
+        self.sections.get_mut((y + 1) as usize)
     }
 
     /// Sets the section at index `y`.
-    pub fn set_section_at(&mut self, y: isize, section: Option<ChunkSection>) {
+    pub fn set_section_at(&mut self, y: isize, section: ChunkSection) {
         self.sections[(y + 1) as usize] = section;
     }
 
     /// Gets the sections of this chunk.
-    pub fn sections(&self) -> &[Option<ChunkSection>] {
+    pub fn sections(&self) -> &[ChunkSection] {
         &self.sections
+    }
+
+    /// Gets the sections of this chunk.
+    pub fn sections_mut(&mut self) -> &mut [ChunkSection] {
+        &mut self.sections
+    }
+
+    pub fn min_y_section(&self) -> i32 {
+        self.min_y_section
+    }
+
+    pub fn min_y(&self) -> i32 {
+        self.min_y_section * SECTION_HEIGHT as i32
     }
 }
 
 /// A 16x16x16 chunk of blocks.
 #[derive(Debug, Clone)]
 pub struct ChunkSection {
-    blocks: BlockStore,
-
+    blocks: PalettedContainer<BlockId>,
+    biomes: PalettedContainer<BiomeId>,
+    air_block_count: u32,
     light: LightStore,
 }
 
 impl Default for ChunkSection {
     fn default() -> Self {
-        Self::new(BlockStore::new(), LightStore::new())
+        Self::new(
+            PalettedContainer::new(),
+            PalettedContainer::new(),
+            SECTION_VOLUME as u32,
+            LightStore::new(),
+        )
     }
 }
 
 impl ChunkSection {
     /// Creates new `ChunkSection` from its
     /// raw parts.
-    pub fn new(blocks: BlockStore, light: LightStore) -> Self {
-        Self { blocks, light }
+    pub fn new(
+        blocks: PalettedContainer<BlockId>,
+        biomes: PalettedContainer<BiomeId>,
+        air_block_count: u32,
+        light: LightStore,
+    ) -> Self {
+        Self {
+            blocks,
+            biomes,
+            air_block_count,
+            light,
+        }
     }
 
     /// Determines whether this chunk is empty (contains only air).
@@ -302,7 +261,7 @@ impl ChunkSection {
 
     /// Returns the number of air blocks in this chunk section.
     pub fn air_blocks(&self) -> u32 {
-        self.blocks.air_blocks()
+        self.air_block_count
     }
 
     /// Returns the number of non-air blocks in this chunk section.
@@ -313,7 +272,7 @@ impl ChunkSection {
     /// Gets the block at the given coordinates within this
     /// chunk section.
     pub fn block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockId> {
-        self.blocks.block_at(x, y, z)
+        self.blocks.get_block_at(x, y, z)
     }
 
     /// Sets the block at the given coordinates within
@@ -321,7 +280,22 @@ impl ChunkSection {
     ///
     /// Returns `None` if the coordinates were out of bounds.
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> Option<()> {
+        self.update_air_block_count(x, y, z, block);
         self.blocks.set_block_at(x, y, z, block)
+    }
+
+    /// Gets the biome at the given coordinates within this
+    /// chunk section.
+    pub fn biome_at(&self, x: usize, y: usize, z: usize) -> Option<BiomeId> {
+        self.biomes.biome_at(x, y, z)
+    }
+
+    /// Sets the biome at the given coordinates within
+    /// this chunk section.
+    ///
+    /// Returns `None` if the coordinates were out of bounds.
+    pub fn set_biome_at(&mut self, x: usize, y: usize, z: usize, biome: BiomeId) -> Option<()> {
+        self.biomes.set_biome_at(x, y, z, biome)
     }
 
     /// Fills this chunk section with the given block.
@@ -329,6 +303,12 @@ impl ChunkSection {
     /// Does not currently update heightmaps.
     pub fn fill(&mut self, block: BlockId) {
         self.blocks.fill(block);
+
+        if block.is_air() {
+            self.air_block_count = SECTION_VOLUME as u32;
+        } else {
+            self.air_block_count = 0;
+        }
     }
 
     pub fn block_light_at(&self, x: usize, y: usize, z: usize) -> Option<u8> {
@@ -355,12 +335,58 @@ impl ChunkSection {
         &mut self.light
     }
 
-    pub fn blocks(&self) -> &BlockStore {
+    pub fn blocks(&self) -> &PalettedContainer<BlockId> {
         &self.blocks
     }
 
-    pub fn blocks_mut(&mut self) -> &mut BlockStore {
+    pub fn blocks_mut(&mut self) -> &mut PalettedContainer<BlockId> {
         &mut self.blocks
+    }
+
+    pub fn biomes(&self) -> &PalettedContainer<BiomeId> {
+        &self.biomes
+    }
+
+    pub fn biomes_mut(&mut self) -> &mut PalettedContainer<BiomeId> {
+        &mut self.biomes
+    }
+
+    pub fn count_air_blocks(blocks: &PalettedContainer<BlockId>) -> u32 {
+        match blocks {
+            PalettedContainer::SingleValue(value) if value.is_air() => blocks.len() as u32,
+            PalettedContainer::SingleValue(_) => 0,
+            PalettedContainer::MultipleValues { data, palette } => {
+                let air_blocks_in_palette = palette
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, value)| if value.is_air() { Some(i) } else { None })
+                    .map(|i| i as u32)
+                    .collect::<Vec<_>>();
+                data.iter()
+                    .filter(|block| air_blocks_in_palette.contains(&(*block as u32)))
+                    .count() as u32
+            }
+            PalettedContainer::GlobalPalette { data } => {
+                static AIR_BLOCKS: Lazy<Vec<u32>> = Lazy::new(|| {
+                    (0..HIGHEST_ID)
+                        .filter(|index| BlockId::from_vanilla_id(*index as u16).unwrap().is_air())
+                        .map(|i| i as u32)
+                        .collect::<Vec<_>>()
+                });
+                data.iter()
+                    .filter(|block| AIR_BLOCKS.contains(&(*block as u32)))
+                    .count() as u32
+            }
+        }
+    }
+
+    fn update_air_block_count(&mut self, x: usize, y: usize, z: usize, new: BlockId) {
+        let old = self.block_at(x, y, z).unwrap();
+        if old.is_air() && !new.is_air() {
+            self.air_block_count -= 1;
+        } else if !old.is_air() && new.is_air() {
+            self.air_block_count += 1;
+        }
     }
 
     fn block_index(x: usize, y: usize, z: usize) -> Option<usize> {
@@ -370,54 +396,50 @@ impl ChunkSection {
             Some((y << 8) | (z << 4) | x)
         }
     }
+
+    fn biome_index(x: usize, y: usize, z: usize) -> Option<usize> {
+        if x >= SECTION_WIDTH / BIOME_SAMPLE_RATE
+            || y >= SECTION_WIDTH / BIOME_SAMPLE_RATE
+            || z >= SECTION_WIDTH / BIOME_SAMPLE_RATE
+        {
+            None
+        } else {
+            Some((y << 4) | (z << 2) | x)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::HIGHEST_ID;
+    use std::convert::TryInto;
 
     #[test]
     fn chunk_new() {
         let pos = ChunkPosition::new(0, 0);
-        let chunk = Chunk::new(pos);
+        let chunk = Chunk::new(pos, Sections(16), 0);
 
         // Confirm that chunk is empty
         for x in 0..16 {
-            assert!(chunk.section(x).is_none());
-            assert!(chunk.section(x).is_none());
+            assert_eq!(
+                chunk.section(x).unwrap().blocks,
+                PalettedContainer::default()
+            );
+            assert_eq!(
+                chunk.section(x).unwrap().biomes,
+                PalettedContainer::default()
+            );
         }
 
         assert_eq!(chunk.position(), pos);
-    }
-
-    #[test]
-    fn chunk_new_with_default_biome() {
-        let pos = ChunkPosition::new(0, 0);
-        let chunk = Chunk::new_with_default_biome(pos, Biome::Mountains);
-
-        // Confirm that chunk is empty
-        for x in 0..16 {
-            assert!(chunk.section(x).is_none());
-            assert!(chunk.section(x).is_none());
-        }
-
-        assert_eq!(chunk.position(), pos);
-
-        // Confirm that biomes are set
-        for x in 0..4 {
-            for z in 0..4 {
-                assert_eq!(chunk.biomes.get(x, 0, z), Biome::Mountains);
-            }
-        }
     }
 
     #[test]
     fn set_block_simple() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos);
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
-        chunk.set_block_at(0, 0, 0, BlockId::andesite());
+        chunk.set_block_at(0, 0, 0, BlockId::andesite(), true);
         assert_eq!(chunk.block_at(0, 0, 0).unwrap(), BlockId::andesite());
         assert!(chunk.section(0).is_some());
     }
@@ -425,23 +447,23 @@ mod tests {
     #[test]
     fn fill_chunk() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos);
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
         let block = BlockId::stone();
 
-        for x in 0..16 {
-            for y in 0..256 {
-                for z in 0..16 {
-                    chunk.set_block_at(x, y, z, block).unwrap();
+        for x in 0..SECTION_WIDTH {
+            for y in 0..16 * SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    chunk.set_block_at(x, y, z, block, true).unwrap();
                     assert_eq!(chunk.block_at(x, y, z), Some(block));
                 }
             }
         }
 
         // Check again, just to be sure
-        for x in 0..16 {
-            for y in 0..256 {
-                for z in 0..16 {
+        for x in 0..SECTION_WIDTH {
+            for y in 0..16 * SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
                     assert_eq!(chunk.block_at(x, y, z), Some(block));
                 }
             }
@@ -456,27 +478,19 @@ mod tests {
         // resizing, etc. works correctly.
 
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos);
-
-        for section in chunk.sections() {
-            assert!(section.is_none());
-        }
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
         for section in 0..16 {
             let mut counter = 0;
-            for x in 0..16 {
-                for y in 0..16 {
-                    for z in 0..16 {
-                        let block = BlockId::from_vanilla_id(counter);
-                        chunk.set_block_at(x, (section * 16) + y, z, block);
-                        assert_eq!(chunk.block_at(x, (section * 16) + y, z), Some(block));
-                        if counter != 0 {
-                            assert!(
-                                chunk.section(section as isize).is_some(),
-                                "Section {} failed",
-                                section
-                            );
-                        }
+            for x in 0..SECTION_WIDTH {
+                for y in 0..SECTION_HEIGHT {
+                    for z in 0..SECTION_WIDTH {
+                        let block = BlockId::from_vanilla_id(counter).unwrap();
+                        chunk.set_block_at(x, (section * SECTION_HEIGHT) + y, z, block, true);
+                        assert_eq!(
+                            chunk.block_at(x, (section * SECTION_HEIGHT) + y, z),
+                            Some(block)
+                        );
                         counter += 1;
                     }
                 }
@@ -487,12 +501,12 @@ mod tests {
         for section in 0..16 {
             assert!(chunk.section(section).is_some());
             let mut counter = 0;
-            for x in 0..16 {
-                for y in 0..16 {
-                    for z in 0..16 {
-                        let block = BlockId::from_vanilla_id(counter);
+            for x in 0..SECTION_WIDTH {
+                for y in 0..SECTION_HEIGHT {
+                    for z in 0..SECTION_WIDTH {
+                        let block = BlockId::from_vanilla_id(counter).unwrap();
                         assert_eq!(
-                            chunk.block_at(x, (section as usize * 16) + y, z),
+                            chunk.block_at(x, (section as usize * SECTION_HEIGHT) + y, z),
                             Some(block)
                         );
                         assert!(chunk.section(section).is_some());
@@ -504,41 +518,36 @@ mod tests {
 
         // Now, empty the chunk and ensure
         // that the sections become empty.
-        for x in 0..16 {
-            for y in 0..256 {
-                for z in 0..16 {
-                    chunk.set_block_at(x, y, z, BlockId::air());
+        for x in 0..SECTION_WIDTH {
+            for y in 0..16 * SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    chunk.set_block_at(x, y, z, BlockId::air(), false);
                 }
             }
-        }
-
-        for section in chunk.sections() {
-            assert!(section.is_none());
         }
     }
 
     #[test]
     fn section_from_data_and_palette() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos);
+        let mut chunk = Chunk::new(pos, Sections(16), 0);
 
-        let mut palette = Palette::new();
+        let mut palette = PalettedContainer::new();
         let stone_index = palette.index_or_insert(BlockId::stone());
 
-        let mut data = PackedArray::new(4096, 5);
+        let mut data = PackedArray::new(16 * SECTION_WIDTH * SECTION_WIDTH, 5.try_into().unwrap());
         for i in 0..4096 {
             data.set(i, stone_index as u64);
         }
+        palette.set_data(data);
 
-        let section = ChunkSection::new(
-            BlockStore::from_raw_parts(Some(palette), data),
-            LightStore::new(),
-        );
-        chunk.set_section_at(0, Some(section));
+        let section =
+            ChunkSection::new(palette, PalettedContainer::default(), 0, LightStore::new());
+        chunk.set_section_at(0, section);
 
-        for x in 0..16 {
+        for x in 0..SECTION_WIDTH {
             for y in 0..16 {
-                for z in 0..16 {
+                for z in 0..SECTION_WIDTH {
                     assert_eq!(chunk.block_at(x, y, z).unwrap(), BlockId::stone());
                 }
             }
@@ -558,22 +567,22 @@ mod tests {
 
     #[test]
     fn test_biomes() {
-        let mut chunk = Chunk::default();
+        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16), 0);
 
-        for x in 0..4 {
-            for z in 0..4 {
-                assert_eq!(chunk.biomes().get(x, 0, z), Biome::Plains);
-                chunk.biomes_mut().set(x, 0, z, Biome::BirchForest);
-                assert_eq!(chunk.biomes().get(x, 0, z), Biome::BirchForest);
+        for x in (0..SECTION_WIDTH).step_by(BIOME_SAMPLE_RATE) {
+            for z in (0..SECTION_WIDTH).step_by(BIOME_SAMPLE_RATE) {
+                assert_eq!(chunk.biome_at(x, 0, z), Some(0.into()));
+                chunk.set_biome_at(x, 0, z, 1.into());
+                assert_eq!(chunk.biome_at(x, 0, z), Some(1.into()));
             }
         }
     }
 
     #[test]
     fn test_light() {
-        let mut chunk = Chunk::default();
+        let mut chunk = Chunk::new(ChunkPosition::default(), Sections(16), 0);
 
-        chunk.set_block_at(0, 0, 0, BlockId::stone()).unwrap();
+        chunk.set_block_at(0, 0, 0, BlockId::stone(), true).unwrap();
 
         for x in 0..SECTION_WIDTH {
             for y in 0..SECTION_HEIGHT {
@@ -589,9 +598,9 @@ mod tests {
 
     #[test]
     fn heightmaps() {
-        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0), Sections(16), 0);
 
-        chunk.set_block_at(0, 10, 0, BlockId::stone());
+        chunk.set_block_at(0, 10, 0, BlockId::stone(), true);
         assert_eq!(chunk.heightmaps.motion_blocking.height(0, 0), Some(10));
     }
 
@@ -608,11 +617,5 @@ mod tests {
                 }
             }
         }
-    }
-
-    #[test]
-    fn global_bits() {
-        //The highest block state id must fit into GLOBAL_BITS_PER_BLOCK
-        assert_eq!(HIGHEST_ID >> GLOBAL_BITS_PER_BLOCK, 0)
     }
 }

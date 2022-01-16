@@ -1,15 +1,25 @@
-use anyhow::bail;
-
-use base::{
-    BlockState, EntityMetadata, Gamemode, ParticleKind, ProfileProperty, ValidBlockPosition,
-};
-pub use chunk_data::{ChunkData, ChunkDataKind};
+use crate::io::Angle;
+use crate::io::LengthInferredVecU8;
+use crate::io::VarIntPrefixedVec;
+use crate::Nbt;
+use crate::VarLong;
+use base::EntityMetadata;
+use base::ValidBlockPosition;
 use quill_common::components::PreviousGamemode;
+use std::collections::HashMap;
+use uuid::Uuid;
+
+use anyhow::bail;
+use base::biome::BiomeInfo;
+use base::world::DimensionTypeInfo;
+use base::{ParticleKind, ProfileProperty};
+use serde::{Deserialize, Serialize};
+
+use crate::{ProtocolVersion, Readable, Slot, VarInt, Writeable};
+pub use chunk_data::ChunkData;
+use libcraft_blocks::BlockId;
+use libcraft_core::Gamemode;
 pub use update_light::UpdateLight;
-
-use crate::{io::VarLong, Readable, Writeable};
-
-use super::*;
 
 mod chunk_data;
 mod update_light;
@@ -81,6 +91,25 @@ packets! {
         pitch Angle;
     }
 
+    SculkVibrationSignal {
+        source_position ValidBlockPosition;
+        destination SculkVibrationDestination;
+        arrival_ticks VarInt;
+    }
+}
+
+def_enum! {
+    SculkVibrationDestination (String) {
+        "block" = Block {
+            position ValidBlockPosition;
+        },
+        "entity" = Entity {
+            entity_id VarInt;
+        }
+    }
+}
+
+packets! {
     EntityAnimation {
         entity_id VarInt;
         animation Animation;
@@ -134,8 +163,8 @@ packets! {
 
     BlockEntityData {
         position ValidBlockPosition;
-        action u8;
-        data Nbt<Blob>;
+        block_entity_type VarInt;
+        data Nbt<nbt::Value>;
     }
 
     BlockAction {
@@ -254,19 +283,15 @@ packets! {
         __todo__ LengthInferredVecU8;
     }
 
-    WindowConfirmation {
-        window_id u8;
-        action_number i16;
-        is_accepted bool;
-    }
-
     CloseWindow {
         window_id u8;
     }
 
     WindowItems {
         window_id u8;
-        items ShortPrefixedVec<Slot>;
+        state_id VarInt;
+        items VarIntPrefixedVec<Slot>;
+        cursor_item Slot;
     }
 
     WindowProperty {
@@ -277,6 +302,7 @@ packets! {
 
     SetSlot {
         window_id u8;
+        state_id VarInt;
         slot i16;
         slot_data Slot;
     }
@@ -377,16 +403,17 @@ packets! {
         entity_id i32;
         is_hardcore bool;
         gamemode Gamemode;
-        previous_gamemode PreviousGamemode; // can be -1 if "not set", otherwise corresponds to a gamemode ID
-        world_names VarIntPrefixedVec<String>;
+        previous_gamemode PreviousGamemode;
+        dimension_names VarIntPrefixedVec<String>;
 
-        dimension_codec Nbt<Blob>;
-        dimension Nbt<Blob>;
+        dimension_codec Nbt<DimensionCodec>;
+        dimension Nbt<DimensionTypeInfo>;
 
-        world_name String;
+        dimension_name String;
         hashed_seed u64;
         max_players VarInt;
         view_distance VarInt;
+        simulation_distance VarInt;
         reduced_debug_info bool;
         enable_respawn_screen bool;
 
@@ -395,15 +422,40 @@ packets! {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DimensionCodec {
+    #[serde(flatten)]
+    pub registries: HashMap<String, DimensionCodecRegistry>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "type", content = "value")]
+pub enum DimensionCodecRegistry {
+    #[serde(rename = "minecraft:dimension_type")]
+    DimensionType(Vec<DimensionCodecEntry<DimensionTypeInfo>>),
+    #[serde(rename = "minecraft:worldgen/biome")]
+    WorldgenBiome(Vec<DimensionCodecEntry<BiomeInfo>>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DimensionCodecEntry<T> {
+    pub name: String,
+    pub id: i16,
+    pub element: T,
+}
+
 packets! {
     MapData {
         map_id VarInt;
         scale i8;
-        show_tracking_position bool;
         is_locked bool;
-        icons VarIntPrefixedVec<Icon>;
-        // TODO: a bunch of fields only if a Columns is set to 0
+        icon Option<WrappedIcon>;
+        // TODO:  and a bunch of fields only if a Columns is set to 0
         __todo__ LengthInferredVecU8;
+    }
+
+    WrappedIcon {
+        icon VarIntPrefixedVec<Icon>;
     }
 
     Icon {
@@ -478,6 +530,10 @@ packets! {
         position ValidBlockPosition;
     }
 
+    Ping {
+        id i32;
+    }
+
     CraftRecipeResponse {
         window_id i8;
         recipe String;
@@ -489,23 +545,17 @@ packets! {
         fov_modifier f32;
     }
 
-    CombatEvent {
-        event CombatEventKind;
+    EndCombatEvent {
+        duration VarInt;
+        entity_id i32;
     }
-}
 
-def_enum! {
-    CombatEventKind (VarInt) {
-        0 = EnterCombat,
-        1 = EndCombat {
-            duration VarInt;
-            entity_id i32;
-        },
-        2 = EntityDead {
-            player_id VarInt;
-            entity_id i32;
-            message String;
-        }
+    EnterCombatEvent
+
+    DeathCombatEvent {
+        player_id VarInt;
+        entity_id i32;
+        message String;
     }
 }
 
@@ -524,10 +574,7 @@ pub struct Particle {
 }
 
 impl Readable for Particle {
-    fn read(
-        buffer: &mut std::io::Cursor<&[u8]>,
-        version: crate::ProtocolVersion,
-    ) -> anyhow::Result<Self>
+    fn read(buffer: &mut std::io::Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
@@ -557,11 +604,11 @@ impl Readable for Particle {
             }
             ParticleKind::Block(ref mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
-                *block_state = BlockState::from_id(state.0 as u16).unwrap();
+                *block_state = BlockId::from_vanilla_id(state.0 as u16).unwrap();
             }
             ParticleKind::FallingDust(ref mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
-                *block_state = BlockState::from_id(state.0 as u16).unwrap();
+                *block_state = BlockId::from_vanilla_id(state.0 as u16).unwrap();
             }
             ParticleKind::Item(ref mut item) => {
                 let _slot = Slot::read(buffer, version)?;
@@ -586,7 +633,7 @@ impl Readable for Particle {
 }
 
 impl Writeable for Particle {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         self.particle_kind.id().write(buffer, version)?;
         self.long_distance.write(buffer, version)?;
         self.x.write(buffer, version)?;
@@ -611,10 +658,10 @@ impl Writeable for Particle {
                 scale.write(buffer, version)?;
             }
             ParticleKind::Block(block_state) => {
-                VarInt(block_state.id() as i32).write(buffer, version)?;
+                VarInt(block_state.vanilla_id() as i32).write(buffer, version)?;
             }
             ParticleKind::FallingDust(block_state) => {
-                VarInt(block_state.id() as i32).write(buffer, version)?;
+                VarInt(block_state.vanilla_id() as i32).write(buffer, version)?;
             }
             ParticleKind::Item(_item) => {
                 todo![];
@@ -645,10 +692,7 @@ pub enum PlayerInfo {
 }
 
 impl Readable for PlayerInfo {
-    fn read(
-        buffer: &mut std::io::Cursor<&[u8]>,
-        version: crate::ProtocolVersion,
-    ) -> anyhow::Result<Self>
+    fn read(buffer: &mut std::io::Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
@@ -742,7 +786,7 @@ impl Readable for PlayerInfo {
 }
 
 impl Writeable for PlayerInfo {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let (action_id, num_players) = match self {
             PlayerInfo::AddPlayers(vec) => (0, vec.len()),
             PlayerInfo::UpdateGamemodes(vec) => (1, vec.len()),
@@ -829,6 +873,7 @@ packets! {
         pitch f32;
         flags u8;
         teleport_id VarInt;
+        dismount_vehicle bool;
     }
 
     UnlockRecipes {
@@ -847,14 +892,16 @@ packets! {
     ResourcePack {
         url String;
         hash String;
+        forced bool;
+        prompt_message Option<String>;
     }
 
     Respawn {
-        dimension Nbt<Blob>;
-        world_name String;
+        dimension Nbt<DimensionTypeInfo>;
+        dimension_name String;
         hashed_seed u64;
         gamemode Gamemode;
-        previous_gamemode Gamemode;
+        previous_gamemode PreviousGamemode;
         is_debug bool;
         is_flat bool;
         copy_metadata bool;
@@ -867,6 +914,44 @@ packets! {
 
     SelectAdvancementTab {
         identifier Option<String>;
+    }
+
+    ActionBar {
+        action_bar_text String;
+    }
+
+    WorldBorderSize {
+        diameter f64;
+    }
+
+    WorldBorderLerpSize {
+        old_diameter f64;
+        new_diameter f64;
+        speed u64;
+    }
+
+    WorldBorderCenter {
+        x f64;
+        z f64;
+    }
+
+    InitializeWorldBorder {
+        x f64;
+        z f64;
+        old_diameter f64;
+        new_diameter f64;
+        speed VarLong;
+        portal_teeport_boundary VarInt;
+        warning_time VarInt;
+        warning_blocks VarInt;
+    }
+
+    WorldBorderWarningDelay {
+        warning_time VarInt;
+    }
+
+    WorldBorderWarningReach {
+        warning_blocks VarInt;
     }
 }
 
@@ -951,10 +1036,7 @@ pub struct EntityEquipment {
 }
 
 impl Readable for EntityEquipment {
-    fn read(
-        buffer: &mut std::io::Cursor<&[u8]>,
-        version: crate::ProtocolVersion,
-    ) -> anyhow::Result<Self>
+    fn read(buffer: &mut std::io::Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
@@ -989,7 +1071,7 @@ impl Readable for EntityEquipment {
 }
 
 impl Writeable for EntityEquipment {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         VarInt(self.entity_id).write(buffer, version)?;
 
         for (i, entry) in self.entries.iter().enumerate() {
@@ -1099,8 +1181,13 @@ packets! {
         value Option<VarInt>;
     }
 
+    UpdateSimulationDistance {
+        simulation_distance VarInt;
+    }
+
     SpawnPosition {
         position ValidBlockPosition;
+        angle f32;
     }
 
     TimeUpdate {
@@ -1109,24 +1196,23 @@ packets! {
     }
 }
 
-def_enum! {
-    Title (VarInt) {
-        0 = SetTitle {
-            text String;
-        },
-        1 = SetSubtitle {
-            text String;
-        },
-        2 = SetActionBar {
-            text String;
-        },
-        3 = SetTimesAndDisplay {
-            fade_in i32;
-            stay i32;
-            fade_out i32;
-        },
-        4 = Hide,
-        5 = Reset,
+packets! {
+    ClearTitles {
+        reset bool;
+    }
+
+    SetTitleSubtitle {
+        subtitle_text String;
+    }
+
+    SetTitleText {
+        title_text String;
+    }
+
+    SetTitleTimes {
+        fade_in i32;
+        stay i32;
+        fade_out i32;
     }
 }
 
@@ -1162,7 +1248,7 @@ packets! {
 
     NbtQueryResponse {
         transaction_id VarInt;
-        nbt Nbt<Blob>;
+        nbt Nbt<nbt::Value>;
     }
 
     CollectItem {
@@ -1281,14 +1367,26 @@ packets! {
     }
 
     AllTags {
-        block_tags VarIntPrefixedVec<Tag>;
-        item_tags VarIntPrefixedVec<Tag>;
-        fluid_tags VarIntPrefixedVec<Tag>;
-        entity_tags VarIntPrefixedVec<Tag>;
+        tags VarIntPrefixedVec<TagRegistry>;
+    }
+
+    TagRegistry {
+        tag_type TagType;
+        tags VarIntPrefixedVec<Tag>;
     }
 
     Tag {
         name String;
         entries VarIntPrefixedVec<VarInt>;
+    }
+}
+
+def_enum! {
+    TagType (String) {
+        "minecraft:block" = Block,
+        "minecraft:item" = Item,
+        "minecraft:fluid" = Fluid,
+        "minecraft:entity_type" = EntityType,
+        "minecraft:game_event" = GameEvent
     }
 }

@@ -1,4 +1,4 @@
-use super::*;
+use crate::VarInt;
 
 def_enum! {
     HandshakeState (VarInt) {

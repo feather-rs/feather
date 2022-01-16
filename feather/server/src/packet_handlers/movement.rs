@@ -36,7 +36,7 @@ pub fn handle_player_movement(player: EntityRef, packet: PlayerMovement) -> SysR
 }
 
 pub fn handle_player_position(
-    server: &Server,
+    server: &mut Server,
     player: EntityRef,
     packet: PlayerPosition,
 ) -> SysResult {
@@ -53,7 +53,7 @@ pub fn handle_player_position(
 }
 
 pub fn handle_player_position_and_rotation(
-    server: &Server,
+    server: &mut Server,
     player: EntityRef,
     packet: PlayerPositionAndRotation,
 ) -> SysResult {
@@ -72,7 +72,7 @@ pub fn handle_player_position_and_rotation(
 }
 
 pub fn handle_player_rotation(
-    server: &Server,
+    server: &mut Server,
     player: EntityRef,
     packet: PlayerRotation,
 ) -> SysResult {
@@ -87,8 +87,8 @@ pub fn handle_player_rotation(
     Ok(())
 }
 
-fn update_client_position(server: &Server, player: EntityRef, pos: Position) -> SysResult {
-    if let Some(client) = server.clients.get(*player.get::<ClientId>()?) {
+fn update_client_position(server: &mut Server, player: EntityRef, pos: Position) -> SysResult {
+    if let Some(client) = server.clients.get_mut(*player.get::<ClientId>()?) {
         client.set_client_known_position(pos);
     }
     Ok(())

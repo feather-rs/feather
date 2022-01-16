@@ -10,9 +10,10 @@ anyhow = "1"
 arrayvec = { version = "0.7", features = [ "serde" ] }
 bitflags = "1"
 bitvec = "0.21"
-blocks = { path = "../blocks", package = "feather-blocks" }
 byteorder = "1"
+derive_more = "0.99"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+itertools = "0.10"
 
 libcraft-blocks = { path = "../../libcraft/blocks" }
 libcraft-core = { path = "../../libcraft/core" }
@@ -35,6 +36,9 @@ thiserror = "1"
 uuid = { version = "0.8", features = [ "serde" ] }
 vek = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
+konst = "0.2"
+once_cell = "1"
+indexmap = "1"
 
 [dev-dependencies]
 rand = "0.8"

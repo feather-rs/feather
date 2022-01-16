@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use thiserror::Error;
 
-use libcraft_core::{BlockPosition, ChunkPosition, Position};
+use crate::{BlockPosition, ChunkPosition, Position};
 use std::convert::TryFrom;
 
 /// Validated position of a block.
@@ -139,9 +139,8 @@ pub enum BlockPositionValidationError {
 #[cfg(test)]
 mod tests {
 
-    use std::convert::TryInto;
-
     use libcraft_core::BlockPosition;
+    use std::convert::TryInto;
 
     use crate::ValidBlockPosition;
 

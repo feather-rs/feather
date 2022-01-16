@@ -3,7 +3,7 @@ use std::sync::{
     Arc,
 };
 
-use crate::Chunk;
+use crate::chunk::Chunk;
 use anyhow::bail;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
@@ -42,18 +42,18 @@ impl ChunkLock {
         self.loaded.swap(true, Ordering::SeqCst)
     }
 
-    /// Locks this chunk with read acccess. Doesn't block.
+    /// Locks this chunk with read access. Doesn't block.
     /// Returns None if the chunk is unloaded or locked for writing, Some otherwise.
     pub fn try_read(&self) -> Option<RwLockReadGuard<Chunk>> {
         self.lock.try_read()
     }
 
-    /// Locks this chunk with read acccess, blocking the current thread until it can be acquired.
-    /// Returns None if the chunk is unloaded, Some otherwise.
+    /// Locks this chunk with read access, blocking the current thread until it can be acquired.
     pub fn read(&self) -> RwLockReadGuard<Chunk> {
         self.lock.read()
     }
-    /// Locks this chunk with exclusive write acccess. Doesn't block.
+
+    /// Locks this chunk with exclusive write access. Doesn't block.
     /// Returns None if the chunk is unloaded or locked already, Some otherwise.
     pub fn try_write(&self) -> Option<RwLockWriteGuard<Chunk>> {
         if self.is_loaded() {
@@ -79,17 +79,22 @@ impl ChunkLock {
 
 #[cfg(test)]
 mod tests {
+    use crate::world::Sections;
+    use crate::ChunkPosition;
     use std::{
         thread::{sleep, spawn, JoinHandle},
         time::Duration,
     };
 
-    use libcraft_core::ChunkPosition;
-
     use super::*;
+
     fn empty_lock(x: i32, z: i32, loaded: bool) -> ChunkLock {
-        ChunkLock::new(Chunk::new(ChunkPosition::new(x, z)), loaded)
+        ChunkLock::new(
+            Chunk::new(ChunkPosition::new(x, z), Sections(16), 0),
+            loaded,
+        )
     }
+
     #[test]
     fn normal_function() {
         let lock = empty_lock(0, 0, true);
@@ -102,16 +107,19 @@ mod tests {
             }
         }
     }
+
     #[test]
     fn cannot_write_unloaded() {
         let lock = empty_lock(0, 0, false);
         assert!(lock.try_write().is_none())
     }
+
     #[test]
     fn can_read_unloaded() {
         let lock = empty_lock(0, 0, false);
         assert!(lock.try_read().is_some())
     }
+
     #[test]
     fn multithreaded() {
         let lock = Arc::new(empty_lock(0, 0, true));

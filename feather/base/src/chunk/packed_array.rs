@@ -1,9 +1,13 @@
+use std::convert::TryInto;
+use std::mem::ManuallyDrop;
+use std::num::NonZeroUsize;
+
 /// A packed array of integers where each integer consumes
-/// `n` bits. Used to store block data in chunks.
-#[derive(Debug, Clone)]
+/// `bits_per_value` bits. Used to store block data in chunks.
+#[derive(Debug, Clone, PartialEq)]
 pub struct PackedArray {
     length: usize,
-    bits_per_value: usize,
+    bits_per_value: NonZeroUsize,
     bits: Vec<u64>,
 }
 
@@ -14,7 +18,7 @@ impl PackedArray {
     ///
     /// # Panics
     /// Panics if `bits_per_value > 64`.
-    pub fn new(length: usize, bits_per_value: usize) -> Self {
+    pub fn new(length: usize, bits_per_value: NonZeroUsize) -> Self {
         let mut this = Self {
             length,
             bits_per_value,
@@ -29,12 +33,28 @@ impl PackedArray {
     /// Creates a `PackedArray` from raw `u64` data
     /// and a length.
     pub fn from_u64_vec(bits: Vec<u64>, length: usize) -> Self {
-        let bits_per_value = bits.len() * 64 / length;
+        assert!(!bits.is_empty());
+        let bits_per_value = (bits.len() * u64::BITS as usize / length)
+            .try_into()
+            .unwrap();
         Self {
             length,
             bits_per_value,
             bits,
         }
+    }
+
+    /// Creates a `PackedArray` from raw `i64` data
+    /// and a length.
+    pub fn from_i64_vec(bits: Vec<i64>, length: usize) -> Self {
+        // SAFETY: i64 and u64 have the same memory layout
+        let mut bits = ManuallyDrop::new(bits);
+        Self::from_u64_vec(
+            unsafe {
+                Vec::from_raw_parts(bits.as_mut_ptr() as *mut u64, bits.len(), bits.capacity())
+            },
+            length,
+        )
     }
 
     /// Gets the value at the given index.
@@ -56,7 +76,7 @@ impl PackedArray {
     /// Panics if `index >= self.length()` or `value > self.max_value()`.
     #[inline]
     pub fn set(&mut self, index: usize, value: u64) {
-        assert!(
+        debug_assert!(
             index < self.len(),
             "index out of bounds: index is {}; length is {}",
             index,
@@ -64,7 +84,7 @@ impl PackedArray {
         );
 
         let mask = self.mask();
-        assert!(value <= mask);
+        debug_assert!(value <= mask);
 
         let (u64_index, bit_index) = self.indexes(index);
 
@@ -81,7 +101,7 @@ impl PackedArray {
         assert!(value <= self.max_value());
         let mut x = 0;
         for i in 0..self.values_per_u64() {
-            x |= value << (i * self.bits_per_value);
+            x |= value << (i * self.bits_per_value.get());
         }
 
         self.bits.fill(x);
@@ -90,7 +110,7 @@ impl PackedArray {
     /// Returns an iterator over values in this array.
     pub fn iter(&self) -> impl Iterator<Item = u64> + '_ {
         let values_per_u64 = self.values_per_u64();
-        let bits_per_value = self.bits_per_value() as u64;
+        let bits_per_value = self.bits_per_value().get() as u64;
         let mask = self.mask();
         let length = self.len();
 
@@ -103,13 +123,14 @@ impl PackedArray {
     }
 
     /// Resizes this packed array to a new bits per value.
-    pub fn resized(&mut self, new_bits_per_value: usize) -> PackedArray {
+    #[must_use = "method returns a new array and does not mutate the original value"]
+    pub fn resized(&self, new_bits_per_value: NonZeroUsize) -> PackedArray {
         Self::from_iter(self.iter(), new_bits_per_value)
     }
 
     /// Collects an iterator into a `PackedArray`.
-    pub fn from_iter(iter: impl IntoIterator<Item = u64>, bits_per_value: usize) -> Self {
-        assert!(bits_per_value <= 64);
+    pub fn from_iter(iter: impl IntoIterator<Item = u64>, bits_per_value: NonZeroUsize) -> Self {
+        assert!(bits_per_value.get() <= 64);
         let iter = iter.into_iter();
         let mut bits = Vec::with_capacity(iter.size_hint().0);
 
@@ -118,11 +139,11 @@ impl PackedArray {
         let mut length = 0;
 
         for value in iter {
-            debug_assert!(value < 1 << bits_per_value);
+            debug_assert!(value < 1 << bits_per_value.get());
             current_u64 |= value << current_offset;
 
-            current_offset += bits_per_value;
-            if current_offset > 64 - bits_per_value {
+            current_offset += bits_per_value.get();
+            if current_offset > 64 - bits_per_value.get() {
                 bits.push(current_u64);
                 current_offset = 0;
                 current_u64 = 0;
@@ -162,12 +183,12 @@ impl PackedArray {
 
     /// Returns the number of bits used to represent each value.
     #[inline]
-    pub fn bits_per_value(&self) -> usize {
+    pub fn bits_per_value(&self) -> NonZeroUsize {
         self.bits_per_value
     }
 
-    #[cfg(feature = "proxy")]
-    pub fn set_bits_per_value(&mut self, new_value: usize) {
+    /// Sets the number of bits used to represent each value.
+    pub fn set_bits_per_value(&mut self, new_value: NonZeroUsize) {
         self.bits_per_value = new_value;
     }
 
@@ -176,13 +197,13 @@ impl PackedArray {
         &self.bits
     }
 
-    #[cfg(feature = "proxy")]
+    /// Gets the raw mutable `u64` data.
     pub fn as_u64_mut_vec(&mut self) -> &mut Vec<u64> {
         &mut self.bits
     }
 
     fn mask(&self) -> u64 {
-        (1 << self.bits_per_value) - 1
+        (1 << self.bits_per_value.get()) - 1
     }
 
     fn needed_u64s(&self) -> usize {
@@ -190,14 +211,14 @@ impl PackedArray {
     }
 
     fn values_per_u64(&self) -> usize {
-        64 / self.bits_per_value
+        64 / self.bits_per_value.get()
     }
 
     fn indexes(&self, index: usize) -> (usize, usize) {
-        let u64_index = index / self.values_per_u64();
-        let bit_index = (index % self.values_per_u64()) * self.bits_per_value;
-
-        (u64_index, bit_index)
+        let vales_per_u64 = self.values_per_u64();
+        let u64_index = index / vales_per_u64;
+        let index = index % vales_per_u64;
+        (u64_index, index * self.bits_per_value.get())
     }
 }
 
@@ -206,13 +227,14 @@ mod tests {
     use super::*;
     use rand::{Rng, SeedableRng};
     use rand_pcg::Pcg64Mcg;
+    use std::convert::TryInto;
 
     #[test]
     fn smoke() {
         let length = 100;
-        let mut array = PackedArray::new(length, 10);
+        let mut array = PackedArray::new(length, 10.try_into().unwrap());
         assert_eq!(array.len(), length);
-        assert_eq!(array.bits_per_value(), 10);
+        assert_eq!(array.bits_per_value().get(), 10);
         assert_eq!(array.bits.len(), 17);
 
         for i in 0..length {
@@ -224,7 +246,7 @@ mod tests {
 
     #[test]
     fn out_of_bounds() {
-        let array = PackedArray::new(97, 10);
+        let array = PackedArray::new(97, 10.try_into().unwrap());
         assert_eq!(array.bits.len(), 17);
         assert_eq!(array.get(96), Some(0));
         assert_eq!(array.get(97), None);
@@ -232,7 +254,7 @@ mod tests {
 
     #[test]
     fn iter() {
-        let mut array = PackedArray::new(10_000, 10);
+        let mut array = PackedArray::new(10_000, 10.try_into().unwrap());
         let mut rng = Pcg64Mcg::seed_from_u64(10);
         let mut oracle = Vec::new();
 
@@ -257,7 +279,7 @@ mod tests {
         let mut rng = Pcg64Mcg::seed_from_u64(11);
 
         let length = 1024;
-        let mut array = PackedArray::new(length, 1);
+        let mut array = PackedArray::new(length, 1.try_into().unwrap());
 
         let mut oracle = Vec::new();
         for new_bits_per_value in 2..=16 {
@@ -271,7 +293,7 @@ mod tests {
                 assert_eq!(array.get(i), Some(oracle_value));
             }
 
-            array = array.resized(new_bits_per_value);
+            array = array.resized(new_bits_per_value.try_into().unwrap());
 
             for (i, &oracle_value) in oracle.iter().enumerate() {
                 assert_eq!(array.get(i), Some(oracle_value));
@@ -283,7 +305,7 @@ mod tests {
 
     #[test]
     fn fill() {
-        let mut array = PackedArray::new(1024, 10);
+        let mut array = PackedArray::new(1024, 10.try_into().unwrap());
         array.fill(102);
         assert!(array.iter().all(|x| x == 102));
 
@@ -294,7 +316,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn fill_too_large() {
-        let mut array = PackedArray::new(100, 10);
+        let mut array = PackedArray::new(100, 10.try_into().unwrap());
         array.fill(1024); // 1024 == 2^10
     }
 }

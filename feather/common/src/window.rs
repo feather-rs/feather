@@ -98,31 +98,31 @@ impl Window {
         match &self.inner {
             BackingWindow::Player { player: _ } => self.shift_click_in_player_window(slot),
 
-            BackingWindow::Generic9x1 {
+            BackingWindow::Generic9X1 {
                 block: _,
                 player: _,
             }
-            | BackingWindow::Generic9x2 {
+            | BackingWindow::Generic9X2 {
                 block: _,
                 player: _,
             }
-            | BackingWindow::Generic9x3 {
+            | BackingWindow::Generic9X3 {
                 block: _,
                 player: _,
             }
-            | BackingWindow::Generic9x4 {
+            | BackingWindow::Generic9X4 {
                 block: _,
                 player: _,
             }
-            | BackingWindow::Generic9x5 {
+            | BackingWindow::Generic9X5 {
                 block: _,
                 player: _,
             }
-            | BackingWindow::Generic3x3 {
+            | BackingWindow::Generic3X3 {
                 block: _,
                 player: _,
             }
-            | BackingWindow::Generic9x6 {
+            | BackingWindow::Generic9X6 {
                 left_chest: _,
                 right_chest: _,
                 player: _,
@@ -347,6 +347,11 @@ impl Window {
     /// Gets the item currently held in the cursor.
     pub fn cursor_item(&self) -> &InventorySlot {
         &self.cursor_item
+    }
+
+    /// Sets the item currently held in the cursor.
+    pub fn set_cursor_item(&mut self, item: InventorySlot) {
+        self.cursor_item = item;
     }
 
     pub fn item(&self, index: usize) -> Result<MutexGuard<InventorySlot>, WindowError> {
