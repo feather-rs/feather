@@ -7,6 +7,8 @@ use base::{
 };
 use libcraft_core::BlockFace;
 use std::convert::TryInto;
+
+/// Utility enum that represents `EastNlt`, `WestNlt`, `NorthNlt` and `SouthNlt`. These enums have identical discriminants and binary representations, making it safe to convert between them.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum Nlt {
@@ -45,6 +47,8 @@ macro_rules! impl_conversions {
     }
 }
 impl_conversions!(EastNlt, WestNlt, NorthNlt, SouthNlt);
+
+/// Trait that implements helper function for adjacency. This is an extension to `World` that tries to keep this utility logic away from the main implementation
 pub trait AdjacentBlockHelper {
     fn adjacent_block(&self, pos: BlockPosition, face: BlockFace) -> Option<BlockId>;
 

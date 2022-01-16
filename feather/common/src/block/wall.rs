@@ -5,11 +5,13 @@ use crate::{block::util::AdjacentBlockHelper, World};
 
 use super::util::Nlt;
 
+/// General function that connects all walls, fences, glass panes, iron bars and tripwires and then lowers fence gates to fit into walls.
 pub fn update_wall_connections(world: &mut World, pos: BlockPosition) -> Option<()> {
     lower_fence_gate(world, pos)?;
     connect_neighbours_and_up(world, pos)
 }
 
+/// Checks if the block is a wall. `SimplifiedBlockKind` does not have a common type for walls at this time, making this function neccessary.
 pub fn is_wall(block: BlockId) -> bool {
     use base::SimplifiedBlockKind::*;
     matches!(
@@ -33,6 +35,7 @@ pub fn is_wall(block: BlockId) -> bool {
             | PolishedBlackstoneWall
     )
 }
+/// Check if this block is a wall/iron bars/glass pane. If true, the block can connect to any other block that satisfies this predicate.
 pub fn is_wall_compatible(block: BlockId) -> bool {
     use base::SimplifiedBlockKind::*;
     is_wall(block) || matches!(block.simplified_kind(), GlassPane | IronBars)
@@ -59,6 +62,7 @@ fn gate_connects_ns(block: BlockId) -> bool {
             Some(FacingCardinal::East | FacingCardinal::West)
         )
 }
+/// Checks if this block is a `FenceGate` and has one of its connecting side on the given `BlockFace`
 fn gate_connects_to_face(block: BlockId, face: BlockFace) -> bool {
     use BlockFace::*;
     match face {
@@ -68,6 +72,7 @@ fn gate_connects_to_face(block: BlockId, face: BlockFace) -> bool {
     }
 }
 
+/// Uses the appropriate `BlockId::set_#####_connected` function, depending on the given `BlockFace`
 fn set_face_connected(block: &mut BlockId, face: BlockFace, connected: bool) -> bool {
     use BlockFace::*;
     match face {
@@ -78,6 +83,7 @@ fn set_face_connected(block: &mut BlockId, face: BlockFace, connected: bool) -> 
         South => block.set_south_connected(connected),
     }
 }
+/// Uses the appropriate `BlockId::set_#####_nlt` function, depending on the given `BlockFace`. The given `Nlt` is automatically converted.
 fn set_face_nlt(block: &mut BlockId, face: BlockFace, nlt: Nlt) -> bool {
     use BlockFace::*;
     match face {
@@ -88,17 +94,19 @@ fn set_face_nlt(block: &mut BlockId, face: BlockFace, nlt: Nlt) -> bool {
         South => block.set_south_nlt(nlt.into()),
     }
 }
+/// Checks whether the block is a wall and connected to the given `BlockFace`
 fn is_nlt_connected(block: BlockId, face: BlockFace) -> Option<bool> {
     use BlockFace::*;
     let f = |n: Nlt| matches!(n, Nlt::Low | Nlt::Tall);
     match face {
-        Bottom | Top => Some(false),
+        Bottom | Top => None,
         East => block.east_nlt().map(|n| f(n.into())),
         West => block.west_nlt().map(|n| f(n.into())),
         North => block.north_nlt().map(|n| f(n.into())),
         South => block.south_nlt().map(|n| f(n.into())),
     }
 }
+/// Checks if the block is connected to the given `BlockFace`
 fn is_face_connected(block: BlockId, face: BlockFace) -> Option<bool> {
     use BlockFace::*;
     match face {
@@ -110,6 +118,7 @@ fn is_face_connected(block: BlockId, face: BlockFace) -> Option<bool> {
     }
 }
 
+/// If called on a position containing a `FenceGate`, checks whether the block connects to a wall. If true, this lowers the gate by setting its `in_wall` property to true.
 pub fn lower_fence_gate(world: &mut World, pos: BlockPosition) -> Option<()> {
     let mut block = world.block_at(pos)?;
     if block.simplified_kind() == SimplifiedBlockKind::FenceGate {
@@ -136,6 +145,7 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
     let up = adjacent_or_default(world, pos, BlockFace::Top, BlockId::air());
     let (mut east_connected, mut west_connected, mut north_connected, mut south_connected) =
         (false, false, false, false);
+    // Iterate over cardinal directions
     for (block_face, connected_flag) in [
         (BlockFace::East, &mut east_connected),
         (BlockFace::West, &mut west_connected),
@@ -160,6 +170,7 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
                 &mut block,
                 block_face,
                 if *connected_flag {
+                    // Wall connections are `Tall` when the block above then is opaque or has a connection in the same direction
                     if is_face_connected(up, block_face).unwrap_or(false)
                         || is_nlt_connected(up, block_face).unwrap_or(false)
                         || gate_connects_to_face(up, block_face)
@@ -178,9 +189,26 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
         }
     }
     if is_wall(block) {
+        // Wall crossings always have a tall post
         let up_from_wall_cross =
             (east_connected ^ west_connected) || (north_connected ^ south_connected);
+        // Tall wall posts propagate downward
         let up_has_up = up.up().unwrap_or(false);
+        // Walls always have a tall post when ending
+        let this_ends = [
+            (BlockFace::East, east_connected),
+            (BlockFace::West, west_connected),
+            (BlockFace::North, north_connected),
+            (BlockFace::South, south_connected),
+        ]
+        .iter()
+        .any(|&(f, con)| {
+            con && !is_nlt_connected(block, f)
+                .or_else(|| is_face_connected(block, f))
+                .unwrap_or(true)
+        });
+
+        // Check if there is a wall/fence/etc ending above
         let up_ends = [
             (BlockFace::East, east_connected),
             (BlockFace::West, west_connected),
@@ -195,7 +223,7 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
         });
         // TODO: Query this property at runtime because it is a tag.
         let wall_post_override = false;
-        block.set_up(up_from_wall_cross || up_has_up || up_ends || wall_post_override);
+        block.set_up(up_from_wall_cross || up_has_up || this_ends || up_ends || wall_post_override);
     }
     world.set_block_at(pos, block);
     Some(())
