@@ -5,6 +5,11 @@ use crate::{block::util::AdjacentBlockHelper, World};
 
 use super::util::Nlt;
 
+pub fn update_wall_connections(world: &mut World, pos: BlockPosition) -> Option<()> {
+    lower_fence_gate(world, pos)?;
+    connect_neighbours_and_up(world, pos)
+}
+
 pub fn is_wall(block: BlockId) -> bool {
     use base::SimplifiedBlockKind::*;
     matches!(
@@ -105,6 +110,26 @@ fn is_face_connected(block: BlockId, face: BlockFace) -> Option<bool> {
     }
 }
 
+pub fn lower_fence_gate(world: &mut World, pos: BlockPosition) -> Option<()> {
+    let mut block = world.block_at(pos)?;
+    if block.simplified_kind() == SimplifiedBlockKind::FenceGate {
+        let left = block.facing_cardinal().unwrap().left();
+        let right = left.opposite();
+        // Check if neighbouring block is a wall
+        let predicate = |fc| {
+            is_wall(
+                world
+                    .adjacent_block_cardinal(pos, fc)
+                    .unwrap_or_else(BlockId::air),
+            )
+        };
+        // One wall is enough to lower the fence gate
+        block.set_in_wall(predicate(left) || predicate(right));
+    }
+    world.set_block_at(pos, block);
+    Some(())
+}
+
 pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Option<()> {
     use base::SimplifiedBlockKind::*;
     let mut block = world.block_at(pos)?;
@@ -173,6 +198,5 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
         block.set_up(up_from_wall_cross || up_has_up || up_ends || wall_post_override);
     }
     world.set_block_at(pos, block);
-
     Some(())
 }

@@ -4,7 +4,7 @@ use libcraft_core::BlockFace;
 
 use crate::{events::BlockChangeEvent, Game};
 
-use super::wall::connect_neighbours_and_up;
+use super::wall::update_wall_connections;
 
 /// TODO: send updated blocks to player
 pub fn block_update(game: &mut Game) -> SysResult {
@@ -21,9 +21,7 @@ pub fn block_update(game: &mut Game) -> SysResult {
             .map(|&d| [pos.adjacent(d), pos.adjacent(BlockFace::Bottom).adjacent(d)])
             .flatten()
             {
-                if connect_neighbours_and_up(&mut game.world, adjacent).is_none() {
-                    continue;
-                }
+                update_wall_connections(&mut game.world, adjacent);
             }
         }
     }

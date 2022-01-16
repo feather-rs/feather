@@ -1,4 +1,5 @@
-use super::{util::AdjacentBlockHelper, wall::connect_neighbours_and_up};
+use super::util::AdjacentBlockHelper;
+use super::wall::update_wall_connections;
 use crate::chunk::entities::ChunkEntities;
 use crate::entities::player::HotbarSlot;
 use crate::events::BlockChangeEvent;
@@ -184,7 +185,7 @@ fn place_block(
         ])
     } else {
         world.set_block_at(target, block);
-        connect_neighbours_and_up(world, target).unwrap();
+        update_wall_connections(world, target).unwrap();
         Some(vec![BlockChangeEvent::try_single(target).ok()?])
     }
 }
