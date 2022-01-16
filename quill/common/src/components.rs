@@ -257,13 +257,6 @@ impl PreviousGamemode {
     }
 }
 
-/// Represents an entity's health
-#[derive(
-    Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
-)]
-pub struct Health(pub f32);
-bincode_component_impl!(Health);
-
 /// A component on players that tracks if they are sprinting or not.
 #[derive(
     Copy,
@@ -284,3 +277,65 @@ impl Sprinting {
     }
 }
 bincode_component_impl!(Sprinting);
+
+/// An entity's health.
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct Health {
+    pub health: u32,
+    pub max_health: u32,
+}
+
+impl Health {
+    /// Creates a new `Health` object with both health
+    /// and max_health initialized to the given value.
+    pub fn new(max_health: u32) -> Self {
+        Self {
+            health: max_health,
+            max_health,
+        }
+    }
+
+    /// Create  a new `Health` object with a health value.
+    pub fn with_health(max_health: u32, health: u32) -> Self {
+        Self {
+            health: health.min(max_health),
+            max_health,
+        }
+    }
+
+    /// Reduce the health by at most the amount `damage`. If
+    /// the subtraction would underflow, health is set to 0.
+    pub fn deal_damage(&mut self, damage: u32) {
+        self.health = self.health.saturating_sub(damage);
+    }
+
+    /// Increase the health to at most `max_health` of `Health`.
+    pub fn regenerate(&mut self, health: u32) {
+        self.health = match self.health + health {
+            health if health > self.max_health => self.max_health,
+            health => health,
+        }
+    }
+}
+
+bincode_component_impl!(Health);
+
+pub struct Hunger {
+    pub food: u32,
+    pub saturation: u32,
+}
+
+impl Hunger {
+    pub fn new() -> Self {
+        Self {
+            food: 20,
+            saturation: 5,
+        }
+    }
+}
+
+impl Default for Hunger {
+    fn default() -> Self {
+        Self::new()
+    }
+}

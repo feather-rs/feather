@@ -117,11 +117,12 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(inventory)
         .add(window)
         .add(hotbar_slot)
-        .add(Health(
+        .add(Health::with_health(
+            20,
             player_data
                 .as_ref()
-                .map(|data| data.animal.health)
-                .unwrap_or(20.0),
+                .map(|data| data.animal.health as u32)
+                .unwrap_or(20),
         ))
         .add(abilities.walk_speed)
         .add(abilities.fly_speed)

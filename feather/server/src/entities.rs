@@ -1,6 +1,9 @@
 use base::{EntityKind, Position};
 use ecs::{EntityBuilder, EntityRef, SysResult};
-use quill_common::{components::OnGround, entity_init::EntityInit};
+use quill_common::{
+    components::{Health, OnGround},
+    entity_init::EntityInit,
+};
 use uuid::Uuid;
 
 use crate::{Client, NetworkId};
@@ -40,6 +43,12 @@ pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     builder
         .add(PreviousPosition(prev_position))
         .add(PreviousOnGround(on_ground));
+
+    // Track fall damage for the entities with `Health`.
+    if builder.has::<Health>() {
+        builder.add(FallDistance(0.0));
+    }
+
     add_spawn_packet(builder, init);
 }
 
@@ -71,3 +80,7 @@ fn spawn_living_entity(entity: &EntityRef, client: &Client) -> SysResult {
     client.send_living_entity(network_id, uuid, pos, kind);
     Ok(())
 }
+
+/// Distance fallen since an entity was on ground.
+#[derive(Copy, Clone, Debug)]
+pub struct FallDistance(pub f64);

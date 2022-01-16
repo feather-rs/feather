@@ -1,8 +1,11 @@
 use base::EntityKind;
 use ecs::EntityBuilder;
-use quill_common::entities::Panda;
+use quill_common::{components::Health, entities::Panda};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
-    builder.add(Panda).add(EntityKind::Panda);
+    builder
+        .add(Panda)
+        .add(Health::new(20))
+        .add(EntityKind::Panda);
 }

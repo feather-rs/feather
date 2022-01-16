@@ -119,7 +119,7 @@ fn create_player_data(
                 rotation: [position.yaw, position.pitch].into(),
                 velocity: [0.0, 0.0, 0.0].into(),
             },
-            health: *health,
+            health: health.health as f32,
         },
         gamemode: gamemode.to_i32().unwrap(),
         previous_gamemode: previous_gamemode.id() as i32,

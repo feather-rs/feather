@@ -1,8 +1,11 @@
 use base::EntityKind;
 use ecs::EntityBuilder;
-use quill_common::entities::IronGolem;
+use quill_common::{components::Health, entities::IronGolem};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
-    builder.add(IronGolem).add(EntityKind::IronGolem);
+    builder
+        .add(IronGolem)
+        .add(Health::new(100))
+        .add(EntityKind::IronGolem);
 }

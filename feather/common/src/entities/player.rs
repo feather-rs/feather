@@ -2,7 +2,7 @@ use anyhow::bail;
 use base::EntityKind;
 use ecs::{EntityBuilder, SysResult};
 use quill_common::{
-    components::{CreativeFlying, Sneaking, Sprinting},
+    components::{CreativeFlying, Health, Sneaking, Sprinting},
     entities::Player,
 };
 
@@ -13,6 +13,7 @@ pub fn build_default(builder: &mut EntityBuilder) {
         .add(CreativeFlying(false))
         .add(Sneaking(false))
         .add(Sprinting(false))
+        .add(Health::new(20))
         .add(EntityKind::Player);
 }
 

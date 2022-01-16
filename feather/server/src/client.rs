@@ -18,7 +18,9 @@ use common::{
     Window,
 };
 use libcraft_items::InventorySlot;
-use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use packets::server::{
+    Particle, Respawn, SetSlot, SpawnLivingEntity, UpdateHealth, UpdateLight, WindowConfirmation,
+};
 use protocol::packets::server::{
     EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
 };
@@ -34,7 +36,7 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::{OnGround, PreviousGamemode};
+use quill_common::components::{Health, Hunger, OnGround, PreviousGamemode};
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
@@ -535,6 +537,34 @@ impl Client {
             window_id: 0,
             slot,
             slot_data: item.clone(),
+        });
+    }
+
+    pub fn update_health(&self, player_health: &Health) {
+        let player_hunger = Hunger::new();
+
+        self.send_packet(UpdateHealth {
+            health: player_health.health as f32,
+            food: player_hunger.food as i32,
+            food_saturation: player_hunger.saturation as f32,
+        });
+    }
+
+    pub fn respawn_player(&self, gamemode: Gamemode) {
+        let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
+            "../../../assets/dimension.nbt"
+        )))
+        .expect("dimension asset is malformed");
+
+        self.send_packet(Respawn {
+            dimension: Nbt(dimension),
+            world_name: "world".to_owned(),
+            hashed_seed: 0,
+            gamemode,
+            previous_gamemode: Gamemode::Survival,
+            is_debug: false,
+            is_flat: false,
+            copy_metadata: false,
         });
     }
 

@@ -3,6 +3,8 @@
 mod block;
 mod chat;
 mod entity;
+mod falldamage;
+mod health;
 mod particle;
 mod player_join;
 mod player_leave;
@@ -32,10 +34,14 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     player_leave::register(systems);
     tablist::register(systems);
     block::register(systems);
+
+    // Falldamage must be processed before PreviousPosition is updated (entity system).
+    falldamage::register(game, systems);
     entity::register(game, systems);
     chat::register(game, systems);
     particle::register(systems);
     plugin_message::register(systems);
+    health::register(game, systems);
 
     systems.group::<Server>().add_system(tick_clients);
 }
