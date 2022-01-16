@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use super::util::AdjacentBlockHelper;
 use super::wall::update_wall_connections;
 use crate::chunk::entities::ChunkEntities;
@@ -61,6 +63,95 @@ pub fn block_placement(game: &mut Game) -> SysResult {
 
     Ok(())
 }
+fn do_place_bed_head(
+    world: &mut World,
+    block: BlockId,
+    placement_pos: BlockPosition,
+) -> Option<bool> {
+    match bed_head(block) {
+        Some(_) => {
+            if !world
+                .adjacent_block_cardinal(placement_pos, block.facing_cardinal()?)?
+                .is_replaceable()
+            {
+                return None;
+            }
+            Some(true)
+        }
+        None => Some(false),
+    }
+}
+fn do_place_upper_half(
+    world: &mut World,
+    block: BlockId,
+    placement_pos: BlockPosition,
+) -> Option<bool> {
+    match top_half(block) {
+        Some(_) => {
+            if !world.block_at(placement_pos.up())?.is_replaceable() {
+                // Short circuit if upper block is > 256
+                return None;
+            }
+            Some(true)
+        }
+        None => Some(false),
+    }
+}
+/// This works but there is a discrepancy between when the place block event is fired and getting the entity location.
+/// that makes it possible to place a block at the right exact moment and have the server believe it wasn't blocked.
+fn entity_collisions_ok(
+    chunk_entities: &ChunkEntities,
+    ecs: &Ecs,
+    placement_pos: BlockPosition,
+) -> bool {
+    !chunk_entities
+        .entities_in_chunk(placement_pos.chunk())
+        .iter()
+        .any(|&entity| {
+            let entity_position = ecs.get::<Position>(entity).unwrap();
+            let entity_kind = *ecs.get::<EntityKind>(entity).unwrap();
+            let block_rect: Rect3<f64, f64> = vek::Rect3 {
+                x: placement_pos.x.into(),
+                y: placement_pos.y.into(),
+                z: placement_pos.z.into(),
+                w: 1.0,
+                h: 1.0,
+                d: 1.0,
+            };
+
+            let mut entity_rect = entity_kind.bounding_box().into_rect3();
+            entity_rect.x = entity_position.x - (entity_rect.w / 2.0);
+            entity_rect.y = entity_position.y;
+            entity_rect.z = entity_position.z - (entity_rect.d / 2.0);
+
+            block_rect.collides_with_rect3(entity_rect)
+        })
+}
+/// Place multiple blocks and generate corresponding events
+fn multi_place(
+    world: &mut World,
+    placements: &[(BlockId, BlockPosition)],
+) -> Vec<BlockChangeEvent> {
+    let mut events = vec![];
+    for &(block, pos) in placements {
+        events.push(BlockChangeEvent::single(
+            pos.try_into().expect("validated block positions only"),
+        ));
+        assert!(world.set_block_at(pos, block), "block has to be loaded");
+    }
+    events
+}
+/// Try placing the block by merging (=placing to the same position as the target block). Includes merging slabs, waterlogging and replacing blocks like grass.
+/// Only one of the following conditions can be met at a time, so short-circuiting is ok.
+/// The combinations include top slab & bottom slab, waterloggable block & water and any block & a replaceable block
+fn basic_place(block: &mut BlockId, target_block: BlockId) -> bool {
+    merge_slabs_in_place(block, target_block)
+        || waterlog(block, target_block)
+        || can_replace(*block, target_block)
+}
+fn can_replace(block: BlockId, target: BlockId) -> bool {
+    (block.kind() != target.kind()) && target.is_replaceable()
+}
 /// Blocks get changed if they are getting waterlogged or when they are slabs turning into full blocks.
 /// Blocks get replaced in-place when possible, while changing an adjacent block has a lower priority.
 fn place_block(
@@ -74,120 +165,64 @@ fn place_block(
 ) -> Option<Vec<BlockChangeEvent>> {
     let target1 = placement.location;
     let target_block1 = world.block_at(target1)?;
+    // Cannot place on air
     if target_block1.is_air() {
         return None;
     }
     let player_dir_ordered = ordered_directions(player_pos.direction());
-    set_face(&mut block, &player_dir_ordered, placement);
-    rotate_8dir(&mut block, player_pos.yaw);
-    // Try placing the block by merging (=placing to the same position as the target block). Includes merging slabs, waterlogging and replacing blocks like grass.
-    // Only one of the following conditions can be met at a time, so short-circuiting is ok.
-    // The combinations include top slab & bottom slab, waterloggable block & water and any block & a replaceable block
-    let target = if slab_to_place(&mut block, target_block1, placement)
-        || waterlog(&mut block, target_block1)
-        || ((target_block1.kind() != block.kind()) && target_block1.is_replaceable())
-    {
-        // If the target block was waterlogged or replaced, attempts to create a double slabs have no effect
-        merge_slabs_in_place(&mut block, target_block1);
+    slab_to_place(&mut block, target_block1, placement);
+    // Select where to place the block
+    let target = if basic_place(&mut block, target_block1) {
         target1
     } else {
         // Otherwise place the block next to the target
         let target2 = target1.adjacent(placement.face);
         let target_block2 = world.block_at(target2)?;
-        if merge_slabs_in_place(&mut block, target_block2)
-            || waterlog(&mut block, target_block2)
-            || ((target_block2.kind() != block.kind()) && target_block2.is_replaceable())
-        {
-            target2
-        } else {
+        if !basic_place(&mut block, target_block2) {
+            // Cannot place block at all
             return None;
         }
+        target2
     };
+    set_face(&mut block, &player_dir_ordered, placement);
+    rotate_8dir(&mut block, player_pos.yaw);
     door_hinge(&mut block, target, &placement.cursor_position, world);
-    let place_top = match top_half(block) {
-        Some(_) => {
-            if !world.block_at(target.up())?.is_replaceable() {
-                // Short circuit if upper block is > 256
-                return None;
-            }
-            true
-        }
-        None => false,
-    };
-    let place_head = match bed_head(block) {
-        Some(_) => {
-            if !world
-                .adjacent_block_cardinal(target, block.facing_cardinal()?)?
-                .is_replaceable()
-            {
-                return None;
-            }
-            true
-        }
-        None => false,
-    };
-    // This works but there is a discrepancy between when the place block event is fired and getting the entity location.
-    // that makes it possible to place a block at the right exact moment and have the server believe it wasn't blocked.
-    if chunk_entities
-        .entities_in_chunk(target.chunk())
-        .iter()
-        .any(|&entity| {
-            let entity_position = ecs.get::<Position>(entity).unwrap();
-            let entity_kind = *ecs.get::<EntityKind>(entity).unwrap();
-            let block_rect: Rect3<f64, f64> = vek::Rect3 {
-                x: target.x.into(),
-                y: target.y.into(),
-                z: target.z.into(),
-                w: 1.0,
-                h: 1.0,
-                d: 1.0,
-            };
-
-            let mut entity_rect = entity_kind.bounding_box().into_rect3();
-            entity_rect.x = entity_position.x - (entity_rect.w / 2.0);
-            entity_rect.y = entity_position.y;
-            entity_rect.z = entity_position.z - (entity_rect.d / 2.0);
-
-            block_rect.collides_with_rect3(entity_rect)
-        })
+    if !(entity_collisions_ok(chunk_entities, ecs, target)
+        && world.check_block_stability(block, target, light_level)?)
     {
         return None;
     }
-    if !world.check_block_stability(block, target, light_level)? {
-        return None;
-    }
-    if place_top {
-        world.set_block_at(target, block);
-        world.set_block_at(
-            target.up(),
-            block.with_half_upper_lower(HalfUpperLower::Upper),
-        );
-        Some(vec![
-            BlockChangeEvent::try_single(target).ok()?,
-            BlockChangeEvent::try_single(target.up()).ok()?,
-        ])
-    } else if place_head {
+    let events = if do_place_upper_half(world, block, target)? {
+        multi_place(
+            world,
+            &[
+                (block, target),
+                (
+                    block.with_half_upper_lower(HalfUpperLower::Upper),
+                    target.up(),
+                ),
+            ],
+        )
+    } else if do_place_bed_head(world, block, target)? {
         let face = match block.facing_cardinal()? {
             FacingCardinal::North => BlockFace::North,
             FacingCardinal::South => BlockFace::South,
             FacingCardinal::West => BlockFace::West,
             FacingCardinal::East => BlockFace::East,
         };
-        world.set_block_at(target, block);
-        world.set_block_adjacent_cardinal(
-            target,
-            block.with_part(base::Part::Head),
-            block.facing_cardinal()?,
-        );
-        Some(vec![
-            BlockChangeEvent::try_single(target).ok()?,
-            BlockChangeEvent::try_single(target.adjacent(face)).ok()?,
-        ])
+        multi_place(
+            world,
+            &[
+                (block, target),
+                (block.with_part(base::Part::Head), target.adjacent(face)),
+            ],
+        )
     } else {
-        world.set_block_at(target, block);
+        let event = multi_place(world, &[(block, target)]);
         update_wall_connections(world, target).unwrap();
-        Some(vec![BlockChangeEvent::try_single(target).ok()?])
-    }
+        event
+    };
+    Some(events)
 }
 /// Sets the hinge position on a door block. The door attempts to connect to other doors first, then to solid blocks. Otherwise, the hinge position is determined by the click position.
 #[allow(clippy::float_cmp)]
