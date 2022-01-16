@@ -7,6 +7,7 @@ use libcraft_particles::Particle;
 use uuid::Uuid;
 
 use crate::components::*;
+use crate::components_effects::*;
 use crate::entities::*;
 use crate::events::*;
 
@@ -63,6 +64,40 @@ host_component_enum! {
     pub enum HostComponent {
         // `Pod` components
         Position = 0,
+
+        // Effect Components
+        SpeedEffect = 1,
+        SlownessEffect = 2,
+        HasteEffect = 3,
+        MiningFatigueEffect = 4,
+        StrengthEffect = 5,
+        InstantHealthEffect = 6,
+        InstantDamageEffect = 7,
+        JumpBoostEffect = 8,
+        NauseaEffect = 9,
+        RegenerationEffect = 10,
+        ResistanceEffect = 11,
+        FireResistanceEffect = 12,
+        WaterBreathingEffect = 13,
+        InvisibilityEffect = 14,
+        BlindnessEffect = 15,
+        NightVisionEffect = 16,
+        HungerEffect = 17,
+        WeaknessEffect = 18,
+        PoisonEffect = 19,
+        WitherEffect = 20,
+        HealthBoostEffect = 21,
+        AbsorptionEffect = 22,
+        SaturationEffect = 23,
+        GlowingEffect = 24,
+        LevitationEffect = 25,
+        LuckEffect = 26,
+        BadLuckEffect = 27,
+        SlowFallingEffect = 28,
+        ConduitPowerEffect = 29,
+        DolphinsGraceEffect = 30,
+        BadOmenEffect = 31,
+        HeroOfTheVillageEffect = 32,
 
         // Entity marker components
         AreaEffectCloud = 100,
@@ -199,7 +234,7 @@ host_component_enum! {
         Instabreak = 1021,
         Invulnerable = 1022,
 
-
+        WalkEffectModifier = 2023,
     }
 }
 

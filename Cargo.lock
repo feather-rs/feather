@@ -975,6 +975,7 @@ dependencies = [
  "futures-lite",
  "hematite-nbt",
  "libcraft-core",
+ "libcraft-effects",
  "libcraft-items",
  "log",
  "md-5",
@@ -1392,6 +1393,13 @@ dependencies = [
  "strum",
  "strum_macros",
  "vek",
+]
+
+[[package]]
+name = "libcraft-effects"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -2082,6 +2090,7 @@ dependencies = [
  "bytemuck",
  "derive_more",
  "libcraft-core",
+ "libcraft-effects",
  "libcraft-particles",
  "libcraft-text",
  "quill",

@@ -20,7 +20,8 @@ use common::{
 use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+    EntityEffect, EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange,
+    PlayerAbilities, RemoveEntityEffect,
 };
 use protocol::{
     packets::{
@@ -42,6 +43,7 @@ use crate::{
     network_id_registry::NetworkId,
     Options,
 };
+use quill_common::components_effects::EffectFlags;
 use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
@@ -600,6 +602,40 @@ impl Client {
 
     pub fn set_hotbar_slot(&self, slot: u8) {
         self.send_packet(HeldItemChange { slot });
+    }
+
+    pub fn send_entity_effect(
+        &self,
+        network_id: NetworkId,
+        effect_id: u8,
+        amplifier: i8,
+        duration: i32,
+        flags: EffectFlags,
+    ) {
+        let mut flags_bit = 0;
+        if flags.ambient {
+            flags_bit |= 1 << 0;
+        }
+        if flags.particle {
+            flags_bit |= 1 << 1;
+        }
+        if flags.icon {
+            flags_bit |= 1 << 2;
+        }
+        self.send_packet(EntityEffect {
+            entity_id: network_id.0,
+            effect_id,
+            amplifier,
+            duration,
+            flags: flags_bit,
+        })
+    }
+
+    pub fn send_remove_entity_effect(&self, network_id: NetworkId, effect_id: u8) {
+        self.send_packet(RemoveEntityEffect {
+            entity_id: network_id.0,
+            effect_id,
+        })
     }
 
     fn register_entity(&self, network_id: NetworkId) {

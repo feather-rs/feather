@@ -4,6 +4,7 @@ mod utils;
 pub mod component;
 pub mod block;
 pub mod components;
+pub mod components_effects;
 pub mod entities;
 pub mod entity;
 pub mod entity_init;
