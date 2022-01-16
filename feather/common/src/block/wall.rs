@@ -190,8 +190,9 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
     }
     if is_wall(block) {
         // Wall crossings always have a tall post
-        let up_from_wall_cross =
-            (east_connected ^ west_connected) || (north_connected ^ south_connected);
+        let up_from_wall_cross = (east_connected ^ west_connected)
+            || (north_connected ^ south_connected)
+            || !(east_connected || west_connected || north_connected || south_connected);
         // Tall wall posts propagate downward
         let up_has_up = up.up().unwrap_or(false);
         // Walls always have a tall post when ending
