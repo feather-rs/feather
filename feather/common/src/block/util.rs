@@ -62,7 +62,7 @@ pub trait AdjacentBlockHelper {
         dir: FacingCardinalAndDown,
     ) -> Option<BlockId>;
 
-    fn get_facing_block(&self, pos: BlockPosition) -> Option<BlockId>;
+    fn get_facing_direction(&self, block: BlockId) -> Option<FacingCubic>;
 
     fn set_block_adjacent_cubic(
         &self,
@@ -123,8 +123,7 @@ impl AdjacentBlockHelper for World {
         self.adjacent_block_cubic(pos, dir.to_facing_cubic())
     }
 
-    fn get_facing_block(&self, pos: BlockPosition) -> Option<BlockId> {
-        let block = self.block_at(pos)?;
+    fn get_facing_direction(&self, block: BlockId) -> Option<FacingCubic> {
         let dir = if block.has_facing_cardinal() {
             block.facing_cardinal().unwrap().to_facing_cubic()
         } else if block.has_facing_cardinal_and_down() {
@@ -132,7 +131,7 @@ impl AdjacentBlockHelper for World {
         } else {
             block.facing_cubic()?
         };
-        self.adjacent_block_cubic(pos, dir)
+        Some(dir.opposite())
     }
 
     fn set_block_adjacent_cubic(
@@ -182,7 +181,10 @@ impl AdjacentBlockHelper for World {
         Some(if let Some(support_type) = block.support_type() {
             let block_under = self.block_at(pos.down());
             let block_up = self.block_at(pos.up());
-            let block_facing = self.get_facing_block(pos);
+            let block_facing = self
+                .get_facing_direction(block)
+                .map(|f| self.adjacent_block_cubic(pos, f))
+                .flatten();
             match support_type {
                 SupportType::OnSolid => block_under?.is_solid(),
                 SupportType::OnDesertBlocks => matches!(

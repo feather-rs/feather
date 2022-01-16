@@ -562,6 +562,7 @@ fn item_to_block(item: Item) -> Option<BlockId> {
         Item::WaterBucket => BlockId::water(),
         Item::LavaBucket => BlockId::lava(),
         Item::Redstone => BlockId::redstone_wire(),
+        Item::FlintAndSteel => BlockId::fire(),
         Item::String => BlockId::tripwire(),
         i => {
             let mut name = "minecraft:".to_owned();
@@ -576,6 +577,14 @@ fn decrease_slot(slot: &mut InventorySlot) {
     match slot.item_kind().unwrap() {
         Item::WaterBucket | Item::LavaBucket => {
             *slot = InventorySlot::Filled(ItemStack::new(Item::Bucket, 1).unwrap())
+        }
+        Item::FlintAndSteel => {
+            if match slot {
+                InventorySlot::Filled(f) => f.damage(1),
+                InventorySlot::Empty => unreachable!(),
+            } {
+                *slot = InventorySlot::Empty
+            }
         }
         _ => {
             // Can always take at least one
