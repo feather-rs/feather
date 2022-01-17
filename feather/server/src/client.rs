@@ -480,11 +480,15 @@ impl Client {
             self.send_packet(Title::Reset);
         } else {
             if let Some(main_title) = title.title {
-                self.send_packet(Title::SetTitle { text: main_title });
+                self.send_packet(Title::SetTitle {
+                    text: main_title.to_string(),
+                });
             }
 
             if let Some(sub_title) = title.sub_title {
-                self.send_packet(Title::SetSubtitle { text: sub_title })
+                self.send_packet(Title::SetSubtitle {
+                    text: sub_title.to_string(),
+                })
             }
 
             self.send_packet(Title::SetTimesAndDisplay {

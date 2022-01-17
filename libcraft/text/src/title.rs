@@ -1,10 +1,11 @@
+use crate::Text;
 use serde::{Deserialize, Serialize};
 
 // Based on https://wiki.vg/index.php?title=Protocol&oldid=16459#Title
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Title {
-    pub title: Option<String>,
-    pub sub_title: Option<String>,
+    pub title: Option<Text>,
+    pub sub_title: Option<Text>,
     pub fade_in: u32,
     pub stay: u32,
     pub fade_out: u32,
