@@ -281,7 +281,7 @@ impl AdjacentBlockHelper for World {
                 SupportType::SugarCaneLike => {
                     matches!(
                         block_under?.simplified_kind(),
-                        Dirt | CoarseDirt | Podzol | Sand | RedSand
+                        Grass | Dirt | CoarseDirt | Podzol | Sand | RedSand | SugarCane
                     ) && {
                         let mut ok = false;
                         for face in [
