@@ -2,10 +2,11 @@ use ahash::AHashSet;
 use anyhow::Context;
 use base::Position;
 use common::{
-    events::{ChunkCrossEvent, EntityCreateEvent, EntityRemoveEvent, ViewUpdateEvent},
+    events::{ChunkCrossEvent, ViewUpdateEvent},
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
+use quill_common::events::{EntityCreateEvent, EntityRemoveEvent};
 
 use crate::{entities::SpawnPacketSender, ClientId, NetworkId, Server};
 
