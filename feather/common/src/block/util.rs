@@ -178,149 +178,151 @@ impl AdjacentBlockHelper for World {
         light_level: u8,
     ) -> Option<bool> {
         use blocks::SimplifiedBlockKind::*;
-        Some(if let Some(support_type) = block.support_type() {
-            let block_under = self.block_at(pos.down());
-            let block_up = self.block_at(pos.up());
-            let block_facing = self
-                .get_facing_direction(block)
-                .map(|f| self.adjacent_block_cubic(pos, f))
-                .flatten();
-            match support_type {
-                SupportType::OnSolid => block_under?.is_solid(),
-                SupportType::OnDesertBlocks => matches!(
-                    block_under?.simplified_kind(),
-                    Sand | RedSand | Dirt | CoarseDirt | Podzol
-                ),
-                SupportType::OnDirtBlocks => matches!(
-                    block_under?.simplified_kind(),
-                    Dirt | GrassBlock | CoarseDirt | Podzol | Farmland
-                ),
-                SupportType::OnFarmland => block_under?.simplified_kind() == Farmland,
-                SupportType::OnSoulSand => block_under?.simplified_kind() == SoulSand,
-                SupportType::OnWater => block_under?.simplified_kind() == Water,
-                SupportType::FacingSolid => block_facing?.is_solid(),
-                SupportType::FacingJungleWood => matches!(
-                    block_facing?.kind(),
-                    BlockKind::JungleLog
-                        | BlockKind::StrippedJungleLog
-                        | BlockKind::JungleWood
-                        | BlockKind::StrippedJungleWood
-                ),
-                SupportType::OnOrFacingSolid => self
-                    .block_at(pos.adjacent(match block.face()? {
-                        base::Face::Floor => BlockFace::Bottom,
-                        base::Face::Wall => match block.facing_cardinal()?.opposite() {
-                            FacingCardinal::North => BlockFace::North,
-                            FacingCardinal::South => BlockFace::South,
-                            FacingCardinal::West => BlockFace::West,
-                            FacingCardinal::East => BlockFace::East,
-                        },
-                        base::Face::Ceiling => BlockFace::Top,
-                    }))?
-                    .is_full_block(),
-                SupportType::CactusLike => {
-                    matches!(block_under?.simplified_kind(), Sand | RedSand | Cactus) && {
-                        let mut ok = true;
-                        for face in [
-                            BlockFace::North,
-                            BlockFace::South,
-                            BlockFace::West,
-                            BlockFace::East,
-                        ] {
-                            let block = self.block_at(pos.adjacent(face))?;
-                            ok &= !block.is_full_block() && block.simplified_kind() != Cactus
-                        }
-                        ok
-                    }
-                }
-                SupportType::ChorusFlowerLike => {
-                    let neighbours = [
+        let support_type = block.support_type();
+        if support_type.is_none() {
+            return Some(true);
+        }
+        let support_type = support_type.unwrap();
+        let block_under = self.block_at(pos.down());
+        let block_up = self.block_at(pos.up());
+        let block_facing = self
+            .get_facing_direction(block)
+            .map(|f| self.adjacent_block_cubic(pos, f))
+            .flatten();
+        let is_supported = match support_type {
+            SupportType::OnSolid => block_under?.is_solid(),
+            SupportType::OnDesertBlocks => matches!(
+                block_under?.simplified_kind(),
+                Sand | RedSand | Dirt | CoarseDirt | Podzol
+            ),
+            SupportType::OnDirtBlocks => matches!(
+                block_under?.simplified_kind(),
+                Dirt | GrassBlock | CoarseDirt | Podzol | Farmland
+            ),
+            SupportType::OnFarmland => block_under?.simplified_kind() == Farmland,
+            SupportType::OnSoulSand => block_under?.simplified_kind() == SoulSand,
+            SupportType::OnWater => block_under?.simplified_kind() == Water,
+            SupportType::FacingSolid => block_facing?.is_solid(),
+            SupportType::FacingJungleWood => matches!(
+                block_facing?.kind(),
+                BlockKind::JungleLog
+                    | BlockKind::StrippedJungleLog
+                    | BlockKind::JungleWood
+                    | BlockKind::StrippedJungleWood
+            ),
+            SupportType::OnOrFacingSolid => self
+                .block_at(pos.adjacent(match block.face()? {
+                    base::Face::Floor => BlockFace::Bottom,
+                    base::Face::Wall => match block.facing_cardinal()?.opposite() {
+                        FacingCardinal::North => BlockFace::North,
+                        FacingCardinal::South => BlockFace::South,
+                        FacingCardinal::West => BlockFace::West,
+                        FacingCardinal::East => BlockFace::East,
+                    },
+                    base::Face::Ceiling => BlockFace::Top,
+                }))?
+                .is_full_block(),
+            SupportType::CactusLike => {
+                matches!(block_under?.simplified_kind(), Sand | RedSand | Cactus) && {
+                    let mut ok = true;
+                    for face in [
                         BlockFace::North,
                         BlockFace::South,
                         BlockFace::West,
                         BlockFace::East,
-                    ]
-                    .iter()
-                    .filter_map(|&face| self.block_at(pos.adjacent(face)))
-                    .map(BlockId::simplified_kind);
-                    neighbours.clone().filter(|&e| e == Air).count() == 3
-                        && neighbours.filter(|&e| e == EndStone).count() == 1
-                        || matches!(block_under?.simplified_kind(), EndStone | ChorusPlant)
-                }
-                SupportType::ChorusPlantLike => {
-                    let n = [
-                        BlockFace::North,
-                        BlockFace::South,
-                        BlockFace::West,
-                        BlockFace::East,
-                    ];
-                    let horizontal = n
-                        .iter()
-                        .filter_map(|&f| self.block_at(pos.adjacent(f)))
-                        .map(BlockId::simplified_kind);
-                    let horizontal_down = n
-                        .iter()
-                        .filter_map(|&f| self.block_at(pos.down().adjacent(f)))
-                        .map(BlockId::simplified_kind);
-                    if horizontal.clone().count() != 4 || horizontal_down.clone().count() != 4 {
-                        return None;
+                    ] {
+                        let block = self.block_at(pos.adjacent(face))?;
+                        ok &= !block.is_full_block() && block.simplified_kind() != Cactus
                     }
-                    let has_horizontal = horizontal.clone().any(|b| b == ChorusPlant);
-                    let has_vertical =
-                        matches!(block_up?.simplified_kind(), ChorusPlant | ChorusFlower);
-                    let is_connected = horizontal
-                        .zip(horizontal_down)
-                        .any(|(h, hd)| h == ChorusPlant && matches!(hd, ChorusPlant | EndStone));
-                    is_connected && !(has_vertical && has_horizontal && !block_under?.is_air())
-                }
-                SupportType::MushroomLike => block_under?.is_full_block() && light_level < 13,
-                SupportType::SnowLike => {
-                    block_under?.is_full_block()
-                        && !matches!(block_under?.simplified_kind(), Ice | PackedIce)
-                }
-                SupportType::SugarCaneLike => {
-                    matches!(
-                        block_under?.simplified_kind(),
-                        Grass | Dirt | CoarseDirt | Podzol | Sand | RedSand | SugarCane
-                    ) && {
-                        let mut ok = false;
-                        for face in [
-                            BlockFace::North,
-                            BlockFace::South,
-                            BlockFace::West,
-                            BlockFace::East,
-                        ] {
-                            let block = self.block_at(pos.down().adjacent(face))?;
-                            ok |= matches!(block.simplified_kind(), FrostedIce | Water);
-                            ok |= block.waterlogged().unwrap_or(false);
-                        }
-                        ok
-                    }
-                }
-                SupportType::TripwireHookLike => {
-                    block_facing?.is_full_block()
-                        && !matches!(block_facing?.simplified_kind(), RedstoneBlock | Observer)
-                }
-                SupportType::VineLike => {
-                    matches!(self.block_at(pos.up())?.simplified_kind(), Vine) || {
-                        let mut ok = false;
-                        for face in [
-                            BlockFace::North,
-                            BlockFace::South,
-                            BlockFace::West,
-                            BlockFace::East,
-                            BlockFace::Top,
-                        ] {
-                            let block = self.block_at(pos.down().adjacent(face))?;
-                            ok |= block.is_full_block();
-                        }
-                        ok
-                    }
+                    ok
                 }
             }
-        } else {
-            true
-        })
+            SupportType::ChorusFlowerLike => {
+                let neighbours = [
+                    BlockFace::North,
+                    BlockFace::South,
+                    BlockFace::West,
+                    BlockFace::East,
+                ]
+                .iter()
+                .filter_map(|&face| self.block_at(pos.adjacent(face)))
+                .map(BlockId::simplified_kind);
+                neighbours.clone().filter(|&e| e == Air).count() == 3
+                    && neighbours.filter(|&e| e == EndStone).count() == 1
+                    || matches!(block_under?.simplified_kind(), EndStone | ChorusPlant)
+            }
+            SupportType::ChorusPlantLike => {
+                let n = [
+                    BlockFace::North,
+                    BlockFace::South,
+                    BlockFace::West,
+                    BlockFace::East,
+                ];
+                let horizontal = n
+                    .iter()
+                    .filter_map(|&f| self.block_at(pos.adjacent(f)))
+                    .map(BlockId::simplified_kind);
+                let horizontal_down = n
+                    .iter()
+                    .filter_map(|&f| self.block_at(pos.down().adjacent(f)))
+                    .map(BlockId::simplified_kind);
+                if horizontal.clone().count() != 4 || horizontal_down.clone().count() != 4 {
+                    return None;
+                }
+                let has_horizontal = horizontal.clone().any(|b| b == ChorusPlant);
+                let has_vertical =
+                    matches!(block_up?.simplified_kind(), ChorusPlant | ChorusFlower);
+                let is_connected = horizontal
+                    .zip(horizontal_down)
+                    .any(|(h, hd)| h == ChorusPlant && matches!(hd, ChorusPlant | EndStone));
+                is_connected && !(has_vertical && has_horizontal && !block_under?.is_air())
+            }
+            SupportType::MushroomLike => block_under?.is_full_block() && light_level < 13,
+            SupportType::SnowLike => {
+                block_under?.is_full_block()
+                    && !matches!(block_under?.simplified_kind(), Ice | PackedIce)
+            }
+            SupportType::SugarCaneLike => {
+                matches!(
+                    block_under?.simplified_kind(),
+                    Grass | Dirt | CoarseDirt | Podzol | Sand | RedSand | SugarCane
+                ) && {
+                    let mut ok = false;
+                    for face in [
+                        BlockFace::North,
+                        BlockFace::South,
+                        BlockFace::West,
+                        BlockFace::East,
+                    ] {
+                        let block = self.block_at(pos.down().adjacent(face))?;
+                        ok |= matches!(block.simplified_kind(), FrostedIce | Water);
+                        ok |= block.waterlogged().unwrap_or(false);
+                    }
+                    ok
+                }
+            }
+            SupportType::TripwireHookLike => {
+                block_facing?.is_full_block()
+                    && !matches!(block_facing?.simplified_kind(), RedstoneBlock | Observer)
+            }
+            SupportType::VineLike => {
+                matches!(self.block_at(pos.up())?.simplified_kind(), Vine) || {
+                    let mut ok = false;
+                    for face in [
+                        BlockFace::North,
+                        BlockFace::South,
+                        BlockFace::West,
+                        BlockFace::East,
+                        BlockFace::Top,
+                    ] {
+                        let block = self.block_at(pos.down().adjacent(face))?;
+                        ok |= block.is_full_block();
+                    }
+                    ok
+                }
+            }
+        };
+        Some(is_supported)
     }
 }
 
