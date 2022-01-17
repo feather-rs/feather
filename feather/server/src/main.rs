@@ -6,7 +6,7 @@ use common::{Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
-use worldgen::{ComposableGenerator, SuperflatWorldGenerator, WorldGenerator};
+use worldgen::{ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
 
 mod logging;
 
@@ -70,6 +70,7 @@ fn init_world_source(game: &mut Game, config: &Config) {
         "flat" => Arc::new(SuperflatWorldGenerator::new(
             SuperflatGeneratorOptions::default(),
         )),
+        "empty" => Arc::new(EmptyWorldGenerator),
         _ => Arc::new(ComposableGenerator::default_with_seed(seed)),
     };
     game.world = World::with_gen_and_path(generator, config.world.name.clone());

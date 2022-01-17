@@ -31,7 +31,7 @@ hash = ""
 # The name of the directory containing the world.
 name = "world"
 # The generator to use if the world does not exist.
-# Implemented values are: default, flat
+# Implemented values are: default, flat, empty
 generator = "default"
 # The seed to use if the world does not exist.
 # Leaving this value empty will generate a random seed.

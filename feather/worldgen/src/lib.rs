@@ -41,7 +41,7 @@ pub trait WorldGenerator: Send + Sync {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk;
 }
 
-pub struct EmptyWorldGenerator {}
+pub struct EmptyWorldGenerator;
 
 impl WorldGenerator for EmptyWorldGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
