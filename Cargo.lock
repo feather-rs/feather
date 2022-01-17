@@ -912,6 +912,7 @@ dependencies = [
  "quill-common",
  "quill-plugin-format",
  "serde",
+ "serde_json",
  "tempfile",
  "vec-arena",
  "wasmer",
@@ -2070,6 +2071,7 @@ dependencies = [
  "libcraft-text",
  "quill-common",
  "quill-sys",
+ "serde_json",
  "thiserror",
  "uuid",
 ]

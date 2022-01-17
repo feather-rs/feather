@@ -1,3 +1,4 @@
+use libcraft_text::Text;
 use std::{marker::PhantomData, ptr};
 
 use quill_common::{Component, Pointer, PointerMut};
@@ -92,8 +93,8 @@ impl Entity {
     ///
     /// The message sends as a "system" message.
     /// See [the wiki](https://wiki.vg/Chat) for more details.
-    pub fn send_message(&self, message: impl AsRef<str>) {
-        let message = message.as_ref();
+    pub fn send_message(&self, message: impl Into<Text>) {
+        let message = message.into().to_string();
         unsafe {
             quill_sys::entity_send_message(self.id.0, message.as_ptr().into(), message.len() as u32)
         }
@@ -101,7 +102,7 @@ impl Entity {
 
     /// Sends the given title to this entity.
     pub fn send_title(&self, title: &libcraft_text::Title) {
-        let title = bincode::serialize(title).expect("failed to serialize Title");
+        let title = serde_json::to_string(title).expect("failed to serialize Title");
         unsafe {
             quill_sys::entity_send_title(self.id.0, title.as_ptr().into(), title.len() as u32);
         }

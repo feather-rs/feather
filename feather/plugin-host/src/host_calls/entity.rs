@@ -17,12 +17,11 @@ pub fn entity_send_message(
     message_ptr: PluginPtr<u8>,
     message_len: u32,
 ) -> anyhow::Result<()> {
-    let message = cx.read_string(message_ptr, message_len)?;
+    let message = cx.read_json(message_ptr, message_len)?;
     let entity = Entity::from_bits(entity);
-    let _ = cx.game_mut().send_message(
-        entity,
-        ChatMessage::new(ChatKind::System, Text::from(message)),
-    );
+    let _ = cx
+        .game_mut()
+        .send_message(entity, ChatMessage::new(ChatKind::System, message));
     Ok(())
 }
 
@@ -33,7 +32,7 @@ pub fn entity_send_title(
     title_ptr: PluginPtr<u8>,
     title_len: u32,
 ) -> anyhow::Result<()> {
-    let title = cx.read_bincode(title_ptr, title_len)?;
+    let title = cx.read_json(title_ptr, title_len)?;
     let entity = Entity::from_bits(entity);
     cx.game_mut().send_title(entity, title);
     Ok(())
