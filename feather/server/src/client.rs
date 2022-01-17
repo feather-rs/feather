@@ -20,7 +20,8 @@ use common::{
 use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+    ChangeGameState, EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange,
+    PlayerAbilities, StateReason,
 };
 use protocol::{
     packets::{
@@ -331,6 +332,10 @@ impl Client {
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
     }
 
+    pub fn change_player_tablist_gamemode(&self, uuid: Uuid, gamemode: Gamemode) {
+        self.send_packet(PlayerInfo::UpdateGamemodes(vec![(uuid, gamemode)]));
+    }
+
     pub fn unload_entity(&self, id: NetworkId) {
         log::trace!("Unloading {:?} on {}", id, self.username);
         self.sent_entities.borrow_mut().remove(&id);
@@ -600,6 +605,13 @@ impl Client {
 
     pub fn set_hotbar_slot(&self, slot: u8) {
         self.send_packet(HeldItemChange { slot });
+    }
+
+    pub fn change_gamemode(&self, gamemode: Gamemode) {
+        self.send_packet(ChangeGameState {
+            reason: StateReason::ChangeGameMode,
+            value: gamemode as u8 as f32,
+        })
     }
 
     fn register_entity(&self, network_id: NetworkId) {

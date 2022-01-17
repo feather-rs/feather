@@ -198,8 +198,11 @@ host_component_enum! {
         CanBuild = 1020,
         Instabreak = 1021,
         Invulnerable = 1022,
-
-
+        GamemodeEvent = 1023,
+        InstabreakChangeEvent = 1024,
+        FlyingAbilityChangeEvent = 1025,
+        BuildingAbilityChangeEvent = 1026,
+        InvulnerabilityChangeEvent = 1027,
     }
 }
 
@@ -363,3 +366,8 @@ bincode_component_impl!(BlockInteractEvent);
 bincode_component_impl!(CreativeFlyingEvent);
 bincode_component_impl!(SneakEvent);
 bincode_component_impl!(SprintEvent);
+bincode_component_impl!(GamemodeEvent);
+bincode_component_impl!(InstabreakChangeEvent);
+bincode_component_impl!(FlyingAbilityChangeEvent);
+bincode_component_impl!(BuildingAbilityChangeEvent);
+bincode_component_impl!(InvulnerabilityChangeEvent);

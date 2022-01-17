@@ -6,6 +6,7 @@ use common::{
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
+use quill_common::events::GamemodeEvent;
 use quill_common::{components::Name, entities::Player};
 use uuid::Uuid;
 
@@ -15,7 +16,8 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
     systems
         .group::<Server>()
         .add_system(remove_tablist_players)
-        .add_system(add_tablist_players);
+        .add_system(add_tablist_players)
+        .add_system(change_tablist_player_gamemode);
 }
 
 fn remove_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
@@ -59,6 +61,14 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
                 }
             }
         }
+    }
+    Ok(())
+}
+
+fn change_tablist_player_gamemode(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (event, &uuid)) in game.ecs.query::<(&GamemodeEvent, &Uuid)>().iter() {
+        // Change this player's gamemode in players' tablists
+        server.broadcast_with(|client| client.change_player_tablist_gamemode(uuid, **event));
     }
     Ok(())
 }
