@@ -57,6 +57,9 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         )>()
         .iter()
     {
+        if **event == *gamemode {
+            continue;
+        }
         *prev_gamemode = PreviousGamemode(Some(*gamemode));
         *gamemode = **event;
         match gamemode {
