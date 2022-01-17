@@ -1,6 +1,6 @@
 use std::convert::TryInto;
 
-use super::util::AdjacentBlockHelper;
+use super::util::{is_door, AdjacentBlockHelper};
 use super::wall::update_wall_connections;
 use crate::chunk::entities::ChunkEntities;
 use crate::entities::player::HotbarSlot;
@@ -17,86 +17,87 @@ use libcraft_core::{BlockFace, EntityKind};
 use libcraft_items::InventorySlot;
 use quill_common::components::CanBuild;
 use quill_common::events::BlockPlacementEvent;
+use utils::continue_on_none;
 use vek::Rect3;
-
 /// A system that handles block placement events.
 pub fn block_placement(game: &mut Game) -> SysResult {
     let mut events = vec![];
-    for (player, event) in game.ecs.query::<&BlockPlacementEvent>().iter() {
-        // Get inventory, gamemode, player position and held item
-        let inv = game.ecs.get_mut::<Inventory>(player)?;
-        let gamemode = game.ecs.get::<Gamemode>(player)?;
-        let hotbar = game.ecs.get::<HotbarSlot>(player)?;
-        let pos = game.ecs.get::<Position>(player)?;
+    for (_, (event, gamemode, inv, hotbar, player_pos, can_build)) in game
+        .ecs
+        .query::<(
+            &BlockPlacementEvent,
+            &Gamemode,
+            &mut Inventory,
+            &HotbarSlot,
+            &Position,
+            &CanBuild,
+        )>()
+        .iter()
+    {
+        // Get selected slot
         let mut slot = match event.hand {
             libcraft_core::Hand::Main => inv.item(Area::Hotbar, hotbar.get()),
             libcraft_core::Hand::Offhand => inv.item(Area::Offhand, 0),
         }
         .unwrap();
-        // Check whether player has an item in hand, can build and that the item is placeable
-        if slot.is_empty() || !game.ecs.get::<CanBuild>(player)?.0 {
+        // Check that the player has an item in hand and can build
+        if !can_build.0 || slot.is_empty() {
             continue;
         }
-        let block = match item_to_block(slot.item_kind().unwrap()) {
-            Some(s) => s,
-            None => continue,
-        };
-        if let Some(mut produced_events) = place_block(
+        let block = continue_on_none!(item_to_block(slot.item_kind().unwrap()));
+        continue_on_none!(place_block(
             &mut game.world,
-            *pos,
             &game.chunk_entities,
+            &game.ecs,
+            *player_pos,
             block,
             event,
-            &game.ecs,
-            15,
-        ) {
-            match *gamemode {
-                Gamemode::Survival | Gamemode::Adventure => decrease_slot(&mut slot),
-                _ => {}
-            }
-            events.append(&mut produced_events);
+            0,
+            &mut events
+        ));
+        if matches!(*gamemode, Gamemode::Survival | Gamemode::Adventure) {
+            decrease_slot(&mut slot)
         }
     }
     for e in events {
         game.ecs.insert_event(e);
     }
-
     Ok(())
 }
-fn do_place_bed_head(
-    world: &mut World,
+/// Check if the block has a bed portion that can be placed placed in the world. `None` means that while the block has a head, it cannot be placed
+fn should_place_bed_head(
+    world: &World,
     block: BlockId,
     placement_pos: BlockPosition,
 ) -> Option<bool> {
-    match bed_head(block) {
-        Some(_) => {
-            if !world
-                .adjacent_block_cardinal(placement_pos, block.facing_cardinal()?)?
-                .is_replaceable()
-            {
-                return None;
-            }
-            Some(true)
-        }
-        None => Some(false),
+    if bed_head(block).is_none() {
+        return Some(false);
+    }
+    if world
+        .adjacent_block_cardinal(placement_pos, block.facing_cardinal()?)?
+        .is_replaceable()
+    {
+        Some(true)
+    } else {
+        None
     }
 }
-fn do_place_upper_half(
-    world: &mut World,
+/// Check if the block has an upper half that can be placed in the world. `None` means that while the block has an upper half, it cannot be placed
+fn should_place_upper_half(
+    world: &World,
     block: BlockId,
     placement_pos: BlockPosition,
 ) -> Option<bool> {
-    match top_half(block) {
-        Some(_) => {
-            if !world.block_at(placement_pos.up())?.is_replaceable() {
-                // Short circuit if upper block is > 256
-                return None;
-            }
-            Some(true)
-        }
-        None => Some(false),
+    if top_half(block).is_none() {
+        return Some(false);
+    }
+    if world.block_at(placement_pos.up())?.is_replaceable() {
+        Some(true)
+    } else {
+        None
     }
 }
+/// Check if the block collides with any entity.
 /// This works but there is a discrepancy between when the place block event is fired and getting the entity location.
 /// that makes it possible to place a block at the right exact moment and have the server believe it wasn't blocked.
 fn entity_collisions_ok(
@@ -127,19 +128,18 @@ fn entity_collisions_ok(
             block_rect.collides_with_rect3(entity_rect)
         })
 }
-/// Place multiple blocks and generate corresponding events
+/// Place multiple blocks and generate corresponding events.
 fn multi_place(
     world: &mut World,
     placements: &[(BlockId, BlockPosition)],
-) -> Vec<BlockChangeEvent> {
-    let mut events = vec![];
+    event_buffer: &mut Vec<BlockChangeEvent>,
+) {
     for &(block, pos) in placements {
-        events.push(BlockChangeEvent::single(
-            pos.try_into().expect("validated block positions only"),
+        event_buffer.push(BlockChangeEvent::single(
+            pos.try_into().expect("valid block positions only"),
         ));
         assert!(world.set_block_at(pos, block), "block has to be loaded");
     }
-    events
 }
 /// Try placing the block by merging (=placing to the same position as the target block). Includes merging slabs, waterlogging and replacing blocks like grass.
 /// Only one of the following conditions can be met at a time, so short-circuiting is ok.
@@ -149,23 +149,28 @@ fn basic_place(block: &mut BlockId, target_block: BlockId) -> bool {
         || waterlog(block, target_block)
         || can_replace(*block, target_block)
 }
+/// Check if `block` can replace `target`.
 fn can_replace(block: BlockId, target: BlockId) -> bool {
     (block.kind() != target.kind()) && target.is_replaceable()
 }
 /// Blocks get changed if they are getting waterlogged or when they are slabs turning into full blocks.
 /// Blocks get replaced in-place when possible, while changing an adjacent block has a lower priority.
+#[allow(clippy::too_many_arguments)]
 fn place_block(
     world: &mut World,
-    player_pos: Position,
     chunk_entities: &ChunkEntities,
+    ecs: &Ecs,
+    player_pos: Position,
     mut block: BlockId,
     placement: &BlockPlacementEvent,
-    ecs: &Ecs,
     light_level: u8,
-) -> Option<Vec<BlockChangeEvent>> {
+    event_buffer: &mut Vec<BlockChangeEvent>,
+) -> Option<()> {
     let target1 = placement.location;
     let target_block1 = world.block_at(target1)?;
-    // Cannot place on air
+    let target2 = target1.adjacent(placement.face);
+    let target_block2 = world.block_at(target2);
+    // Cannot build on air
     if target_block1.is_air() {
         return None;
     }
@@ -174,55 +179,49 @@ fn place_block(
     // Select where to place the block
     let target = if basic_place(&mut block, target_block1) {
         target1
-    } else {
-        // Otherwise place the block next to the target
-        let target2 = target1.adjacent(placement.face);
-        let target_block2 = world.block_at(target2)?;
-        if !basic_place(&mut block, target_block2) {
-            // Cannot place block at all
-            return None;
-        }
+    } else if basic_place(&mut block, target_block2?) {
         target2
+    } else {
+        // Cannot place block
+        return None;
     };
     set_face(&mut block, &player_dir_ordered, placement);
     rotate_8dir(&mut block, player_pos.yaw);
     door_hinge(&mut block, target, &placement.cursor_position, world);
-    if !(entity_collisions_ok(chunk_entities, ecs, target)
-        && world.check_block_stability(block, target, light_level)?)
+    if !entity_collisions_ok(chunk_entities, ecs, target)
+        || !world.check_block_stability(block, target, light_level)?
     {
         return None;
     }
-    let events = if do_place_upper_half(world, block, target)? {
+    let primary_placement = (block, target);
+    if should_place_upper_half(world, block, target)? {
+        let secondary_placement = (
+            block.with_half_upper_lower(HalfUpperLower::Upper),
+            target.up(),
+        );
         multi_place(
             world,
-            &[
-                (block, target),
-                (
-                    block.with_half_upper_lower(HalfUpperLower::Upper),
-                    target.up(),
-                ),
-            ],
+            &[primary_placement, secondary_placement],
+            event_buffer,
         )
-    } else if do_place_bed_head(world, block, target)? {
+    } else if should_place_bed_head(world, block, target)? {
         let face = match block.facing_cardinal()? {
             FacingCardinal::North => BlockFace::North,
             FacingCardinal::South => BlockFace::South,
             FacingCardinal::West => BlockFace::West,
             FacingCardinal::East => BlockFace::East,
         };
+        let secondary_placement = (block.with_part(base::Part::Head), target.adjacent(face));
         multi_place(
             world,
-            &[
-                (block, target),
-                (block.with_part(base::Part::Head), target.adjacent(face)),
-            ],
+            &[primary_placement, secondary_placement],
+            event_buffer,
         )
     } else {
-        let event = multi_place(world, &[(block, target)]);
-        update_wall_connections(world, target).unwrap();
-        event
+        multi_place(world, &[primary_placement], event_buffer);
     };
-    Some(events)
+    update_wall_connections(world, target).unwrap();
+    Some(())
 }
 /// Sets the hinge position on a door block. The door attempts to connect to other doors first, then to solid blocks. Otherwise, the hinge position is determined by the click position.
 #[allow(clippy::float_cmp)]
@@ -235,13 +234,6 @@ fn door_hinge(
     let cardinal = block.facing_cardinal()?;
     let left = cardinal.left();
     let right = cardinal.right();
-    let is_door = |block: BlockId| {
-        use SimplifiedBlockKind::*;
-        matches!(
-            block.simplified_kind(),
-            WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor
-        )
-    };
     let lb = world.adjacent_block_cardinal(pos, left)?;
     let rb = world.adjacent_block_cardinal(pos, right)?;
     if is_door(lb) && lb.kind() == block.kind() {
@@ -270,11 +262,12 @@ fn door_hinge(
         FacingCardinal::West => 1.0 - cursor_pos[2],
         FacingCardinal::East => cursor_pos[2],
     };
-    block.set_hinge(if relevant_axis < 0.5 {
+    let hinge = if relevant_axis < 0.5 {
         Hinge::Left
     } else {
         Hinge::Right
-    });
+    };
+    block.set_hinge(hinge);
     Some(())
 }
 

@@ -323,3 +323,35 @@ impl AdjacentBlockHelper for World {
         })
     }
 }
+
+/// Checks if the block is a wall. `SimplifiedBlockKind` does not have a common type for walls at this time, making this function neccessary.
+pub fn is_wall(block: BlockId) -> bool {
+    use base::SimplifiedBlockKind::*;
+    matches!(
+        block.simplified_kind(),
+        BrickWall
+            | PrismarineWall
+            | RedSandstoneWall
+            | MossyStoneBrickWall
+            | GraniteWall
+            | StoneBrickWall
+            | NetherBrickWall
+            | AndesiteWall
+            | RedNetherBrickWall
+            | SandstoneWall
+            | EndStoneBrickWall
+            | DioriteWall
+            | CobblestoneWall
+            | MossyCobblestoneWall
+            | BlackstoneWall
+            | PolishedBlackstoneBrickWall
+            | PolishedBlackstoneWall
+    )
+}
+pub fn is_door(block: BlockId) -> bool {
+    use base::SimplifiedBlockKind::*;
+    matches!(
+        block.simplified_kind(),
+        WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor
+    )
+}

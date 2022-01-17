@@ -7,3 +7,13 @@ pub fn vec_remove_item<T: PartialEq>(vec: &mut Vec<T>, item: &T) {
         vec.swap_remove(index);
     }
 }
+
+#[macro_export]
+macro_rules! continue_on_none {
+    ($expr:expr) => {
+        match $expr {
+            Some(s) => s,
+            None => continue,
+        }
+    };
+}

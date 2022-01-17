@@ -1,6 +1,7 @@
 use base::BlockPosition;
 use ecs::SysResult;
 use libcraft_core::BlockFace;
+use utils::continue_on_none;
 
 use crate::{events::BlockChangeEvent, Game};
 
@@ -21,7 +22,7 @@ pub fn block_update(game: &mut Game) -> SysResult {
             .map(|&d| [pos.adjacent(d), pos.adjacent(BlockFace::Bottom).adjacent(d)])
             .flatten()
             {
-                update_wall_connections(&mut game.world, adjacent);
+                continue_on_none!(update_wall_connections(&mut game.world, adjacent));
             }
         }
     }
