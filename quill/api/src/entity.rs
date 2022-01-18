@@ -84,6 +84,26 @@ impl Entity {
                 host_component,
                 bytes.as_ptr().into(),
                 bytes.len() as u32,
+                0,
+            );
+        }
+    }
+
+    /// Inserts an event to the entity.
+    ///
+    /// If the entity already has this event,
+    /// the event is overwritten.
+    pub fn insert_event<T: Component>(&self, event: T) {
+        let host_component = T::host_component();
+        let bytes = event.to_cow_bytes();
+
+        unsafe {
+            quill_sys::entity_set_component(
+                self.id.0,
+                host_component,
+                bytes.as_ptr().into(),
+                bytes.len() as u32,
+                1,
             );
         }
     }

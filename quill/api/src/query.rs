@@ -265,6 +265,7 @@ impl<T: Component> std::ops::Drop for Mut<T> {
                 host_component,
                 bytes.as_ptr().into(),
                 bytes.len() as u32,
+                0,
             );
         }
     }

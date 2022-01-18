@@ -75,14 +75,21 @@ extern "C" {
     /// `bytes_ptr` is a pointer to the serialized
     /// component.
     ///
+    /// Variant=0 will set the component.
     /// This will overwrite any existing component of the same type.
-    ///
     /// Does nothing if `entity` does not exist.
+    ///
+    /// Variant=1 will add the component as an entity event (the component will persist for 1 tick)
+    /// Does nothing if `entity` does not exist.
+    ///
+    /// Variant=2 will add the component as an event.
+    /// Doesn't use `entity` at all, but it's recommended to set it to 0.
     pub fn entity_set_component(
         entity: EntityId,
         component: HostComponent,
         bytes_ptr: Pointer<u8>,
         bytes_len: u32,
+        variant: u8,
     );
 
     /// Sends a message to an entity.

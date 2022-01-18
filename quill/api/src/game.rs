@@ -4,6 +4,7 @@ use libcraft_blocks::BlockState;
 use libcraft_core::{BlockPosition, ChunkPosition, Position, CHUNK_HEIGHT};
 use libcraft_particles::Particle;
 use quill_common::entity_init::EntityInit;
+use quill_common::Component;
 
 use crate::{
     query::{Query, QueryIter},
@@ -216,6 +217,22 @@ impl Game {
                 data_ptr,
                 data.len() as u32,
             )
+        }
+    }
+
+    /// Inserts an event to the world.
+    pub fn insert_event<T: Component>(&self, event: T) {
+        let host_component = T::host_component();
+        let bytes = event.to_cow_bytes();
+
+        unsafe {
+            quill_sys::entity_set_component(
+                quill_common::entity::EntityId(0),
+                host_component,
+                bytes.as_ptr().into(),
+                bytes.len() as u32,
+                2,
+            );
         }
     }
 }

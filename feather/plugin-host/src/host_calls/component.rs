@@ -48,6 +48,13 @@ struct SetComponentVisitor<'a> {
     entity: Entity,
     bytes_ptr: PluginPtr<u8>,
     bytes_len: u32,
+    variant: SetComponentVariant,
+}
+
+enum SetComponentVariant {
+    SetComponent,
+    AddEntityEvent,
+    AddEvent,
 }
 
 impl<'a> ComponentVisitor<anyhow::Result<()>> for SetComponentVisitor<'a> {
@@ -57,12 +64,16 @@ impl<'a> ComponentVisitor<anyhow::Result<()>> for SetComponentVisitor<'a> {
             .read_component::<T>(self.bytes_ptr, self.bytes_len)?;
         let mut game = self.cx.game_mut();
 
-        let existing_component = game.ecs.get_mut::<T>(self.entity);
-        if let Ok(mut existing_component) = existing_component {
-            *existing_component = component;
-        } else {
-            drop(existing_component);
-            let _ = game.ecs.insert(self.entity, component);
+        match self.variant {
+            SetComponentVariant::SetComponent => {
+                let _ = game.ecs.insert(self.entity, component);
+            }
+            SetComponentVariant::AddEntityEvent => {
+                let _ = game.ecs.insert_entity_event(self.entity, component);
+            }
+            SetComponentVariant::AddEvent => {
+                game.ecs.insert_event(component);
+            }
         }
 
         Ok(())
@@ -76,6 +87,7 @@ pub fn entity_set_component(
     component: u32,
     bytes_ptr: PluginPtr<u8>,
     bytes_len: u32,
+    variant: u8,
 ) -> anyhow::Result<()> {
     let entity = Entity::from_bits(entity);
     let component = HostComponent::from_u32(component).context("invalid component")?;
@@ -84,6 +96,11 @@ pub fn entity_set_component(
         entity,
         bytes_ptr,
         bytes_len,
+        variant: match variant {
+            1 => SetComponentVariant::AddEntityEvent,
+            2 => SetComponentVariant::AddEvent,
+            _ => SetComponentVariant::SetComponent,
+        },
     };
     component.visit(visitor)
 }
