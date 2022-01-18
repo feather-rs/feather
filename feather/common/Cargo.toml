@@ -21,6 +21,7 @@ uuid = { version = "0.8", features = [ "v4" ] }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-inventory = { path = "../../libcraft/inventory" }
 libcraft-items = { path = "../../libcraft/items" }
+libcraft-text = { path = "../../libcraft/text" }
 rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 rand = "0.8"

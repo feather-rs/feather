@@ -1,4 +1,5 @@
 use base::{ChunkHandle, ChunkPosition};
+use libcraft_text::Text;
 
 use crate::view::View;
 
@@ -76,8 +77,8 @@ pub struct EntityCreateEvent;
 
 #[derive(Debug, Clone)]
 pub struct TablistHeaderFooter {
-    pub header: String,
-    pub footer: String,
+    pub header: Text,
+    pub footer: Text,
 }
 
 #[derive(Debug)]
