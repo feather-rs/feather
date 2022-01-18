@@ -49,14 +49,18 @@ impl SprintEvent {
 #[derive(Debug, Serialize, Deserialize, Clone, Deref)]
 pub struct GamemodeEvent(pub Gamemode);
 
+/// This event is called when player's ability to instantly break blocks changes.
 #[derive(Debug, Serialize, Deserialize, Clone, Deref)]
-pub struct InstabreakChangeEvent(pub bool);
+pub struct InstabreakEvent(pub bool);
 
+/// This event is called when player's ability to fly changes.
 #[derive(Debug, Serialize, Deserialize, Clone, Deref)]
-pub struct FlyingAbilityChangeEvent(pub bool);
+pub struct FlyingAbilityEvent(pub bool);
 
+/// This event is called when player's ability to place or break blocks changes.
 #[derive(Debug, Serialize, Deserialize, Clone, Deref)]
-pub struct BuildingAbilityChangeEvent(pub bool);
+pub struct BuildingAbilityEvent(pub bool);
 
+/// This event is called when player's invulnerability property changes.
 #[derive(Debug, Serialize, Deserialize, Clone, Deref)]
-pub struct InvulnerabilityChangeEvent(pub bool);
+pub struct InvulnerabilityEvent(pub bool);

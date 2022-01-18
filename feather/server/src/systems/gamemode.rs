@@ -7,8 +7,8 @@ use quill_common::components::{
     PreviousGamemode, WalkSpeed,
 };
 use quill_common::events::{
-    BuildingAbilityChangeEvent, CreativeFlyingEvent, FlyingAbilityChangeEvent, GamemodeEvent,
-    InstabreakChangeEvent, InvulnerabilityChangeEvent,
+    BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,
+    InvulnerabilityEvent,
 };
 
 use crate::{ClientId, Server};
@@ -178,22 +178,22 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
     }
     for (entity, instabreak) in instabreak_changes {
         game.ecs
-            .insert_entity_event(entity, InstabreakChangeEvent(instabreak))
+            .insert_entity_event(entity, InstabreakEvent(instabreak))
             .unwrap();
     }
     for (entity, may_fly) in may_fly_changes {
         game.ecs
-            .insert_entity_event(entity, FlyingAbilityChangeEvent(may_fly))
+            .insert_entity_event(entity, FlyingAbilityEvent(may_fly))
             .unwrap();
     }
     for (entity, build) in build_changes {
         game.ecs
-            .insert_entity_event(entity, BuildingAbilityChangeEvent(build))
+            .insert_entity_event(entity, BuildingAbilityEvent(build))
             .unwrap();
     }
     for (entity, invulnerable) in invulnerability_changes {
         game.ecs
-            .insert_entity_event(entity, InvulnerabilityChangeEvent(invulnerable))
+            .insert_entity_event(entity, InvulnerabilityEvent(invulnerable))
             .unwrap();
     }
     Ok(())
