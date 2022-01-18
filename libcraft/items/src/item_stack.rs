@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![deny(warnings)]
 
-use crate::{Enchantment, Item};
+use crate::{Item, Enchantment, EnchantmentKind};
 use core::fmt::Display;
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
@@ -42,7 +42,7 @@ pub struct ItemStackMeta {
 
     /// The displayed lore of the associated `ItemStack`.
     lore: String,
-
+    
     /// The damage taken by the `ItemStack`.
     damage: Option<i32>,
 
@@ -50,8 +50,14 @@ pub struct ItemStackMeta {
     repair_cost: Option<u32>,
 
     /// The enchantments applied to this `ItemStack`.
-    enchantments: Vec<Enchantment>,
+    enchantments: Enchantments,
 }
+
+/// Represents all the enchantments an item has.
+#[repr(transparent)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(transparent)]
+pub struct Enchantments(pub Vec<Enchantment>);
 
 impl ItemStack {
     /// Creates a new `ItemStack` with the default name (title)
@@ -69,7 +75,7 @@ impl ItemStack {
                 lore: "".to_string(),
                 damage: None,
                 repair_cost: None,
-                enchantments: vec![],
+                enchantments: Enchantments::new(),
             }),
         })
     }
@@ -352,7 +358,7 @@ impl ItemStackMeta {
             lore: "".to_owned(),
             damage: None,
             repair_cost: None,
-            enchantments: vec![],
+            enchantments: Enchantments::new(),
         }
     }
 }
@@ -395,7 +401,8 @@ impl ItemStackBuilder {
         Self { item, ..self }
     }
 
-    // panics if the count is zero
+    /// # Panics 
+    /// Panics if `count` is zero.
     pub fn count(self, count: u32) -> Self {
         Self {
             count: count.try_into().unwrap(),
@@ -410,7 +417,7 @@ impl ItemStackBuilder {
                 lore: "".to_owned(),
                 damage: None,
                 repair_cost: None,
-                enchantments: Vec::new(),
+                enchantments: Enchantments::new(),
             }),
             ..self
         }
@@ -445,5 +452,36 @@ impl From<ItemStackBuilder> for ItemStack {
             count: it.count,
             meta: it.meta,
         }
+    }
+}
+
+impl Enchantments {
+    /// Create a new empty instance.
+    pub const fn new() -> Self {
+        Self(vec![])
+    }
+    /// Get the level of the given enchantment.
+    pub fn get_level(&self, ench: EnchantmentKind) -> Option<u32> {
+        self.0.iter().find(|e| { e.kind() == ench}).map(Enchantment::level)
+    }
+    /// Change the level of the given enchantment in-place or add it at the end of the list.
+    pub fn set_level(&mut self, ench: EnchantmentKind, level: u32) {
+        if let Some(enchant) = self.0.iter_mut().find(|e| e.kind() == ench) {
+            enchant.set_level(level)
+        } else {
+            self.0.push(Enchantment::new(ench, level))
+        }
+    }
+}
+
+impl From<Vec<Enchantment>> for Enchantments {
+    fn from(v: Vec<Enchantment>) -> Self {
+        Self(v)
+    }
+}
+
+impl From<Enchantments> for Vec<Enchantment> {
+    fn from(e: Enchantments) -> Self {
+        e.0
     }
 }
