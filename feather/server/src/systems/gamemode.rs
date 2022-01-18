@@ -177,24 +177,24 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         }
     }
     for (entity, instabreak) in instabreak_changes {
-            game.ecs
-                .insert_entity_event(entity, InstabreakChangeEvent(instabreak))
-                .unwrap();
+        game.ecs
+            .insert_entity_event(entity, InstabreakChangeEvent(instabreak))
+            .unwrap();
     }
     for (entity, may_fly) in may_fly_changes {
-            game.ecs
-                .insert_entity_event(entity, FlyingAbilityChangeEvent(may_fly))
-                .unwrap();
+        game.ecs
+            .insert_entity_event(entity, FlyingAbilityChangeEvent(may_fly))
+            .unwrap();
     }
     for (entity, build) in build_changes {
-            game.ecs
-                .insert_entity_event(entity, BuildingAbilityChangeEvent(build))
-                .unwrap();
+        game.ecs
+            .insert_entity_event(entity, BuildingAbilityChangeEvent(build))
+            .unwrap();
     }
     for (entity, invulnerable) in invulnerability_changes {
-            game.ecs
-                .insert_entity_event(entity, InvulnerabilityChangeEvent(invulnerable))
-                .unwrap();
+        game.ecs
+            .insert_entity_event(entity, InvulnerabilityChangeEvent(invulnerable))
+            .unwrap();
     }
     Ok(())
 }
