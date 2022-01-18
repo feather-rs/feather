@@ -9,13 +9,10 @@ use std::{
 use ahash::AHashMap;
 use base::ChunkPosition;
 use ecs::{Entity, SysResult, SystemExecutor};
+use quill_common::events::EntityRemoveEvent;
 use utils::vec_remove_item;
 
-use crate::{
-    chunk::worker::LoadRequest,
-    events::{EntityRemoveEvent, ViewUpdateEvent},
-    Game,
-};
+use crate::{chunk::worker::LoadRequest, events::ViewUpdateEvent, Game};
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     game.insert_resource(ChunkLoadState::default());

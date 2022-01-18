@@ -1,14 +1,12 @@
 //! Sends tablist info to clients via the Player Info packet.
 
-use base::{Gamemode, ProfileProperty};
-use common::{
-    events::{EntityRemoveEvent, PlayerJoinEvent},
-    Game,
-};
-use ecs::{SysResult, SystemExecutor};
-use quill_common::events::GamemodeEvent;
-use quill_common::{components::Name, entities::Player};
 use uuid::Uuid;
+
+use base::{Gamemode, ProfileProperty};
+use common::Game;
+use ecs::{SysResult, SystemExecutor};
+use quill_common::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
+use quill_common::{components::Name, entities::Player};
 
 use crate::{ClientId, Server};
 
