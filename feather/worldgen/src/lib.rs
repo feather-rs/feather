@@ -408,7 +408,7 @@ mod tests {
     }
 
     #[test]
-    pub fn test_worldgen_empty() {
+    pub fn test_worldgen_void() {
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
         let generator = VoidWorldGenerator;
         let chunk = generator.generate_chunk(chunk_pos);

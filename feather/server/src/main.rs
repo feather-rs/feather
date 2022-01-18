@@ -6,7 +6,7 @@ use common::{Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
-use worldgen::{ComposableGenerator, VoidWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
+use worldgen::{ComposableGenerator, SuperflatWorldGenerator, VoidWorldGenerator, WorldGenerator};
 
 mod logging;
 
