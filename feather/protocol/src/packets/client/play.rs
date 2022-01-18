@@ -106,9 +106,9 @@ def_enum! {
         0 = Interact,
         1 = Attack,
         2 = InteractAt {
-            target_x f64;
-            target_y f64;
-            target_z f64;
+            target_x f32;
+            target_y f32;
+            target_z f32;
             hand VarInt;
         },
     }

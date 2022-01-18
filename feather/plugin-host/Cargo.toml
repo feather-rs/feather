@@ -24,7 +24,7 @@ serde = "1"
 tempfile = "3"
 vec-arena = "1"
 wasmer = { version = "2", default-features = false, features = [ "jit" ] }
-wasmer-wasi = { version = "2", default-features = false }
+wasmer-wasi = { version = "2", default-features = false, features = [ "host-fs", "sys" ] }
 
 [features]
 llvm = [ "wasmer/llvm" ]

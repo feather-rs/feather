@@ -2,9 +2,10 @@
 
 use base::{Gamemode, ProfileProperty};
 use common::{
-    events::{EntityRemoveEvent, PlayerJoinEvent, TablistExtrasUpdateEvent, TablistHeaderFooter},
+    events::{TablistExtrasUpdateEvent, TablistHeaderFooter},
     Game,
 };
+use quill_common::events::{EntityRemoveEvent, PlayerJoinEvent};
 use ecs::{SysResult, SystemExecutor};
 use libcraft_text::{Text, TextComponent};
 use quill_common::{components::Name, entities::Player};

@@ -1,5 +1,7 @@
 use std::net::{SocketAddr, TcpListener, TcpStream};
 
+mod logging;
+
 use anyhow::{bail, Context};
 use argh::FromArgs;
 use async_executor::Executor;
@@ -11,7 +13,6 @@ use feather_protocol::{
 };
 use futures_lite::FutureExt;
 use futures_lite::{AsyncReadExt, AsyncWriteExt};
-use simple_logger::SimpleLogger;
 
 /// A proxy for debugging and inspecting the Minecraft protocol.
 #[derive(Debug, FromArgs)]
@@ -26,10 +27,7 @@ struct Args {
 }
 
 fn main() -> anyhow::Result<()> {
-    SimpleLogger::new()
-        .with_level(log::LevelFilter::Debug)
-        .init()
-        .unwrap();
+    logging::init(log::LevelFilter::Debug);
     let args: Args = argh::from_env();
 
     let addr = format!("127.0.0.1:{}", args.port);
