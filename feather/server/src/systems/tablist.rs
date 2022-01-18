@@ -5,8 +5,8 @@ use common::{
     events::{EntityRemoveEvent, PlayerJoinEvent, TablistExtrasUpdateEvent, TablistHeaderFooter},
     Game,
 };
-use libcraft_text::{TextComponent, Text};
 use ecs::{SysResult, SystemExecutor};
+use libcraft_text::{Text, TextComponent};
 use quill_common::{components::Name, entities::Player};
 use uuid::Uuid;
 
@@ -74,7 +74,10 @@ fn update_tablist_header(game: &mut Game, server: &mut Server) -> SysResult {
     for _ in game.ecs.query::<&TablistExtrasUpdateEvent>().iter() {
         let header_footer = game.resources.get::<TablistHeaderFooter>()?;
         server.broadcast_with(|client| {
-            client.send_tablist_header_footer(&header_footer.header.to_string(), &header_footer.footer.to_string())
+            client.send_tablist_header_footer(
+                &header_footer.header.to_string(),
+                &header_footer.footer.to_string(),
+            )
         });
     }
     Ok(())
@@ -87,7 +90,10 @@ fn send_tablist_header_on_join(game: &mut Game, server: &mut Server) -> SysResul
             .clients
             .get(client_id)
             .unwrap()
-            .send_tablist_header_footer(&header_footer.header.to_string(), &header_footer.footer.to_string());
+            .send_tablist_header_footer(
+                &header_footer.header.to_string(),
+                &header_footer.footer.to_string(),
+            );
     }
     Ok(())
 }
