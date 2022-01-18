@@ -5,9 +5,9 @@ use common::{
     events::{TablistExtrasUpdateEvent, TablistHeaderFooter},
     Game,
 };
-use quill_common::events::{EntityRemoveEvent, PlayerJoinEvent};
 use ecs::{SysResult, SystemExecutor};
 use libcraft_text::{Text, TextComponent};
+use quill_common::events::{EntityRemoveEvent, PlayerJoinEvent};
 use quill_common::{components::Name, entities::Player};
 use uuid::Uuid;
 
