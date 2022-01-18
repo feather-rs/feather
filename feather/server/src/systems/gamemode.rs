@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use base::anvil::player::PlayerAbilities;
 use base::Gamemode;
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
@@ -13,18 +12,17 @@ use quill_common::events::{
 };
 
 use crate::{ClientId, Server};
-use base::anvil::player::PlayerAbilities;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(gamemode_change);
 }
 
 fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
-    let mut may_fly_changes = HashMap::new();
-    let mut fly_changes = HashMap::new();
-    let mut instabreak_changes = HashMap::new();
-    let mut build_changes = HashMap::new();
-    let mut invulnerability_changes = HashMap::new();
+    let mut may_fly_changes = Vec::new();
+    let mut fly_changes = Vec::new();
+    let mut instabreak_changes = Vec::new();
+    let mut build_changes = Vec::new();
+    let mut invulnerability_changes = Vec::new();
     for (
         entity,
         (
@@ -65,85 +63,85 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         match gamemode {
             Gamemode::Creative => {
                 if !**instabreak {
-                    instabreak_changes.insert(entity, true);
+                    instabreak_changes.push((entity, true));
                     instabreak.0 = true;
                 }
                 if !**may_fly {
-                    may_fly_changes.insert(entity, true);
+                    may_fly_changes.push((entity, true));
                     may_fly.0 = true;
                 }
                 if !**may_build {
-                    build_changes.insert(entity, true);
+                    build_changes.push((entity, true));
                     may_build.0 = true;
                 }
                 if !**invulnerable {
-                    invulnerability_changes.insert(entity, true);
+                    invulnerability_changes.push((entity, true));
                     invulnerable.0 = true;
                 }
             }
             Gamemode::Spectator => {
                 if !**is_flying {
-                    fly_changes.insert(entity, true);
+                    fly_changes.push((entity, true));
                     is_flying.0 = true;
                 }
                 if **instabreak {
-                    instabreak_changes.insert(entity, false);
+                    instabreak_changes.push((entity, false));
                     instabreak.0 = false;
                 }
                 if !**may_fly {
-                    may_fly_changes.insert(entity, true);
+                    may_fly_changes.push((entity, true));
                     may_fly.0 = true;
                 }
                 if **may_build {
-                    build_changes.insert(entity, false);
+                    build_changes.push((entity, false));
                     may_build.0 = false;
                 }
                 if !**invulnerable {
-                    invulnerability_changes.insert(entity, true);
+                    invulnerability_changes.push((entity, true));
                     invulnerable.0 = true;
                 }
             }
             Gamemode::Survival => {
                 if **is_flying {
-                    fly_changes.insert(entity, false);
+                    fly_changes.push((entity, false));
                     is_flying.0 = false;
                 }
                 if **instabreak {
-                    instabreak_changes.insert(entity, false);
+                    instabreak_changes.push((entity, false));
                     instabreak.0 = false;
                 }
                 if **may_fly {
-                    may_fly_changes.insert(entity, false);
+                    may_fly_changes.push((entity, false));
                     may_fly.0 = false;
                 }
                 if !**may_build {
-                    build_changes.insert(entity, true);
+                    build_changes.push((entity, true));
                     may_build.0 = true;
                 }
                 if **invulnerable {
-                    invulnerability_changes.insert(entity, false);
+                    invulnerability_changes.push((entity, false));
                     invulnerable.0 = false;
                 }
             }
             Gamemode::Adventure => {
                 if **is_flying {
-                    fly_changes.insert(entity, false);
+                    fly_changes.push((entity, false));
                     is_flying.0 = false;
                 }
                 if **instabreak {
-                    instabreak_changes.insert(entity, false);
+                    instabreak_changes.push((entity, false));
                     instabreak.0 = false;
                 }
                 if **may_fly {
-                    may_fly_changes.insert(entity, false);
+                    may_fly_changes.push((entity, false));
                     may_fly.0 = false;
                 }
                 if **may_build {
-                    build_changes.insert(entity, false);
+                    build_changes.push((entity, false));
                     may_build.0 = false;
                 }
                 if **invulnerable {
-                    invulnerability_changes.insert(entity, false);
+                    invulnerability_changes.push((entity, false));
                     invulnerable.0 = false;
                 }
             }
@@ -179,48 +177,24 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         }
     }
     for (entity, instabreak) in instabreak_changes {
-        if instabreak {
             game.ecs
-                .insert_entity_event(entity, InstabreakChangeEvent(true))
+                .insert_entity_event(entity, InstabreakChangeEvent(instabreak))
                 .unwrap();
-        } else {
-            game.ecs
-                .insert_entity_event(entity, InstabreakChangeEvent(false))
-                .unwrap();
-        }
     }
     for (entity, may_fly) in may_fly_changes {
-        if may_fly {
             game.ecs
-                .insert_entity_event(entity, FlyingAbilityChangeEvent(true))
+                .insert_entity_event(entity, FlyingAbilityChangeEvent(may_fly))
                 .unwrap();
-        } else {
-            game.ecs
-                .insert_entity_event(entity, FlyingAbilityChangeEvent(false))
-                .unwrap();
-        }
     }
     for (entity, build) in build_changes {
-        if build {
             game.ecs
-                .insert_entity_event(entity, BuildingAbilityChangeEvent(true))
+                .insert_entity_event(entity, BuildingAbilityChangeEvent(build))
                 .unwrap();
-        } else {
-            game.ecs
-                .insert_entity_event(entity, BuildingAbilityChangeEvent(false))
-                .unwrap();
-        }
     }
     for (entity, invulnerable) in invulnerability_changes {
-        if invulnerable {
             game.ecs
-                .insert_entity_event(entity, InvulnerabilityChangeEvent(true))
+                .insert_entity_event(entity, InvulnerabilityChangeEvent(invulnerable))
                 .unwrap();
-        } else {
-            game.ecs
-                .insert_entity_event(entity, InvulnerabilityChangeEvent(false))
-                .unwrap();
-        }
     }
     Ok(())
 }
