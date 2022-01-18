@@ -198,8 +198,9 @@ host_component_enum! {
         CanBuild = 1020,
         Instabreak = 1021,
         Invulnerable = 1022,
-
-
+        PlayerJoinEvent = 1023,
+        EntityRemoveEvent = 1024,
+        EntityCreateEvent = 1025,
     }
 }
 
@@ -363,3 +364,6 @@ bincode_component_impl!(BlockInteractEvent);
 bincode_component_impl!(CreativeFlyingEvent);
 bincode_component_impl!(SneakEvent);
 bincode_component_impl!(SprintEvent);
+bincode_component_impl!(PlayerJoinEvent);
+bincode_component_impl!(EntityRemoveEvent);
+bincode_component_impl!(EntityCreateEvent);
