@@ -7,6 +7,7 @@ use std::{
 
 use ahash::AHashSet;
 use flume::{Receiver, Sender};
+use slab::Slab;
 use uuid::Uuid;
 
 use base::{
@@ -20,8 +21,8 @@ use common::{
 use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
-    ChangeGameState, EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange,
-    PlayerAbilities, StateReason,
+    ChangeGameState, EntityPosition, EntityPositionAndRotation, EntityTeleport, GameStateChange,
+    HeldItemChange, PlayerAbilities,
 };
 use protocol::{
     packets::{
@@ -43,7 +44,6 @@ use crate::{
     network_id_registry::NetworkId,
     Options,
 };
-use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -609,8 +609,7 @@ impl Client {
 
     pub fn change_gamemode(&self, gamemode: Gamemode) {
         self.send_packet(ChangeGameState {
-            reason: StateReason::ChangeGameMode,
-            value: gamemode as u8 as f32,
+            state_change: GameStateChange::ChangeGamemode { gamemode },
         })
     }
 
