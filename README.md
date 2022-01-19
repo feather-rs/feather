@@ -28,7 +28,7 @@ In the long term, Feather could be used on larger, more survival-like servers, w
 
 The Feather ecosystem consists of several repositories:
 * [`libcraft`](https://github.com/feather-rs/libcraft), a set of Rust crates providing Minecraft functionality.
-* [`quill`](https://github.com/feather-rs/quill), our work-in-progress plugin API. Quill plugins are written in Rust and compiled to WebAssembly. Feather runs them in a sandboxed WebAssembly VM.
+* [`quill`](https://github.com/feather-rs/feather/tree/main/quill), our work-in-progress plugin API. Quill plugins are written in Rust and compiled to WebAssembly. Feather runs them in a sandboxed WebAssembly VM.
 * `feather`, the server software built on top of `libcraft` and `quill`.
 
 ### Performance
