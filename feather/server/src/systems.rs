@@ -3,6 +3,7 @@
 mod block;
 mod chat;
 mod entity;
+mod gamemode;
 mod particle;
 mod player_join;
 mod player_leave;
@@ -36,6 +37,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     chat::register(game, systems);
     particle::register(systems);
     plugin_message::register(systems);
+    gamemode::register(systems);
 
     systems.group::<Server>().add_system(tick_clients);
 }
