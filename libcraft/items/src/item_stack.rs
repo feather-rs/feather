@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![deny(warnings)]
 
-use crate::{Item, Enchantment, EnchantmentKind};
+use crate::{Enchantment, EnchantmentKind, Item};
 use core::fmt::Display;
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
@@ -42,7 +42,7 @@ pub struct ItemStackMeta {
 
     /// The displayed lore of the associated `ItemStack`.
     lore: String,
-    
+
     /// The damage taken by the `ItemStack`.
     damage: Option<i32>,
 
@@ -379,7 +379,6 @@ impl Default for ItemStackBuilder {
     }
 }
 
-// Todo: implement all fields.
 impl ItemStackBuilder {
     pub fn new() -> Self {
         Self {
@@ -401,7 +400,8 @@ impl ItemStackBuilder {
         Self { item, ..self }
     }
 
-    /// # Panics 
+    /// Set the item `count`.
+    /// # Panics
     /// Panics if `count` is zero.
     pub fn count(self, count: u32) -> Self {
         Self {
@@ -410,28 +410,37 @@ impl ItemStackBuilder {
         }
     }
 
-    pub fn title(self, title: impl AsRef<str>) -> Self {
-        Self {
-            meta: Some(ItemStackMeta {
-                title: title.as_ref().to_owned(),
-                lore: "".to_owned(),
-                damage: None,
-                repair_cost: None,
-                enchantments: Enchantments::new(),
-            }),
-            ..self
-        }
-    }
-
-    pub fn damage(mut self, damage: i32) -> Self {
-        let mut meta = self.meta.unwrap_or_default();
-        meta.damage = Some(damage);
-
-        self.meta = Some(meta);
+    /// Set the item `title`.
+    pub fn title(mut self, title: impl AsRef<str>) -> Self {
+        get_or_insert_opt(&mut self.meta).title = title.as_ref().to_owned();
         self
     }
 
-    /// If damage is some, then its value is applied, else this is a no-op.
+    /// Set the item `lore`.
+    pub fn lore(mut self, lore: impl AsRef<str>) -> Self {
+        get_or_insert_opt(&mut self.meta).lore = lore.as_ref().to_owned();
+        self
+    }
+
+    /// Set the item's repair cost metadata to `repair_cost`.
+    pub fn repair_cost(mut self, cost: u32) -> Self {
+        get_or_insert_opt(&mut self.meta).repair_cost = Some(cost);
+        self
+    }
+
+    /// Set the item's damage metadata to `damage`.
+    pub fn damage(mut self, damage: i32) -> Self {
+        get_or_insert_opt(&mut self.meta).damage = Some(damage);
+        self
+    }
+
+    /// Set the item's enchantment metadata to `enchantments`
+    pub fn enchantments(mut self, enchantments: Enchantments) -> Self {
+        get_or_insert_opt(&mut self.meta).enchantments = enchantments;
+        self
+    }
+
+    /// If `damage` is some, then its value is applied, else this is a no-op.
     pub fn apply_damage(self, damage: Option<i32>) -> Self {
         match damage {
             Some(damage) => self.damage(damage),
@@ -439,9 +448,20 @@ impl ItemStackBuilder {
         }
     }
 
-    pub fn same_meta_as(mut self, other: &Self) -> Self {
+    /// Copy metadate from another item.
+    pub fn copy_meta(mut self, other: &Self) -> Self {
         self.meta = other.meta.clone();
         self
+    }
+}
+
+/// Placeholder for the `Option::get_or_insert_default` funcion. https://github.com/rust-lang/rust/issues/82901
+fn get_or_insert_opt<T: Default>(opt: &mut Option<T>) -> &mut T {
+    if let Some(s) = opt {
+        s
+    } else {
+        *opt = Some(T::default());
+        opt.as_mut().unwrap()
     }
 }
 
@@ -462,7 +482,10 @@ impl Enchantments {
     }
     /// Get the level of the given enchantment.
     pub fn get_level(&self, ench: EnchantmentKind) -> Option<u32> {
-        self.0.iter().find(|e| { e.kind() == ench}).map(Enchantment::level)
+        self.0
+            .iter()
+            .find(|e| e.kind() == ench)
+            .map(Enchantment::level)
     }
     /// Change the level of the given enchantment in-place or add it at the end of the list.
     pub fn set_level(&mut self, ench: EnchantmentKind, level: u32) {
