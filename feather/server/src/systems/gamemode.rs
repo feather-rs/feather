@@ -166,15 +166,9 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
             });
     }
     for (entity, flying) in fly_changes {
-        if flying {
-            game.ecs
-                .insert_entity_event(entity, CreativeFlyingEvent::new(true))
-                .unwrap();
-        } else {
-            game.ecs
-                .insert_entity_event(entity, CreativeFlyingEvent::new(false))
-                .unwrap();
-        }
+        game.ecs
+            .insert_entity_event(entity, CreativeFlyingEvent::new(flying))
+            .unwrap();
     }
     for (entity, instabreak) in instabreak_changes {
         game.ecs
