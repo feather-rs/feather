@@ -86,14 +86,12 @@ impl WasmBump {
         min_layout: Option<Layout>,
         previous_size: Option<usize>,
     ) -> anyhow::Result<Chunk> {
-        println!("barbar");
         let mut new_size = match previous_size {
             Some(previous_size) => previous_size
                 .checked_mul(2)
                 .context("chunk overflows usize")?,
             None => INITIAL_CHUNK_SIZE,
         };
-        println!("barbar");
         let mut align = CHUNK_ALIGN;
         if let Some(min_layout) = min_layout {
             align = align.max(min_layout.align());
@@ -101,17 +99,13 @@ impl WasmBump {
                 round_up_to(min_layout.size(), align).context("allocation too large")?;
             new_size = new_size.max(requested_size);
         }
-        println!("barbar");
         assert_eq!(align % CHUNK_ALIGN, 0);
         assert_eq!(new_size % CHUNK_ALIGN, 0);
         let layout = Layout::from_size_align(new_size, align).context("size or align is 0")?;
-        println!("barbar");
         assert!(new_size >= previous_size.unwrap_or(0) * 2);
-        println!("barbar");
         let start = self
             .allocate_function
             .call(layout.size() as u32, layout.align() as u32)?;
-        println!("barbar");
         Ok(Chunk {
             start,
             layout,
