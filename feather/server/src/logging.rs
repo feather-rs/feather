@@ -39,6 +39,8 @@ pub fn init(level: LevelFilter) {
         // cranelift_codegen spams debug-level logs
         .level_for("cranelift_codegen", LevelFilter::Info)
         .level_for("regalloc", LevelFilter::Off)
+        .level_for("wasmer_wasi::syscalls", LevelFilter::Info)
+        .level_for("wasmer_compiler_cranelift::translator", LevelFilter::Warn)
         .chain(std::io::stdout())
         .apply()
         .unwrap();
