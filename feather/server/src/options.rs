@@ -1,4 +1,4 @@
-use base::Gamemode;
+use base::{Gamemode, Text};
 
 use crate::favicon::Favicon;
 
@@ -27,6 +27,12 @@ pub struct Options {
 
     /// The default gamemode for new players.
     pub default_gamemode: Gamemode,
+
+    /// The default tablist header.
+    pub default_header: Text,
+
+    /// The default tablist footer.
+    pub default_footer: Text,
 
     /// Proxy IP forwarding mode
     pub proxy_mode: Option<ProxyMode>,

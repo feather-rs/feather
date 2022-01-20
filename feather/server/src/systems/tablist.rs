@@ -6,7 +6,6 @@ use common::{
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
-use libcraft_text::{Text, TextComponent};
 use quill_common::events::{EntityRemoveEvent, PlayerJoinEvent};
 use quill_common::{components::Name, entities::Player};
 use uuid::Uuid;
@@ -14,10 +13,13 @@ use uuid::Uuid;
 use crate::{ClientId, Server};
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
+    let server_options = game.resources.get::<Server>().unwrap().options.clone();
+
     game.insert_resource(TablistHeaderFooter {
-        header: Text::Component(Box::new(TextComponent::empty())),
-        footer: Text::Component(Box::new(TextComponent::empty())),
+        header: server_options.default_header.clone(),
+        footer: server_options.default_footer.clone(),
     });
+
     systems
         .group::<Server>()
         .add_system(remove_tablist_players)

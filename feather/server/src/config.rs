@@ -3,7 +3,7 @@
 use std::{fs, net::IpAddr, path::Path, str::FromStr};
 
 use anyhow::Context;
-use base::Gamemode;
+use base::{Gamemode, Text};
 use serde::{Deserialize, Deserializer};
 
 use crate::{favicon::Favicon, Options};
@@ -66,6 +66,8 @@ impl Config {
             view_distance: self.server.view_distance,
             max_players: self.server.max_players,
             default_gamemode: self.server.default_gamemode,
+            default_header: self.server.default_header.clone(),
+            default_footer: self.server.default_footer.clone(),
             proxy_mode: match self.proxy.proxy_mode {
                 ProxyMode::None => None,
                 ProxyMode::Bungee => Some(crate::options::ProxyMode::Bungeecord),
@@ -90,6 +92,8 @@ pub struct ServerConfig {
     pub max_players: u32,
     pub default_gamemode: Gamemode,
     pub view_distance: u32,
+    pub default_header: Text,
+    pub default_footer: Text,
 }
 
 #[derive(Debug, Deserialize)]
