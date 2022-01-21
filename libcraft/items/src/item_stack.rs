@@ -446,34 +446,34 @@ impl ItemStackBuilder {
 
     /// Set the item `title`.
     pub fn title(mut self, title: impl AsRef<str>) -> Self {
-        get_or_insert_opt(&mut self.meta).title = title.as_ref().to_owned();
+        self.get_or_init_meta().title = title.as_ref().to_owned();
         self
     }
 
     /// Set the item `lore`.
     pub fn lore(mut self, lore: impl AsRef<str>) -> Self {
-        get_or_insert_opt(&mut self.meta).lore = lore.as_ref().to_owned();
+        self.get_or_init_meta().lore = lore.as_ref().to_owned();
         self
     }
 
     /// Set the item's repair cost metadata to `repair_cost`.
     #[must_use]
     pub fn repair_cost(mut self, cost: u32) -> Self {
-        get_or_insert_opt(&mut self.meta).repair_cost = Some(cost);
+        self.get_or_init_meta().repair_cost = Some(cost);
         self
     }
 
     /// Set the item's damage metadata to `damage`.
     #[must_use]
     pub fn damage(mut self, damage: i32) -> Self {
-        get_or_insert_opt(&mut self.meta).damage = Some(damage);
+        self.get_or_init_meta().damage = Some(damage);
         self
     }
 
     /// Set the item's enchantment metadata to `enchantments`
     #[must_use]
     pub fn enchantments(mut self, enchantments: Enchantments) -> Self {
-        get_or_insert_opt(&mut self.meta).enchantments = enchantments;
+        self.get_or_init_meta().enchantments = enchantments;
         self
     }
 
@@ -492,15 +492,18 @@ impl ItemStackBuilder {
         self.meta = other.meta.clone();
         self
     }
-}
 
-/// Placeholder for the `Option::get_or_insert_default` funcion. <https://github.com/rust-lang/rust/issues/82901>
-fn get_or_insert_opt<T: Default>(opt: &mut Option<T>) -> &mut T {
-    if let Some(s) = opt {
-        s
-    } else {
-        *opt = Some(T::default());
-        opt.as_mut().unwrap()
+    /// Placeholder for the `Option::get_or_insert_default` funcion, setting the default item name.
+    fn get_or_init_meta(&mut self) -> &mut ItemStackMeta {
+        if let Some(ref mut s) = self.meta {
+            s
+        } else {
+            self.meta = Some(ItemStackMeta {
+                title: self.item.display_name().to_owned(),
+                ..ItemStackMeta::default()
+            });
+            self.meta.as_mut().unwrap()
+        }
     }
 }
 
