@@ -35,7 +35,7 @@ pub fn plugin(_attr: TokenStream, mut item: TokenStream) -> TokenStream {
     let name = match input {
         Item::Enum(itm_enum) => itm_enum.ident,
         Item::Struct(itm_str) => itm_str.ident,
-        _ => panic!("Only structs or enums can be #[quill::plugin]!")
+        _ => panic!("Only structs or enums can be #[quill::plugin]!"),
     };
     let res = quote! {
         // `static mut` can be used without synchronization because the host
@@ -103,6 +103,6 @@ pub fn plugin(_attr: TokenStream, mut item: TokenStream) -> TokenStream {
         fn main() {}
     };
     item.extend(TokenStream::from(res));
-    
+
     item
 }
