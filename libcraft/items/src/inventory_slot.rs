@@ -38,7 +38,7 @@ impl InventorySlot {
         }
     }
 
-    /// If instace of `Self::Filled`, then it returns `Some(stack_size`)
+    /// If instace of `Self::Filled`, then it returns `Some(stack_size)`
     /// where `stack_size` is the biggest number of items allowable
     /// for the given item in a stack.
     /// If instance of `Self::Empty`, then we can't know the stack

@@ -300,7 +300,7 @@ impl ItemStack {
         let items_in_self = self.count();
         let moving_items = space_in_other.min(n).min(items_in_self);
 
-        // Guaranteed to be <`self.stack_size` because of `space_in_other` being one of the minimums 
+        // Guaranteed to be <`self.stack_size` because of `space_in_other` being one of the minimums
         other.set_count(moving_items + other.count()).unwrap();
 
         if items_in_self - moving_items == 0 {
