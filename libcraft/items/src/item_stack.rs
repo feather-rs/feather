@@ -150,15 +150,11 @@ impl ItemStack {
 
     /// Removes some items from this `ItemStack` and return the new item count.
     /// # Errors
-    /// Returns `EmptyStack` or `NotEnoughAmount` if the new stack would be empty.
+    /// Returns `NotEnoughItems` if the new stack would be empty.
     #[allow(clippy::missing_panics_doc)]
     pub fn remove(&mut self, count: u32) -> Result<u32, ItemStackError> {
         if self.count.get() <= count {
-            return Err(if self.count.get() == count {
-                ItemStackError::EmptyStack
-            } else {
-                ItemStackError::NotEnoughAmount
-            });
+            return Err(ItemStackError::NotEnoughItems);
         }
         // Cannot panic because `self.count` > `count` at this point
         self.count = NonZeroU32::new(self.count.get() - count).unwrap();
@@ -267,16 +263,12 @@ impl ItemStack {
 
     /// Transfers up to `n` items to `other`.
     /// # Errors
-    /// Returns `EmptyStack` or `NotEnoughAmount` when there aren't enough items to do the transfer.
+    /// Returns `NotEnoughItems` when there aren't enough items to complete the transfer.
     /// If the new item count in `other` cannot be represented by `i32`, returns `ClientOverflow`.
     #[allow(clippy::missing_panics_doc)]
     pub fn transfer_to(&mut self, n: u32, other: &mut Self) -> Result<(), ItemStackError> {
         if self.count.get() <= n || n == 0 {
-            return Err(if self.count.get() == n || n == 0 {
-                ItemStackError::EmptyStack
-            } else {
-                ItemStackError::NotEnoughAmount
-            });
+            return Err(ItemStackError::NotEnoughItems);
         }
         let max_transfer = other.item.stack_size().saturating_sub(other.count.get());
         let transfer = max_transfer.min(self.count.get()).min(n);
@@ -375,7 +367,7 @@ pub enum ItemStackError {
     EmptyStack,
     ExceedsStackSize,
     IncompatibleStacks,
-    NotEnoughAmount,
+    NotEnoughItems,
 }
 
 impl Display for ItemStackError {
