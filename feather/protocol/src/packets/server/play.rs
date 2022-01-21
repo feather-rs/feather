@@ -377,13 +377,13 @@ pub enum GameStateChange {
     /// Seems to change both skycolor and lightning.
     RainLevelChange {
         /// Possible values are from 0 to 1
-        rain_level: f64,
+        rain_level: f32,
     },
     /// Seems to change both skycolor and lightning (same as Rain level change, but doesn't start rain).
     /// It also requires rain to render by notchian client.
     ThunderLevelChange {
         /// Possible values are from 0 to 1
-        thunder_level: f64,
+        thunder_level: f32,
     },
     PlayPufferfishStingSound,
     PlayElderGuardianAppearance,
@@ -423,8 +423,8 @@ impl Writeable for GameStateChange {
 
         // Value
         match self {
-            GameStateChange::ChangeGamemode { gamemode } => *gamemode as u8 as f64,
-            GameStateChange::WinGame { show_credits } => *show_credits as u8 as f64,
+            GameStateChange::ChangeGamemode { gamemode } => *gamemode as u8 as f32,
+            GameStateChange::WinGame { show_credits } => *show_credits as u8 as f32,
             GameStateChange::DemoEvent(DemoEventType::ShowWelcomeToDemoScreen) => 0.0,
             GameStateChange::DemoEvent(DemoEventType::TellMovementControls) => 101.0,
             GameStateChange::DemoEvent(DemoEventType::TellJumpControl) => 102.0,
@@ -432,7 +432,7 @@ impl Writeable for GameStateChange {
             GameStateChange::DemoEvent(DemoEventType::TellDemoIsOver) => 104.0,
             GameStateChange::RainLevelChange { rain_level } => *rain_level,
             GameStateChange::ThunderLevelChange { thunder_level } => *thunder_level,
-            GameStateChange::EnableRespawnScreen { enable } => !enable as u8 as f64,
+            GameStateChange::EnableRespawnScreen { enable } => !enable as u8 as f32,
             _ => 0.0,
         }
         .write(buffer, version)?;
@@ -447,7 +447,7 @@ impl Readable for GameStateChange {
         Self: Sized,
     {
         let reason = u8::read(buffer, version)?;
-        let value = f64::read(buffer, version)?;
+        let value = f32::read(buffer, version)?;
         Ok(match reason {
             0 => GameStateChange::SendNoRespawnBlockAvailableMessage,
             1 => GameStateChange::EndRaining,
