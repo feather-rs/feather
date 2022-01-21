@@ -13,33 +13,37 @@ pub enum InventorySlot {
 
 impl Default for InventorySlot {
     fn default() -> Self {
-        InventorySlot::Empty
+        Self::Empty
     }
 }
 
 impl From<Option<ItemStack>> for InventorySlot {
     fn from(it: Option<ItemStack>) -> Self {
         match it {
-            Some(item) => InventorySlot::Filled(item),
-            None => InventorySlot::Empty,
+            Some(item) => Self::Filled(item),
+            None => Self::Empty,
         }
     }
 }
 
 impl InventorySlot {
+    /// Creates a new instance with the type `kind` and `count` items
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
     pub fn new(kind: Item, count: u32) -> Self {
         if count == 0 {
             Self::Empty
         } else {
-            Self::Filled(ItemStack::new(kind, count).unwrap())
+            Self::Filled(ItemStack::new(kind, count).expect("`count` cannot equal zero"))
         }
     }
 
-    /// If instace of Self::Filled, then it returns Some(stack_size)
-    /// where stack_size is the biggest number of items allowable
+    /// If instace of `Self::Filled`, then it returns `Some(stack_size`)
+    /// where `stack_size` is the biggest number of items allowable
     /// for the given item in a stack.
-    /// If instance of Self::Empty, then we can't know the stack
+    /// If instance of `Self::Empty`, then we can't know the stack
     /// size and None is returned.
+    #[must_use]
     pub fn stack_size(&self) -> Option<u32> {
         match self {
             InventorySlot::Filled(x) => Some(x.stack_size()),
@@ -66,6 +70,7 @@ impl InventorySlot {
     /// and put it into the output. If amount is bigger
     /// then what self can provide then this is the same
     /// as calling take.
+    #[allow(clippy::missing_panics_doc)]
     pub fn try_take(&mut self, amount: u32) -> Self {
         if amount == 0 {
             return Self::Empty;
@@ -79,8 +84,10 @@ impl InventorySlot {
                 } else {
                     // We take some of self.
                     let mut out = stack.clone();
+                    // `amount` != 0
                     out.set_count(amount).unwrap();
-                    stack.set_count(stack.count() - amount).unwrap();
+                    // `stack.count` > amount
+                    stack.remove(amount).unwrap();
                     Self::Filled(out)
                 }
             }
@@ -99,24 +106,26 @@ impl InventorySlot {
     }
 
     /// Returns the number of items stored in the inventory slot.
-    pub fn count(&self) -> u32 {
+    #[must_use]
+    pub const fn count(&self) -> u32 {
         match self {
-            InventorySlot::Filled(stack) => stack.count(),
-            InventorySlot::Empty => 0,
+            Self::Filled(stack) => stack.count(),
+            Self::Empty => 0,
         }
     }
 
     /// Should only be called if the caller can guarantee that there is space
-    /// such that the new could is not greater then self.stack_size().
+    /// such that the new could is not greater then `self.stack_size`().
     /// And that the slot actually contains an item.   
     fn add_count(&mut self, n: u32) {
         match self {
-            InventorySlot::Filled(x) => x.add(n).unwrap(),
-            InventorySlot::Empty => panic!("add count called on empty inventory slot!"),
+            Self::Filled(x) => x.add(n).unwrap(),
+            Self::Empty => panic!("add count called on empty inventory slot!"),
         };
     }
 
     /// Transfers up to `n` items from 'self' to `other`.
+    #[allow(clippy::missing_panics_doc)]
     pub fn transfer_to(&mut self, n: u32, other: &mut Self) {
         if !self.is_mergable(other) {
             return;
@@ -124,6 +133,7 @@ impl InventorySlot {
 
         match (self.is_filled(), other.is_filled()) {
             (true, true) => {
+                // `other` is guaranteed to be `Filled`
                 let space_in_other = other.stack_size().unwrap() - other.count();
                 let moving = n.min(space_in_other).min(self.count());
                 let taken = self.try_take(moving);
@@ -138,7 +148,8 @@ impl InventorySlot {
     }
 
     /// Checks if the `InventorySlot` is empty.
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         match self {
             InventorySlot::Filled(_) => false,
             InventorySlot::Empty => true,
@@ -146,17 +157,20 @@ impl InventorySlot {
     }
 
     /// Checks if the `InventorySlot` is filled.
-    pub fn is_filled(&self) -> bool {
+    #[must_use]
+    pub const fn is_filled(&self) -> bool {
         !self.is_empty()
     }
 
     /// Returns the number of items moved from other to self.
+    #[allow(clippy::missing_panics_doc)]
     pub fn merge(&mut self, other: &mut Self) -> u32 {
         if !self.is_mergable(other) {
             return 0;
         }
         match (self.is_filled(), other.is_filled()) {
             (true, true) => {
+                // `self` is `Filled`
                 let moving = (self.stack_size().unwrap() - self.count()).min(other.count());
                 let taken = other.try_take(moving);
                 self.add_count(taken.count());
@@ -171,8 +185,9 @@ impl InventorySlot {
     }
 
     /// Returns true if either one is empty, or they
-    /// contain the same ItemStack type. Does *not* consider
+    /// contain the same `ItemStack` type. Does *not* consider
     /// if there is space enough for the move to happen.
+    #[must_use]
     pub fn is_mergable(&self, other: &Self) -> bool {
         match (self, other) {
             (InventorySlot::Filled(a), InventorySlot::Filled(b)) => a.stackable_types(b),
@@ -182,10 +197,11 @@ impl InventorySlot {
 
     /// Returns the item kind of the inventory slot if it is filled,
     /// otherwise it returns None.
-    pub fn item_kind(&self) -> Option<Item> {
+    #[must_use]
+    pub const fn item_kind(&self) -> Option<Item> {
         match self {
-            InventorySlot::Filled(x) => Some(x.item()),
-            InventorySlot::Empty => None,
+            Self::Filled(x) => Some(x.item()),
+            Self::Empty => None,
         }
     }
 }
@@ -214,7 +230,7 @@ mod test {
 
         let mut b = InventorySlot::Empty;
         let c = b.take_half();
-        assert!(c.is_empty() && b.is_empty())
+        assert!(c.is_empty() && b.is_empty());
     }
 
     #[test]
