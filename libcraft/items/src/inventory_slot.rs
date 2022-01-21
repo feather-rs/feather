@@ -31,7 +31,9 @@ impl InventorySlot {
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub fn new(kind: Item, count: u32) -> Self {
-        ItemStack::new(kind, count).map(Self::Filled).unwrap_or_default()
+        ItemStack::new(kind, count)
+            .map(Self::Filled)
+            .unwrap_or_default()
     }
 
     /// If instace of `Self::Filled`, then it returns `Some(stack_size)`
