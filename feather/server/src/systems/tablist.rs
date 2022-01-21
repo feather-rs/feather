@@ -17,8 +17,8 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     let server_options = game.resources.get::<Server>().unwrap().options.clone();
 
     game.insert_resource(TablistHeaderFooter {
-        header: server_options.default_header.clone(),
-        footer: server_options.default_footer.clone(),
+        header: server_options.tablist_header.clone(),
+        footer: server_options.tablist_footer.clone(),
     });
 
     systems
@@ -99,9 +99,9 @@ fn send_tablist_header_on_join(game: &mut Game, server: &mut Server) -> SysResul
                 &header_footer.header.to_string(),
                 &header_footer.footer.to_string(),
             );
-       }
-       Ok(())
-   }
+    }
+    Ok(())
+}
 
 fn change_tablist_player_gamemode(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, (event, &uuid)) in game.ecs.query::<(&GamemodeEvent, &Uuid)>().iter() {

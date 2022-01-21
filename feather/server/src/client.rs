@@ -335,7 +335,6 @@ impl Client {
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
     }
 
-
     pub fn send_tablist_header_footer(&self, header: &str, footer: &str) {
         log::trace!("Sending PlayerListHeaderAndFooter ({},{})", header, footer);
         self.send_packet(PlayerListHeaderAndFooter {

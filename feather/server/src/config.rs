@@ -66,8 +66,8 @@ impl Config {
             view_distance: self.server.view_distance,
             max_players: self.server.max_players,
             default_gamemode: self.server.default_gamemode,
-            default_header: self.server.default_header.clone(),
-            default_footer: self.server.default_footer.clone(),
+            tablist_header: self.server.tablist_header.clone(),
+            tablist_footer: self.server.tablist_footer.clone(),
             proxy_mode: match self.proxy.proxy_mode {
                 ProxyMode::None => None,
                 ProxyMode::Bungee => Some(crate::options::ProxyMode::Bungeecord),
@@ -92,8 +92,8 @@ pub struct ServerConfig {
     pub max_players: u32,
     pub default_gamemode: Gamemode,
     pub view_distance: u32,
-    pub default_header: Text,
-    pub default_footer: Text,
+    pub tablist_header: Text,
+    pub tablist_footer: Text,
 }
 
 #[derive(Debug, Deserialize)]
