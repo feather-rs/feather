@@ -40,8 +40,6 @@ impl WasmBump {
             deallocate_function,
             chunks: Vec::new(),
         };
-        let initial_chunk = this.allocate_chunk(None, None)?;
-        this.chunks.push(initial_chunk);
         Ok(this)
     }
 
@@ -94,7 +92,6 @@ impl WasmBump {
                 .context("chunk overflows usize")?,
             None => INITIAL_CHUNK_SIZE,
         };
-
         let mut align = CHUNK_ALIGN;
         if let Some(min_layout) = min_layout {
             align = align.max(min_layout.align());
@@ -102,17 +99,13 @@ impl WasmBump {
                 round_up_to(min_layout.size(), align).context("allocation too large")?;
             new_size = new_size.max(requested_size);
         }
-
         assert_eq!(align % CHUNK_ALIGN, 0);
         assert_eq!(new_size % CHUNK_ALIGN, 0);
         let layout = Layout::from_size_align(new_size, align).context("size or align is 0")?;
-
         assert!(new_size >= previous_size.unwrap_or(0) * 2);
-
         let start = self
             .allocate_function
             .call(layout.size() as u32, layout.align() as u32)?;
-
         Ok(Chunk {
             start,
             layout,
@@ -124,7 +117,7 @@ impl WasmBump {
     /// all allocated memory.
     pub fn reset(&mut self) -> anyhow::Result<()> {
         // Free all but the last chunk.
-        for chunk in self.chunks.drain(..self.chunks.len() - 1) {
+        for chunk in self.chunks.drain(..self.chunks.len()) {
             self.deallocate_function.call(
                 chunk.start,
                 chunk.layout.size() as u32,
@@ -132,13 +125,9 @@ impl WasmBump {
             )?;
         }
 
-        assert_eq!(self.chunks.len(), 1);
-
-        // Reset the last chunk's data pointer.
-        let last_chunk = self.chunks.last_mut().unwrap();
-        last_chunk
-            .ptr
-            .set(last_chunk.start + last_chunk.layout.size() as u32);
+        // Allocate initial chunk
+        let chunk = self.allocate_chunk(None, None)?;
+        self.chunks.push(chunk);
 
         Ok(())
     }
