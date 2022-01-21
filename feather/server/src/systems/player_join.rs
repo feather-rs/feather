@@ -15,6 +15,7 @@ use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
     Invulnerable, PreviousGamemode, WalkSpeed,
 };
+use quill_common::events::GamemodeEvent;
 use quill_common::{components::Name, entity_init::EntityInit};
 
 use crate::{ClientId, NetworkId, Server};
@@ -130,6 +131,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(abilities.may_build)
         .add(abilities.instabreak)
         .add(abilities.invulnerable);
+
+    builder.add(GamemodeEvent(gamemode));
 
     game.spawn_entity(builder);
 

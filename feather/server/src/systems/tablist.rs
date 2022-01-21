@@ -1,14 +1,15 @@
 //! Sends tablist info to clients via the Player Info packet.
 
+use uuid::Uuid;
+
 use base::{Gamemode, ProfileProperty};
 use common::{
     events::{TablistExtrasUpdateEvent, TablistHeaderFooter},
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
-use quill_common::events::{EntityRemoveEvent, PlayerJoinEvent};
+use quill_common::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
 use quill_common::{components::Name, entities::Player};
-use uuid::Uuid;
 
 use crate::{ClientId, Server};
 
@@ -25,7 +26,8 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         .add_system(remove_tablist_players)
         .add_system(add_tablist_players)
         .add_system(update_tablist_header)
-        .add_system(send_tablist_header_on_join);
+        .add_system(send_tablist_header_on_join)
+        .add_system(change_tablist_player_gamemode);
 }
 
 fn remove_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
@@ -97,6 +99,14 @@ fn send_tablist_header_on_join(game: &mut Game, server: &mut Server) -> SysResul
                 &header_footer.header.to_string(),
                 &header_footer.footer.to_string(),
             );
+       }
+       Ok(())
+   }
+
+fn change_tablist_player_gamemode(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (event, &uuid)) in game.ecs.query::<(&GamemodeEvent, &Uuid)>().iter() {
+        // Change this player's gamemode in players' tablists
+        server.broadcast_with(|client| client.change_player_tablist_gamemode(uuid, **event));
     }
     Ok(())
 }

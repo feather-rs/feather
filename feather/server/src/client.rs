@@ -7,6 +7,7 @@ use std::{
 
 use ahash::AHashSet;
 use flume::{Receiver, Sender};
+use slab::Slab;
 use uuid::Uuid;
 
 use base::{
@@ -23,7 +24,8 @@ use packets::server::{
     WindowConfirmation,
 };
 use protocol::packets::server::{
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+    ChangeGameState, EntityPosition, EntityPositionAndRotation, EntityTeleport, GameStateChange,
+    HeldItemChange, PlayerAbilities,
 };
 use protocol::{
     packets::{
@@ -45,7 +47,6 @@ use crate::{
     network_id_registry::NetworkId,
     Options,
 };
-use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -334,12 +335,17 @@ impl Client {
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
     }
 
+
     pub fn send_tablist_header_footer(&self, header: &str, footer: &str) {
         log::trace!("Sending PlayerListHeaderAndFooter ({},{})", header, footer);
         self.send_packet(PlayerListHeaderAndFooter {
             header: header.to_string(),
             footer: footer.to_string(),
         })
+    }
+
+    pub fn change_player_tablist_gamemode(&self, uuid: Uuid, gamemode: Gamemode) {
+        self.send_packet(PlayerInfo::UpdateGamemodes(vec![(uuid, gamemode)]));
     }
 
     pub fn unload_entity(&self, id: NetworkId) {
@@ -611,6 +617,12 @@ impl Client {
 
     pub fn set_hotbar_slot(&self, slot: u8) {
         self.send_packet(HeldItemChange { slot });
+    }
+
+    pub fn change_gamemode(&self, gamemode: Gamemode) {
+        self.send_packet(ChangeGameState {
+            state_change: GameStateChange::ChangeGamemode { gamemode },
+        })
     }
 
     fn register_entity(&self, network_id: NetworkId) {
