@@ -47,14 +47,8 @@ pub struct ItemStackMeta {
     repair_cost: Option<u32>,
 
     /// The enchantments applied to this `ItemStack`.
-    enchantments: Enchantments,
+    enchantments: Vec<Enchantment>,
 }
-
-/// Represents all the enchantments an item has.
-#[repr(transparent)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(transparent)]
-pub struct Enchantments(pub Vec<Enchantment>);
 
 impl ItemStack {
     /// Creates a new `ItemStack` with the default name (title)
@@ -71,7 +65,7 @@ impl ItemStack {
                 lore: "".to_owned(),
                 damage: None,
                 repair_cost: None,
-                enchantments: Enchantments::new(),
+                enchantments: vec![],
             }),
         })
     }
@@ -382,11 +376,27 @@ impl ItemStackMeta {
     #[must_use]
     pub fn new(item: Item) -> Self {
         Self {
-            title: item.name().to_owned(),
+            title: item.display_name().to_owned(),
             lore: "".to_owned(),
             damage: None,
             repair_cost: None,
-            enchantments: Enchantments::new(),
+            enchantments: vec![],
+        }
+    }
+
+    /// Get the level of the given enchantment.
+    pub fn get_enchantment_level(&self, ench: EnchantmentKind) -> Option<u32> {
+        self.enchantments
+            .iter()
+            .find(|e| e.kind() == ench)
+            .map(Enchantment::level)
+    }
+    /// Change the level of the given enchantment in-place or add it at the end of the list.
+    pub fn set_enchantment_level(&mut self, ench: EnchantmentKind, level: u32) {
+        if let Some(enchant) = self.enchantments.iter_mut().find(|e| e.kind() == ench) {
+            enchant.set_level(level);
+        } else {
+            self.enchantments.push(Enchantment::new(ench, level));
         }
     }
 }
@@ -472,7 +482,7 @@ impl ItemStackBuilder {
 
     /// Set the item's enchantment metadata to `enchantments`
     #[must_use]
-    pub fn enchantments(mut self, enchantments: Enchantments) -> Self {
+    pub fn enchantments(mut self, enchantments: Vec<Enchantment>) -> Self {
         self.get_or_init_meta().enchantments = enchantments;
         self
     }
@@ -514,39 +524,5 @@ impl From<ItemStackBuilder> for ItemStack {
             count: it.count,
             meta: it.meta,
         }
-    }
-}
-
-impl Enchantments {
-    /// Create a new empty instance.
-    pub const fn new() -> Self {
-        Self(vec![])
-    }
-    /// Get the level of the given enchantment.
-    pub fn get_level(&self, ench: EnchantmentKind) -> Option<u32> {
-        self.0
-            .iter()
-            .find(|e| e.kind() == ench)
-            .map(Enchantment::level)
-    }
-    /// Change the level of the given enchantment in-place or add it at the end of the list.
-    pub fn set_level(&mut self, ench: EnchantmentKind, level: u32) {
-        if let Some(enchant) = self.0.iter_mut().find(|e| e.kind() == ench) {
-            enchant.set_level(level);
-        } else {
-            self.0.push(Enchantment::new(ench, level));
-        }
-    }
-}
-
-impl From<Vec<Enchantment>> for Enchantments {
-    fn from(v: Vec<Enchantment>) -> Self {
-        Self(v)
-    }
-}
-
-impl From<Enchantments> for Vec<Enchantment> {
-    fn from(e: Enchantments) -> Self {
-        e.0
     }
 }
