@@ -8,6 +8,7 @@ pub mod entities;
 pub mod entity;
 pub mod entity_init;
 pub mod events;
+pub mod tablist;
 
 use std::marker::PhantomData;
 

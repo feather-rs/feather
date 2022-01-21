@@ -1,5 +1,4 @@
 use base::{ChunkHandle, ChunkPosition};
-use libcraft_text::Text;
 
 use crate::view::View;
 
@@ -58,12 +57,6 @@ pub struct ChunkLoadEvent {
 #[derive(Debug)]
 pub struct ChunkLoadFailEvent {
     pub position: ChunkPosition,
-}
-
-#[derive(Debug, Clone)]
-pub struct TablistHeaderFooter {
-    pub header: Text,
-    pub footer: Text,
 }
 
 #[derive(Debug)]

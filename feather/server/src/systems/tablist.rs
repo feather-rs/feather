@@ -3,13 +3,10 @@
 use uuid::Uuid;
 
 use base::{Gamemode, ProfileProperty};
-use common::{
-    events::{TablistExtrasUpdateEvent, TablistHeaderFooter},
-    Game,
-};
+use common::{events::TablistExtrasUpdateEvent, Game};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
-use quill_common::{components::Name, entities::Player};
+use quill_common::{components::Name, entities::Player, tablist::TablistHeaderFooter};
 
 use crate::{ClientId, Server};
 
@@ -25,8 +22,8 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         .group::<Server>()
         .add_system(remove_tablist_players)
         .add_system(add_tablist_players)
-        .add_system(update_tablist_header)
-        .add_system(send_tablist_header_on_join)
+        .add_system(update_tablist_header_footer)
+        .add_system(send_tablist_header_footer_on_join)
         .add_system(change_tablist_player_gamemode);
 }
 
@@ -75,7 +72,7 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-fn update_tablist_header(game: &mut Game, server: &mut Server) -> SysResult {
+fn update_tablist_header_footer(game: &mut Game, server: &mut Server) -> SysResult {
     for _ in game.ecs.query::<&TablistExtrasUpdateEvent>().iter() {
         let header_footer = game.resources.get::<TablistHeaderFooter>()?;
         server.broadcast_with(|client| {
@@ -88,7 +85,7 @@ fn update_tablist_header(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-fn send_tablist_header_on_join(game: &mut Game, server: &mut Server) -> SysResult {
+fn send_tablist_header_footer_on_join(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, (_, &client_id)) in game.ecs.query::<(&PlayerJoinEvent, &ClientId)>().iter() {
         let header_footer = game.resources.get::<TablistHeaderFooter>()?;
         server
