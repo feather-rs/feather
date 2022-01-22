@@ -2,8 +2,7 @@
 //! send a player to a server named lobby.
 use quill::{entities::Player, BlockPosition, Game, Plugin, Position};
 
-quill::plugin!(PluginMessage);
-
+#[quill::plugin]
 pub struct PluginMessage;
 
 impl Plugin for PluginMessage {

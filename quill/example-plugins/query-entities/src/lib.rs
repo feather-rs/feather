@@ -4,8 +4,7 @@
 use quill::{entities::PiglinBrute, EntityInit, Game, Plugin, Position};
 use rand::Rng;
 
-quill::plugin!(QueryEntities);
-
+#[quill::plugin]
 struct QueryEntities {
     tick_counter: u64,
 }

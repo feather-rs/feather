@@ -1,7 +1,6 @@
 use quill::{entities::Player, Game, Plugin, Text, TextComponent, TextComponentBuilder, Title};
 
-quill::plugin!(TitleExample);
-
+#[quill::plugin]
 struct TitleExample {
     tick_count: u32,
     title_active: bool,
