@@ -1,7 +1,6 @@
 use crate::{Item, ItemStack};
 use core::mem;
 use serde::{Deserialize, Serialize};
-use std::panic;
 
 /// Represents an Inventory slot. May be empty
 /// or filled (contains an `ItemStack`).
@@ -19,10 +18,13 @@ impl Default for InventorySlot {
 
 impl From<Option<ItemStack>> for InventorySlot {
     fn from(it: Option<ItemStack>) -> Self {
-        match it {
-            Some(item) => Self::Filled(item),
-            None => Self::Empty,
-        }
+        it.map(Self::Filled).unwrap_or_default()
+    }
+}
+
+impl From<InventorySlot> for Option<ItemStack> {
+    fn from(it: InventorySlot) -> Self {
+        it.into_option()
     }
 }
 
@@ -43,10 +45,7 @@ impl InventorySlot {
     /// size and None is returned.
     #[must_use]
     pub fn stack_size(&self) -> Option<u32> {
-        match self {
-            InventorySlot::Filled(x) => Some(x.stack_size()),
-            InventorySlot::Empty => None,
-        }
+        self.map_ref(ItemStack::stack_size)
     }
 
     /// Takes all items and makes self empty.
@@ -56,12 +55,8 @@ impl InventorySlot {
 
     /// Takes half (rounded down) of the items in self.
     pub fn take_half(&mut self) -> Self {
-        if self.count() == 0 {
-            Self::Empty
-        } else {
-            let half = (self.count() + 1) / 2;
-            self.try_take(half)
-        }
+        let half = (self.count() + 1) / 2;
+        self.try_take(half)
     }
 
     /// Tries to take the specified amount from 'self'
@@ -74,22 +69,21 @@ impl InventorySlot {
             return Self::Empty;
         }
 
-        match self {
-            Self::Filled(stack) => {
-                if stack.count() <= amount {
-                    // We take all and set self to empty
-                    mem::take(self)
-                } else {
-                    // We take some of self.
-                    let mut out = stack.clone();
-                    // `amount` != 0
-                    out.set_count(amount).unwrap();
-                    // `stack.count` > amount
-                    stack.remove(amount).unwrap();
-                    Self::Filled(out)
-                }
+        if let Self::Filled(stack) = self {
+            if stack.count() <= amount {
+                // We take all and set self to empty
+                mem::take(self)
+            } else {
+                // We take some of self.
+                let mut out = stack.clone();
+                // `amount` != 0
+                out.set_count(amount).unwrap();
+                // `stack.count` > amount
+                stack.remove(amount).unwrap();
+                Self::Filled(out)
             }
-            Self::Empty => Self::Empty,
+        } else {
+            Self::Empty
         }
     }
 
@@ -105,21 +99,18 @@ impl InventorySlot {
 
     /// Returns the number of items stored in the inventory slot.
     #[must_use]
-    pub const fn count(&self) -> u32 {
-        match self {
-            Self::Filled(stack) => stack.count(),
-            Self::Empty => 0,
-        }
+    pub fn count(&self) -> u32 {
+        self.map_ref(ItemStack::count).unwrap_or(0)
     }
 
     /// Should only be called if the caller can guarantee that there is space
     /// such that the new could is not greater then `self.stack_size`().
     /// And that the slot actually contains an item.   
     fn add_count(&mut self, n: u32) {
-        match self {
-            Self::Filled(x) => x.add(n).unwrap(),
-            Self::Empty => panic!("add count called on empty inventory slot!"),
-        };
+        self.option_mut()
+            .expect("add count called on empty inventory slot!")
+            .add(n)
+            .expect("new item count exceeds stack size");
     }
 
     /// Transfers up to `n` items from 'self' to `other`.
@@ -148,10 +139,7 @@ impl InventorySlot {
     /// Checks if the `InventorySlot` is empty.
     #[must_use]
     pub const fn is_empty(&self) -> bool {
-        match self {
-            InventorySlot::Filled(_) => false,
-            InventorySlot::Empty => true,
-        }
+        matches!(self, Self::Empty)
     }
 
     /// Checks if the `InventorySlot` is filled.
@@ -196,11 +184,76 @@ impl InventorySlot {
     /// Returns the item kind of the inventory slot if it is filled,
     /// otherwise it returns None.
     #[must_use]
-    pub const fn item_kind(&self) -> Option<Item> {
+    pub fn item_kind(&self) -> Option<Item> {
+        self.map_ref(ItemStack::item)
+    }
+
+    /// Convert `self` into an `Option<ItemStack>`
+    #[must_use]
+    pub fn into_option(self) -> Option<ItemStack> {
         match self {
-            Self::Filled(x) => Some(x.item()),
-            Self::Empty => None,
+            InventorySlot::Filled(f) => Some(f),
+            InventorySlot::Empty => None,
         }
+    }
+    /// Convert a reference to `self` into an `Option<&ItemStack>`
+    #[must_use]
+    pub const fn option_ref(&self) -> Option<&ItemStack> {
+        match self {
+            InventorySlot::Filled(f) => Some(f),
+            InventorySlot::Empty => None,
+        }
+    }
+    /// Convert a mutable reference to `self` into an `Option<&mut ItemStack>`
+    #[must_use]
+    pub fn option_mut(&mut self) -> Option<&mut ItemStack> {
+        match self {
+            InventorySlot::Filled(f) => Some(f),
+            InventorySlot::Empty => None,
+        }
+    }
+    /// Map `f` over the inner item stack, optionally returning the resulting value.
+    #[must_use]
+    pub fn map<F: FnOnce(ItemStack) -> U, U>(self, f: F) -> Option<U> {
+        self.into_option().map(f)
+    }
+    /// Map `f` over the inner item stack, optionally returning the resulting value.
+    #[must_use]
+    pub fn map_ref<F: FnOnce(&ItemStack) -> U, U>(&self, f: F) -> Option<U> {
+        self.option_ref().map(f)
+    }
+    /// Map `f` over the inner item stack, optionally returning the resulting value.
+    #[must_use]
+    pub fn map_mut<F: FnOnce(&mut ItemStack) -> U, U>(&mut self, f: F) -> Option<U> {
+        self.option_mut().map(f)
+    }
+}
+
+impl IntoIterator for InventorySlot {
+    type Item = ItemStack;
+
+    type IntoIter = std::option::IntoIter<ItemStack>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.into_option().into_iter()
+    }
+}
+impl<'a> IntoIterator for &'a InventorySlot {
+    type Item = &'a ItemStack;
+
+    type IntoIter = std::option::IntoIter<&'a ItemStack>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.option_ref().into_iter()
+    }
+}
+impl<'a> IntoIterator for &'a mut InventorySlot {
+    type Item = &'a mut ItemStack;
+
+    type IntoIter = std::option::IntoIter<&'a mut ItemStack>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.option_mut().into_iter()
     }
 }
 
