@@ -226,12 +226,10 @@ impl Game {
         let bytes = event.to_cow_bytes();
 
         unsafe {
-            quill_sys::entity_set_component(
-                quill_common::entity::EntityId(0),
+            quill_sys::add_event(
                 host_component,
                 bytes.as_ptr().into(),
                 bytes.len() as u32,
-                2,
             );
         }
     }

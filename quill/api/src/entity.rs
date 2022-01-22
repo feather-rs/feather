@@ -84,7 +84,6 @@ impl Entity {
                 host_component,
                 bytes.as_ptr().into(),
                 bytes.len() as u32,
-                0,
             );
         }
     }
@@ -98,12 +97,11 @@ impl Entity {
         let bytes = event.to_cow_bytes();
 
         unsafe {
-            quill_sys::entity_set_component(
+            quill_sys::entity_add_event(
                 self.id.0,
                 host_component,
                 bytes.as_ptr().into(),
                 bytes.len() as u32,
-                1,
             );
         }
     }
