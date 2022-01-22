@@ -102,11 +102,7 @@ extern "C" {
     ///
     /// `bytes_ptr` is a pointer to the serialized
     /// component.
-    pub fn add_event(
-        event: HostComponent,
-        bytes_ptr: Pointer<u8>,
-        bytes_len: u32,
-    );
+    pub fn add_event(event: HostComponent, bytes_ptr: Pointer<u8>, bytes_len: u32);
 
     /// Sends a message to an entity.
     ///

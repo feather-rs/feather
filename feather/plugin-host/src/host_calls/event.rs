@@ -1,9 +1,9 @@
-use anyhow::Context;
-use feather_ecs::Entity;
-use quill_common::HostComponent;
 use crate::context::{PluginContext, PluginPtr};
 use crate::host_calls::component::{InsertComponentVisitor, SetComponentAction};
+use anyhow::Context;
+use feather_ecs::Entity;
 use feather_plugin_host_macros::host_function;
+use quill_common::HostComponent;
 
 #[host_function]
 pub fn entity_add_event(

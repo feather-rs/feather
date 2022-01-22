@@ -12,10 +12,10 @@ mod block;
 mod component;
 mod entity;
 mod entity_builder;
+mod event;
 mod plugin_message;
 mod query;
 mod system;
-mod event;
 
 macro_rules! host_calls {
     (
