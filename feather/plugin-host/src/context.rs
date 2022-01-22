@@ -328,6 +328,20 @@ impl PluginContext {
         }
     }
 
+    /// Accesses a `json`-encoded value in the plugin's memory space.
+    pub fn read_json<T: DeserializeOwned>(
+        &self,
+        ptr: PluginPtr<u8>,
+        len: u32,
+    ) -> anyhow::Result<T> {
+        // SAFETY: we do not return a reference to these
+        // bytes.
+        unsafe {
+            let bytes = self.deref_bytes(ptr.cast(), len)?;
+            serde_json::from_slice(bytes).map_err(From::from)
+        }
+    }
+
     /// Deserializes a component value in the plugin's memory space.
     pub fn read_component<T: Component>(&self, ptr: PluginPtr<u8>, len: u32) -> anyhow::Result<T> {
         // SAFETY: we do not return a reference to these
