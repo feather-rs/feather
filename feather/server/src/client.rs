@@ -7,6 +7,7 @@ use std::{
 
 use ahash::AHashSet;
 use flume::{Receiver, Sender};
+use slab::Slab;
 use uuid::Uuid;
 
 use base::{
@@ -20,7 +21,8 @@ use common::{
 use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+    ChangeGameState, EntityPosition, EntityPositionAndRotation, EntityTeleport, GameStateChange,
+    HeldItemChange, PlayerAbilities,
 };
 use protocol::{
     packets::{
@@ -42,7 +44,6 @@ use crate::{
     network_id_registry::NetworkId,
     Options,
 };
-use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -331,6 +332,10 @@ impl Client {
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
     }
 
+    pub fn change_player_tablist_gamemode(&self, uuid: Uuid, gamemode: Gamemode) {
+        self.send_packet(PlayerInfo::UpdateGamemodes(vec![(uuid, gamemode)]));
+    }
+
     pub fn unload_entity(&self, id: NetworkId) {
         log::trace!("Unloading {:?} on {}", id, self.username);
         self.sent_entities.borrow_mut().remove(&id);
@@ -480,11 +485,15 @@ impl Client {
             self.send_packet(Title::Reset);
         } else {
             if let Some(main_title) = title.title {
-                self.send_packet(Title::SetTitle { text: main_title });
+                self.send_packet(Title::SetTitle {
+                    text: main_title.to_string(),
+                });
             }
 
             if let Some(sub_title) = title.sub_title {
-                self.send_packet(Title::SetSubtitle { text: sub_title })
+                self.send_packet(Title::SetSubtitle {
+                    text: sub_title.to_string(),
+                })
             }
 
             self.send_packet(Title::SetTimesAndDisplay {
@@ -600,6 +609,12 @@ impl Client {
 
     pub fn set_hotbar_slot(&self, slot: u8) {
         self.send_packet(HeldItemChange { slot });
+    }
+
+    pub fn change_gamemode(&self, gamemode: Gamemode) {
+        self.send_packet(ChangeGameState {
+            state_change: GameStateChange::ChangeGamemode { gamemode },
+        })
     }
 
     fn register_entity(&self, network_id: NetworkId) {

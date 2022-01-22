@@ -8,6 +8,7 @@
 
 world/
 /config.toml
+plugins/
 
 # Python cache files (libcraft)
 **/__pycache__/

@@ -1,4 +1,3 @@
-use colored::Colorize;
 use std::fmt::{Display, Formatter};
 use std::io::{Read, Write};
 use std::net::SocketAddr;
@@ -8,7 +7,10 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Context;
 use clap::{ArgEnum, Parser};
+use colored::Colorize;
 use log::{Level, LevelFilter};
+use time::macros::format_description;
+use time::OffsetDateTime;
 
 use feather_protocol::codec::CompressionThreshold;
 use feather_protocol::packets::client::HandshakeState;
@@ -74,9 +76,15 @@ fn main() {
             } else {
                 record.module_path().unwrap_or_default()
             };
+            let datetime: OffsetDateTime =
+                OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc());
             out.finish(format_args!(
                 "{} {:<5} [{}] {}",
-                chrono::Local::now().format("%Y-%m-%d %H:%M:%S,%3f"),
+                datetime
+                    .format(format_description!(
+                        "[year]-[month]-[day] [hour]:[minute]:[second],[subsecond digits:3]"
+                    ))
+                    .unwrap(),
                 level_string,
                 target,
                 message,

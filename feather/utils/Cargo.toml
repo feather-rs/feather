@@ -7,4 +7,3 @@ edition = "2018"
 [dependencies]
 
 [dev-dependencies]
-simple_logger = "1"

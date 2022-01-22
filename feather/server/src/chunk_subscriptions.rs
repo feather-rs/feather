@@ -1,11 +1,8 @@
 use ahash::AHashMap;
 use base::ChunkPosition;
-use common::{
-    events::{EntityRemoveEvent, ViewUpdateEvent},
-    view::View,
-    Game,
-};
+use common::{events::ViewUpdateEvent, view::View, Game};
 use ecs::{SysResult, SystemExecutor};
+use quill_common::events::EntityRemoveEvent;
 use utils::vec_remove_item;
 
 use crate::{ClientId, Server};

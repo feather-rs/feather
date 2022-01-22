@@ -1,7 +1,6 @@
 use quill::{entities::Player, Game, Plugin, Text, TextComponent, TextComponentBuilder, Title};
 
-quill::plugin!(TitleExample);
-
+#[quill::plugin]
 struct TitleExample {
     tick_count: u32,
     title_active: bool,
@@ -28,8 +27,8 @@ fn title_system(plugin: &mut TitleExample, game: &mut Game) {
 
         // Create a title to send to the player
         let title = Title {
-            title: Some(Text::from(title_component).to_string()),
-            sub_title: Some(Text::from(component).to_string()),
+            title: Some(Text::from(title_component)),
+            sub_title: Some(Text::from(component)),
             fade_in: 5,
             stay: 400,
             fade_out: 5,

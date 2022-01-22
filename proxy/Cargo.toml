@@ -10,5 +10,5 @@ pretty-hex = "0.2.1"
 log = "0.4.14"
 fern = "0.6.0"
 anyhow = "1.0.52"
-chrono = "0.4.19"
 colored = "2.0.0"
+time = { version = "0.3", features = ["local-offset", "formatting", "macros"] }
