@@ -1,7 +1,6 @@
 #![forbid(unsafe_code)]
 #![deny(warnings)]
 #![warn(clippy::pedantic)]
-#![warn(clippy::doc_markdown)]
 #![allow(clippy::module_name_repetitions)]
 
 //! Libcraft crate for item manipulation.
