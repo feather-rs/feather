@@ -1,7 +1,9 @@
 /*
-All events in this file are triggerd when there is a change in a certain value.
+All events in this file are triggered when there is a change in a certain value.
 */
 
+use derive_more::Deref;
+use libcraft_core::Gamemode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -42,3 +44,23 @@ impl SprintEvent {
         }
     }
 }
+
+/// This event is called when a player's gamemode is changed and every time the player joins.
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct GamemodeEvent(pub Gamemode);
+
+/// This event is called when player's ability to instantly break blocks changes.
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct InstabreakEvent(pub bool);
+
+/// This event is called when player's ability to fly changes.
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct FlyingAbilityEvent(pub bool);
+
+/// This event is called when player's ability to place or break blocks changes.
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct BuildingAbilityEvent(pub bool);
+
+/// This event is called when player's invulnerability property changes.
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct InvulnerabilityEvent(pub bool);

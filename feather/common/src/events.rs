@@ -8,10 +8,6 @@ mod plugin_message;
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
 
-/// Triggered when a player joins the `Game`.
-#[derive(Debug)]
-pub struct PlayerJoinEvent;
-
 /// Event triggered when a player changes their `View`,
 /// meaning they crossed into a new chunk.
 #[derive(Debug)]
@@ -62,14 +58,3 @@ pub struct ChunkLoadEvent {
 pub struct ChunkLoadFailEvent {
     pub position: ChunkPosition,
 }
-
-/// Triggered when an entity is removed from the world.
-///
-/// The entity will remain alive for one tick after it is
-/// destroyed to allow systems to observe this event.
-#[derive(Debug)]
-pub struct EntityRemoveEvent;
-
-/// Triggered when an entity is added into the world.
-#[derive(Debug)]
-pub struct EntityCreateEvent;
