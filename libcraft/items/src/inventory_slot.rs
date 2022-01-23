@@ -345,4 +345,25 @@ mod test {
         assert_eq!(a.count(), 0);
         assert_eq!(b.count(), 5);
     }
+
+    #[test]
+    fn try_take() {
+        let mut a = InventorySlot::new(Item::Stone, 64);
+        assert_eq!(a.try_take(16), InventorySlot::new(Item::Stone, 16));
+        assert_eq!(a.try_take(0), InventorySlot::Empty);
+        assert_eq!(a.try_take(50), InventorySlot::new(Item::Stone, 48));
+        assert_eq!(a.try_take(2), InventorySlot::Empty);
+        a = InventorySlot::new(Item::Stone, 5);
+        assert_eq!(a.try_take(u32::MAX), InventorySlot::new(Item::Stone, 5));
+    }
+
+    #[test]
+    fn take() {
+        let mut a = InventorySlot::new(Item::Stone, 64);
+        assert_eq!(a.take(16), Some(InventorySlot::new(Item::Stone, 16)));
+        assert_eq!(a.take(0), Some(InventorySlot::Empty));
+        assert_eq!(a.take(50), None);
+        assert_eq!(a.take(48), Some(InventorySlot::new(Item::Stone, 48)));
+        assert_eq!(a.take(1), None);
+    }
 }
