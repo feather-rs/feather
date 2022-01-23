@@ -128,8 +128,7 @@ impl Game {
     ///     offset_y: 0.0,
     ///     offset_z: 0.0,
     ///     count: 1,
-    ///     pub particle_data: f32,
-    ///     pub particle_count: i32,
+    ///     data: 0.0,
     /// };
     ///
     /// game.spawn_particle(position, particle);
