@@ -11,6 +11,7 @@ pub struct Particle {
     pub offset_y: f32,
     pub offset_z: f32,
     pub count: i32,
+    pub data: f32,
 }
 
 /// This is an enum over the kinds of particles

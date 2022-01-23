@@ -28,6 +28,7 @@ fn particle_system(_plugin: &mut ParticleExample, game: &mut Game) {
         offset_y: 0.0,
         offset_z: 0.0,
         count: 1,
+        data: 0.0,
     };
 
     game.spawn_particle(position, particle);
@@ -45,6 +46,7 @@ fn particle_system(_plugin: &mut ParticleExample, game: &mut Game) {
         offset_y: 0.0,
         offset_z: 0.0,
         count: 1,
+        data: 0.0,
     };
 
     // Initialise an empty ecs-entity builder
