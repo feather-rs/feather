@@ -93,7 +93,7 @@ impl BlockBreaker {
         let this = self.clone();
         match this {
             BlockBreaker::Active(a) => {
-                if a.ticks_remaining == 1 {
+                if a.can_break() {
                     let fin = a.finish();
                     *self = Self::Finished(fin.clone());
                     Some(fin)
@@ -142,17 +142,22 @@ pub struct ActiveBreaker {
     pub position: ValidBlockPosition,
     pub drop_item: bool,
     pub fake_finished: bool,
-    pub total_ticks: u32,
-    pub ticks_remaining: u32,
+    pub progress: f32,
+    pub damage: f32,
 }
 impl ActiveBreaker {
     pub fn tick(&mut self) -> (bool, bool) {
         let before = self.destroy_stage();
-        self.ticks_remaining = self.ticks_remaining.saturating_sub(1);
+        self.progress += self.damage;
         let after = self.destroy_stage();
-        let break_block = self.ticks_remaining == 0;
+        let break_block = self.can_break();
         let change_stage = before != after || break_block;
         (break_block, change_stage)
+    }
+    /// Check if the block has been damaged enough to break.
+    pub fn can_break(&self) -> bool {
+        // Comparing to 0.7 ensures good feeling in the client
+        self.progress >= 0.7 - self.damage / 2.0
     }
     pub fn new(
         world: &mut World,
@@ -202,32 +207,20 @@ impl ActiveBreaker {
         } else {
             1.0 / block.hardness() / 100.0
         };
-        let ticks = if damage > 1.0 {
-            0
-        } else {
-            (1.0 / damage / 1.2).ceil() as u32
-        };
-        println!(
-            "Mining {} with {} takes {} ticks",
-            block.display_name(),
-            equipped_item
-                .map(|e| e.get_item().item().display_name())
-                .unwrap_or("bare hands"),
-            ticks
-        );
         Some(Self {
             position: block_pos,
             drop_item: true,
             fake_finished: false,
-            total_ticks: ticks,
-            ticks_remaining: ticks,
+            progress: 0.0,
+            damage,
         })
     }
+    /// Get the destroying progress.
     pub fn destroy_stage(&self) -> u8 {
         if self.fake_finished {
             10
         } else {
-            9 - (self.ticks_remaining as f32 / self.total_ticks as f32 * 9.0).round() as u8
+            (self.progress * 9.0).round() as u8
         }
     }
     pub fn finish(self) -> FinishedBreaker {

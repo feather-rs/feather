@@ -182,14 +182,12 @@ pub fn handle_player_digging(
                 } else {
                     if let BlockBreaker::Active(a) = &mut *breaker {
                         a.fake_finished = true;
-                        println!("{} ticks remaining", a.ticks_remaining);
                     }
                     false
                 };
                 success && breaker.matches_position(packet.position)
             };
             if success {
-                println!("confirm");
                 finished.unwrap().break_block(game)?;
             }
             game.ecs
