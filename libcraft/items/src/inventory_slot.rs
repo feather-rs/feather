@@ -263,45 +263,86 @@ mod test {
 
     #[test]
     fn test_merge() {
-        let a = &mut InventorySlot::new(Item::Stone, 5);
-        let b = &mut InventorySlot::new(Item::Stone, 5);
-        a.merge(b);
+        let mut a = InventorySlot::new(Item::Stone, 5);
+        let mut b = InventorySlot::new(Item::Stone, 30);
+        a.merge(&mut b);
         println!("{:?}", a);
-        assert!(a.is_mergable(b));
-        assert!(a.count() == 10);
+        assert!(a.is_mergable(&b));
+        assert_eq!(a.count(), 35);
+        assert!(b.is_empty());
+
+        a = InventorySlot::new(Item::Stone, 60);
+        b = InventorySlot::new(Item::Stone, 10);
+        assert_eq!(a.merge(&mut b), 4);
+        assert_eq!(b.count(), 6);
+
+        a = InventorySlot::new(Item::AcaciaDoor, 1);
+        b = InventorySlot::new(Item::AcaciaButton, 1);
+        assert_eq!(a.merge(&mut b), 0);
+
+        a = InventorySlot::new(Item::Stone, 1);
+        b = InventorySlot::Empty;
+        assert_eq!(a.merge(&mut b), 0);
+
+        a = InventorySlot::Empty;
+        b = InventorySlot::new(Item::Stone, 10);
+        assert_eq!(a.merge(&mut b), 10);
         assert!(b.is_empty());
     }
 
     #[test]
     fn take_half() {
-        let a = &mut InventorySlot::new(Item::Stone, 5);
+        let mut a = InventorySlot::new(Item::Stone, 5);
         let b = a.take_half();
-        assert!(a.count() + b.count() == 5);
-        assert!(a.count() == 2);
+        assert_eq!(a.count() + b.count(), 5);
+        assert_eq!(a.count(), 2);
 
-        let mut b = InventorySlot::Empty;
-        let c = b.take_half();
-        assert!(c.is_empty() && b.is_empty());
+        a = InventorySlot::new(Item::Stone, 1);
+        let b = a.take_half();
+        assert_eq!(a.count(), 0);
+        assert_eq!(b.count(), 1);
+
+        a = InventorySlot::Empty;
+        let b = a.take_half();
+        assert!(a.is_empty() && b.is_empty());
     }
 
     #[test]
     fn transfer_to() {
-        let a = &mut InventorySlot::new(Item::Stone, 5);
-        let b = &mut InventorySlot::new(Item::Stone, 2);
-        a.transfer_to(2, b);
-        assert!(a.count() == 3);
-        assert!(b.count() == 4);
+        let mut a = InventorySlot::new(Item::Stone, 5);
+        let mut b = InventorySlot::new(Item::Stone, 2);
+        a.transfer_to(2, &mut b);
+        assert_eq!(a.count(), 3);
+        assert_eq!(b.count(), 4);
 
-        let a = &mut InventorySlot::new(Item::Stone, 5);
-        let b = &mut InventorySlot::Empty;
-        a.transfer_to(2, b);
-        assert!(a.count() == 3);
-        assert!(b.count() == 2);
+        a = InventorySlot::new(Item::AcaciaDoor, 3);
+        b = InventorySlot::new(Item::AcaciaButton, 5);
+        a.transfer_to(1, &mut b);
+        assert_eq!(a.count(), 3);
+        assert_eq!(b.count(), 5);
 
-        let a = &mut InventorySlot::Empty;
-        let b = &mut InventorySlot::new(Item::Stone, 5);
-        a.transfer_to(2, b);
-        assert!(a.count() == 0);
-        assert!(b.count() == 5);
+        a = InventorySlot::new(Item::Stone, 3);
+        b = InventorySlot::new(Item::Stone, 5);
+        a.transfer_to(10, &mut b);
+        assert_eq!(a.count(), 0);
+        assert_eq!(b.count(), 8);
+
+        a = InventorySlot::new(Item::Stone, 10);
+        b = InventorySlot::new(Item::Stone, 60);
+        a.transfer_to(20, &mut b);
+        assert_eq!(a.count(), 6);
+        assert_eq!(b.count(), 64);
+
+        a = InventorySlot::new(Item::Stone, 5);
+        b = InventorySlot::Empty;
+        a.transfer_to(2, &mut b);
+        assert_eq!(a.count(), 3);
+        assert_eq!(b.count(), 2);
+
+        a = InventorySlot::Empty;
+        b = InventorySlot::new(Item::Stone, 5);
+        a.transfer_to(2, &mut b);
+        assert_eq!(a.count(), 0);
+        assert_eq!(b.count(), 5);
     }
 }
