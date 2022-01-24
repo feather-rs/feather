@@ -9,6 +9,9 @@ pub struct DestroyStateChange(pub ValidBlockPosition, pub u8);
 
 use crate::{Game, World};
 
+// Comparing to 0.7 ensures good feeling in the client
+pub const BREAK_THRESHOLD: f32 = 0.7;
+
 #[derive(Clone)]
 pub enum BlockBreaker {
     Active(ActiveBreaker),
@@ -156,8 +159,7 @@ impl ActiveBreaker {
     }
     /// Check if the block has been damaged enough to break.
     pub fn can_break(&self) -> bool {
-        // Comparing to 0.7 ensures good feeling in the client
-        self.progress >= 0.7 - self.damage / 2.0
+        self.progress >= BREAK_THRESHOLD - self.damage / 2.0
     }
     pub fn new(
         world: &mut World,
@@ -220,7 +222,7 @@ impl ActiveBreaker {
         if self.fake_finished {
             10
         } else {
-            (self.progress * 9.0).round() as u8
+            (self.progress / BREAK_THRESHOLD * 9.0).round() as u8
         }
     }
     pub fn finish(self) -> FinishedBreaker {
