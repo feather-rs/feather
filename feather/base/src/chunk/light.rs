@@ -16,14 +16,13 @@ impl Default for LightStore {
 }
 
 impl LightStore {
-    /// Creates a `LightStore` with all light set to 15.
+    /// Creates a `LightStore` with sky light set to 15.
     pub fn new() -> Self {
         let mut this = LightStore {
             block_light: PackedArray::new(SECTION_VOLUME, 4),
             sky_light: PackedArray::new(SECTION_VOLUME, 4),
         };
-        fill_with_default_light(&mut this.block_light);
-        fill_with_default_light(&mut this.sky_light);
+        this.sky_light.fill(15);
         this
     }
 
@@ -71,11 +70,5 @@ impl LightStore {
 
     pub fn sky_light(&self) -> &PackedArray {
         &self.sky_light
-    }
-}
-
-fn fill_with_default_light(arr: &mut PackedArray) {
-    for i in 0..arr.len() {
-        arr.set(i, 15);
     }
 }
