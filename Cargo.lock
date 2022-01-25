@@ -342,6 +342,7 @@ dependencies = [
  "cargo_metadata",
  "heck 0.3.3",
  "quill-plugin-format",
+ "toml",
 ]
 
 [[package]]
