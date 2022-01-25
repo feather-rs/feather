@@ -43,26 +43,36 @@ pub fn entity_get_component(
     Ok(())
 }
 
-struct SetComponentVisitor<'a> {
-    cx: &'a PluginContext,
-    entity: Entity,
-    bytes_ptr: PluginPtr<u8>,
-    bytes_len: u32,
+pub(crate) struct InsertComponentVisitor<'a> {
+    pub cx: &'a PluginContext,
+    pub bytes_ptr: PluginPtr<u8>,
+    pub bytes_len: u32,
+    pub action: SetComponentAction,
 }
 
-impl<'a> ComponentVisitor<anyhow::Result<()>> for SetComponentVisitor<'a> {
+pub(crate) enum SetComponentAction {
+    SetComponent(Entity),
+    AddEntityEvent(Entity),
+    AddEvent,
+}
+
+impl<'a> ComponentVisitor<anyhow::Result<()>> for InsertComponentVisitor<'a> {
     fn visit<T: quill_common::Component>(self) -> anyhow::Result<()> {
         let component = self
             .cx
             .read_component::<T>(self.bytes_ptr, self.bytes_len)?;
         let mut game = self.cx.game_mut();
 
-        let existing_component = game.ecs.get_mut::<T>(self.entity);
-        if let Ok(mut existing_component) = existing_component {
-            *existing_component = component;
-        } else {
-            drop(existing_component);
-            let _ = game.ecs.insert(self.entity, component);
+        match self.action {
+            SetComponentAction::SetComponent(entity) => {
+                let _ = game.ecs.insert(entity, component);
+            }
+            SetComponentAction::AddEntityEvent(entity) => {
+                let _ = game.ecs.insert_entity_event(entity, component);
+            }
+            SetComponentAction::AddEvent => {
+                game.ecs.insert_event(component);
+            }
         }
 
         Ok(())
@@ -79,11 +89,11 @@ pub fn entity_set_component(
 ) -> anyhow::Result<()> {
     let entity = Entity::from_bits(entity);
     let component = HostComponent::from_u32(component).context("invalid component")?;
-    let visitor = SetComponentVisitor {
+    let visitor = InsertComponentVisitor {
         cx,
-        entity,
         bytes_ptr,
         bytes_len,
+        action: SetComponentAction::SetComponent(entity),
     };
     component.visit(visitor)
 }

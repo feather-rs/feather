@@ -76,7 +76,6 @@ extern "C" {
     /// component.
     ///
     /// This will overwrite any existing component of the same type.
-    ///
     /// Does nothing if `entity` does not exist.
     pub fn entity_set_component(
         entity: EntityId,
@@ -84,6 +83,26 @@ extern "C" {
         bytes_ptr: Pointer<u8>,
         bytes_len: u32,
     );
+
+    /// Adds an event for an entity.
+    ///
+    /// `bytes_ptr` is a pointer to the serialized
+    /// event.
+    ///
+    /// This will overwrite any existing event of the same type.
+    /// Does nothing if `entity` does not exist.
+    pub fn entity_add_event(
+        entity: EntityId,
+        event: HostComponent,
+        bytes_ptr: Pointer<u8>,
+        bytes_len: u32,
+    );
+
+    /// Adds a global event.
+    ///
+    /// `bytes_ptr` is a pointer to the serialized
+    /// component.
+    pub fn add_event(event: HostComponent, bytes_ptr: Pointer<u8>, bytes_len: u32);
 
     /// Sends a message to an entity.
     ///
