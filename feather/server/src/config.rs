@@ -66,8 +66,6 @@ impl Config {
             view_distance: self.server.view_distance,
             max_players: self.server.max_players,
             default_gamemode: self.server.default_gamemode,
-            tablist_header: self.server.tablist_header.clone(),
-            tablist_footer: self.server.tablist_footer.clone(),
             proxy_mode: match self.proxy.proxy_mode {
                 ProxyMode::None => None,
                 ProxyMode::Bungee => Some(crate::options::ProxyMode::Bungeecord),

@@ -8,15 +8,19 @@ use ecs::{SysResult, SystemExecutor};
 use quill_common::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
 use quill_common::{components::Name, entities::Player, tablist::TablistHeaderFooter};
 
+use crate::config::Config;
 use crate::{ClientId, Server};
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
-    let server_options = game.resources.get::<Server>().unwrap().options.clone();
+    let (header, footer) = {
+        let server_config = &game.resources.get::<Config>().unwrap().server;
+        (
+            server_config.tablist_header.clone(),
+            server_config.tablist_footer.clone(),
+        )
+    };
 
-    game.insert_resource(TablistHeaderFooter {
-        header: server_options.tablist_header.clone(),
-        footer: server_options.tablist_footer.clone(),
-    });
+    game.insert_resource(TablistHeaderFooter { header, footer });
 
     systems
         .group::<Server>()
