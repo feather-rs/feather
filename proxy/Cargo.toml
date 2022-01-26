@@ -1,0 +1,14 @@
+[package]
+name = "proxy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+feather-protocol = { path = "../feather/protocol" }
+clap = { version = "3.0.5", features = ["derive"] }
+pretty-hex = "0.2.1"
+log = "0.4.14"
+fern = "0.6.0"
+anyhow = "1.0.52"
+colored = "2.0.0"
+time = { version = "0.3", features = ["local-offset", "formatting", "macros"] }

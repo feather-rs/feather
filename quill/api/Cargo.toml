@@ -5,6 +5,7 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+plugin-macro = { path = "./plugin-macro" }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-particles = { path = "../../libcraft/particles" }
 libcraft-blocks = { path = "../../libcraft/blocks" }
@@ -16,4 +17,5 @@ quill-common = { path = "../common" }
 thiserror = "1"
 uuid = "0.8"
 itertools = "0.10.0"
+serde_json = "1"
 
