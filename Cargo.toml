@@ -15,6 +15,7 @@ members = [
     "quill/sys",
     "quill/common",
     "quill/api",
+    "quill/api/plugin-macro",
     "quill/plugin-format",
     "quill/cargo-quill",
 
@@ -43,7 +44,7 @@ members = [
     "feather/server",
 
     # Other
-    "tools/proxy",
+    "proxy",
 ]
 
 # No longer need to use release for "development":

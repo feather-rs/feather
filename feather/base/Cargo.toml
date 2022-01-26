@@ -40,6 +40,3 @@ bytemuck = { version = "1", features = ["derive"] }
 rand = "0.8"
 rand_pcg = "0.3"
 serde_test = "1"
-
-[features]
-proxy = []

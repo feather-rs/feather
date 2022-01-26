@@ -1,3 +1,10 @@
+#![forbid(unsafe_code)]
+#![deny(warnings)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::module_name_repetitions)]
+
+//! Libcraft crate for item manipulation.
+
 mod enchantment;
 mod inventory_slot;
 mod item;

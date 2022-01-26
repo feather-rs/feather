@@ -1,7 +1,6 @@
 use quill::{Game, Particle, ParticleKind, Plugin, Position};
 
-quill::plugin!(ParticleExample);
-
+#[quill::plugin]
 struct ParticleExample {}
 
 impl Plugin for ParticleExample {

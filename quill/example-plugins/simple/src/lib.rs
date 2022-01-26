@@ -5,8 +5,7 @@ use quill::{
 };
 use rand::Rng;
 
-quill::plugin!(SimplePlugin);
-
+#[quill::plugin]
 struct SimplePlugin {
     tick_counter: u64,
 }

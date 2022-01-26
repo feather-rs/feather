@@ -2,8 +2,7 @@
 
 use quill::{events::BlockPlacementEvent, Game, Plugin};
 
-quill::plugin!(BlockPlace);
-
+#[quill::plugin]
 pub struct BlockPlace;
 
 impl Plugin for BlockPlace {

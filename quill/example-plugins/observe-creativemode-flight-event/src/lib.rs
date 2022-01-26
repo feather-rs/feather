@@ -9,8 +9,7 @@ use quill::{
     Game, Plugin, Setup,
 };
 
-quill::plugin!(FlightPlugin);
-
+#[quill::plugin]
 struct FlightPlugin {}
 
 impl Plugin for FlightPlugin {

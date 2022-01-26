@@ -4,6 +4,7 @@ pub mod codec;
 pub mod io;
 pub mod packets;
 
+use crate::codec::CompressionThreshold;
 #[doc(inline)]
 pub use codec::MinecraftCodec;
 pub use io::Nbt;
@@ -60,6 +61,10 @@ impl ClientPacketCodec {
 
     pub fn set_state(&mut self, state: ProtocolState) {
         self.state = state
+    }
+
+    pub fn set_compression(&mut self, threshold: CompressionThreshold) {
+        self.codec.enable_compression(threshold)
     }
 
     /// Decodes a `ClientPacket` using the provided data.
@@ -120,6 +125,10 @@ impl ServerPacketCodec {
         self.state = state
     }
 
+    pub fn set_compression(&mut self, threshold: CompressionThreshold) {
+        self.codec.enable_compression(threshold)
+    }
+
     /// Decodes a `ServerPacket` using the provided data.
     pub fn decode(&mut self, data: &[u8]) -> anyhow::Result<Option<ServerPacket>> {
         self.codec.accept(data);
@@ -159,6 +168,17 @@ pub enum ClientPacket {
     Play(ClientPlayPacket),
 }
 
+impl ClientPacket {
+    pub fn id(&self) -> u32 {
+        match self {
+            ClientPacket::Handshake(packet) => packet.id(),
+            ClientPacket::Status(packet) => packet.id(),
+            ClientPacket::Login(packet) => packet.id(),
+            ClientPacket::Play(packet) => packet.id(),
+        }
+    }
+}
+
 impl From<ClientHandshakePacket> for ClientPacket {
     fn from(packet: ClientHandshakePacket) -> Self {
         ClientPacket::Handshake(packet)
@@ -189,6 +209,16 @@ pub enum ServerPacket {
     Status(ServerStatusPacket),
     Login(ServerLoginPacket),
     Play(ServerPlayPacket),
+}
+
+impl ServerPacket {
+    pub fn id(&self) -> u32 {
+        match self {
+            ServerPacket::Status(packet) => packet.id(),
+            ServerPacket::Login(packet) => packet.id(),
+            ServerPacket::Play(packet) => packet.id(),
+        }
+    }
 }
 
 impl From<ServerStatusPacket> for ServerPacket {
