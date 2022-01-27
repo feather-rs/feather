@@ -57,7 +57,6 @@ fn encode_light(light: &PackedArray, buffer: &mut Vec<u8>, version: ProtocolVers
     buffer.extend_from_slice(light_data);
 }
 
-#[cfg(feature = "proxy")]
 impl Readable for UpdateLight {
     fn read(
         buffer: &mut std::io::Cursor<&[u8]>,
