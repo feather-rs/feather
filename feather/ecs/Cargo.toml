@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 ahash = "0.7"
 anyhow = "1"
-hecs = { git = "https://github.com/feather-rs/feather-hecs" }
+hecs = "0.7.0"
 log = "0.4"
 thiserror = "1"
 utils = { path = "../utils", package = "feather-utils" }
