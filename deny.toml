@@ -160,7 +160,7 @@ registries = [
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
 [bans]
 # Lint level for when multiple versions of the same crate are detected
-multiple-versions = "warn"
+multiple-versions = "deny"
 # Lint level for when a crate version requirement is `*`
 wildcards = "allow"
 # The graph highlighting used when creating dotgraphs for crates
@@ -185,7 +185,30 @@ deny = [
 ]
 # Certain crates/versions that will be skipped when doing duplicate detection.
 skip = [
-    #{ name = "ansi_term", version = "=0.11.0" },
+    { name = "time", version = "0.2.27" }, # used by wasmer. we cannot downgrade
+    { name = "time-macros", version = "0.1.1" },
+    { name = "spin", version = "0.5.2" }, # used by ring. we cannot downgrade
+    { name = "semver", version = "0.9.0" }, # used by wasmer (through time, stdweb and rustc_version 0.2.3).  We can downgrade to match
+    { name = "rustc_version", version = "0.2.3" }, # vek and stdweb use this version. We can downgrade derive_more to match
+    { name = "paste", version = "0.1.18" }, # simdeez uses an alpha version of `paste`. We could downgrade to match
+    { name = "gimli", version = "0.25.0" }, # wasmer includes multiple versions of gimli
+    { name = "cfg-if", version = "0.1.10" }, # used by generational-arena and simdeez. 
+    { name = "autocfg", version = "0.1.7" }, # used by rsa (through num-bigint-dig)
+    { name = "arrayvec", version = "0.5.2" }, # used by nom. we can upgrade to nom 0.7
+    { name = "approx", version = "0.3.2" }, # we can upgrade to 0.4 in feather-worldgen
+    { name = "ahash", version = "0.4.7" }, # we can upgrade to 0.7 in feather-{base, datapacks}
+    { name = "wasi", version = "0.9.0"},  # used by rand 0.7.3. we can upgrade to rand 0.8
+    { name = "target-lexicon", version = "0.12.2" }, # we can upgrade to 0.12
+    { name = "semver", version = "0.11.0" }, # used by cargo_metadata 0.12. we can upgrade to cargo_metadata 0.14
+    { name = "semver-parser", version = "0.10.2" },
+    { name = "rand", version = "0.7.3" }, # we can upgrade to rand 0.8
+    { name = "rand_core", version = "0.5.1" },
+    { name = "rand_chacha", version = "0.2.2" },
+    { name = "rand_hc", version = "0.2.0" },
+    { name = "getrandom", version = "0.1.16" },
+    { name = "heck", version = "0.4.0" }, # used by clap. we can reuse argh, which targets heck 0.3
+    { name = "hashbrown", version = "0.9.1" }, # used by hecs 0.3. we can upgrade to hecs 0.7
+    { name = "bytes", version = "0.5.6" }, # we can upgrade to bytes 1.0
 ]
 # Similarly to `skip` allows you to skip certain crates during duplicate
 # detection. Unlike skip, it also includes the entire tree of transitive
