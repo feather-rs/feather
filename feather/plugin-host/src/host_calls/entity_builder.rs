@@ -85,5 +85,5 @@ pub fn entity_builder_finish(cx: &PluginContext, builder: u32) -> anyhow::Result
         .context("invalid entity builder")?;
 
     let entity = cx.game_mut().spawn_entity(builder);
-    Ok(entity.to_bits())
+    Ok(entity.to_bits().get())
 }

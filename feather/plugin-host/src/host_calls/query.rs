@@ -3,7 +3,7 @@
 use std::{alloc::Layout, any::TypeId, mem::size_of, ptr};
 
 use anyhow::Context;
-use feather_ecs::{DynamicQuery, DynamicQueryTypes, Ecs};
+use feather_ecs::{Ecs};
 use feather_plugin_host_macros::host_function;
 use quill_common::{
     component::{ComponentVisitor, SerializationMethod},
@@ -44,14 +44,13 @@ struct WrittenComponentData {
 /// `ComponentVisitor` implementation used to write
 /// component data to plugin memory.
 struct WriteComponentsVisitor<'a> {
-    query: &'a DynamicQuery<'a>,
     cx: &'a PluginContext,
     num_entities: usize,
 }
 
 impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteComponentsVisitor<'a> {
     fn visit<T: Component>(self) -> anyhow::Result<WrittenComponentData> {
-        let components = self.query.iter_component_slices(TypeId::of::<T>());
+        let components = todo!();
 
         // Write each component.
         // We use a different strategy depending
@@ -109,10 +108,7 @@ fn create_query_data(
     ecs: &Ecs,
     types: &[HostComponent],
 ) -> anyhow::Result<QueryData> {
-    let query_types: Vec<TypeId> = types.iter().copied().map(HostComponent::type_id).collect();
-    let query = ecs.query_dynamic(DynamicQueryTypes::new(&query_types, &[]));
-
-    let num_entities = query.iter_entities().count();
+    let num_entities = todo!();
     if num_entities == 0 {
         return Ok(QueryData {
             num_entities: 0,
@@ -126,7 +122,6 @@ fn create_query_data(
     let component_lens = cx.bump_allocate(Layout::array::<u32>(types.len())?)?;
     for (i, &typ) in types.iter().enumerate() {
         let data = typ.visit(WriteComponentsVisitor {
-            query: &query,
             cx,
             num_entities,
         })?;
@@ -138,8 +133,8 @@ fn create_query_data(
     }
 
     let entities_ptr = cx.bump_allocate(Layout::array::<EntityId>(num_entities)?)?;
-    for (i, entity) in query.iter_entities().enumerate() {
-        let bits = entity.to_bits();
+    for (i, entity) in todo!().enumerate() {
+        let bits = entity.to_bits().get();
         unsafe {
             cx.write_pod(entities_ptr.cast().add(i), bits)?;
         }

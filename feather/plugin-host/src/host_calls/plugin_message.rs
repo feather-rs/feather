@@ -1,3 +1,4 @@
+use anyhow::Context;
 use feather_common::events::PluginMessageEvent;
 use feather_ecs::Entity;
 use feather_plugin_host_macros::host_function;
@@ -16,7 +17,7 @@ pub fn plugin_message_send(
     let channel = cx.read_string(channel_ptr, channel_len)?;
     let data = cx.read_bytes(data_ptr, data_len)?;
 
-    let entity = Entity::from_bits(entity);
+    let entity = Entity::from_bits(entity).context("invalid entity")?;
     let event = PluginMessageEvent { channel, data };
     cx.game_mut().ecs.insert_entity_event(entity, event)?;
 
