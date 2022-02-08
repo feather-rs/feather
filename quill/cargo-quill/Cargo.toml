@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 quill-plugin-format = { path = "../plugin-format" }
-cargo_metadata = "0.12"
+cargo_metadata = "0.14.1"
 anyhow = "1"
 argh = "0.1"
 heck = "0.3"
