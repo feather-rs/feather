@@ -31,11 +31,11 @@ impl FinishingGenerator for ClumpedFoliageFinisher {
                 let biome = biomes.get_at_block(x, 0, z);
 
                 if let Some(block) = biome_clump_block(biome) {
-                    if rng.gen_range(0, 48) == 0 {
+                    if rng.gen_range(0..48) == 0 {
                         // Generate clump with center at this position.
-                        iter::repeat(()).take(rng.gen_range(3, 6)).for_each(|_| {
-                            let offset_x = rng.gen_range(-2, 3);
-                            let offset_z = rng.gen_range(-2, 3);
+                        iter::repeat(()).take(rng.gen_range(3..6)).for_each(|_| {
+                            let offset_x = rng.gen_range(-2..3);
+                            let offset_z = rng.gen_range(-2..3);
 
                             // Clamp value within chunk border
                             let pos_x = cmp::max(0, cmp::min(x as i32 + offset_x, 15)) as usize;

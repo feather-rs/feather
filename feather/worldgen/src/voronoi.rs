@@ -110,7 +110,7 @@ impl VoronoiGrid {
                 let mut rng = XorShiftRng::seed_from_u64(
                     self.seed ^ (((i64::from(cell_x)) << 32) | (i64::from(cell_y))) as u64,
                 );
-                let offset = rng.gen_range(-half_length, half_length);
+                let offset = rng.gen_range(-half_length..half_length);
 
                 let center_x = pos_x + half_length as i32;
                 let center_y = pos_y + half_length as i32;
@@ -136,7 +136,7 @@ pub fn shuffle(closest_x: i32, closest_y: i32, min: usize, max: usize) -> usize 
 
     let mut rng = XorShiftRng::seed_from_u64(combined);
 
-    rng.gen_range(min, max)
+    rng.gen_range(min..max)
 }
 
 fn square(x: i32) -> i32 {

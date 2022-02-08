@@ -25,7 +25,7 @@ impl FinishingGenerator for SingleFoliageFinisher {
                 if let Some(foliage) = biome_foliage(biome) {
                     if chunk.block_at(x, top_blocks.top_block_at(x, z), z).unwrap()
                         == foliage.required
-                        && rng.gen_range(0, 192) == 0
+                        && rng.gen_range(0..192) == 0
                     {
                         chunk.set_block_at(x, top_blocks.top_block_at(x, z) + 1, z, foliage.block);
                     }
