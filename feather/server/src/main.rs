@@ -5,11 +5,13 @@ use base::anvil::level::SuperflatGeneratorOptions;
 use common::{Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{config::Config, Server};
+#[cfg(feature = "plugins")]
 use plugin_host::PluginManager;
 use worldgen::{ComposableGenerator, SuperflatWorldGenerator, VoidWorldGenerator, WorldGenerator};
 
 mod logging;
 
+#[cfg(feature = "plugins")]
 const PLUGINS_DIRECTORY: &str = "plugins";
 const CONFIG_PATH: &str = "config.toml";
 
@@ -40,6 +42,7 @@ fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
     init_world_source(&mut game, config);
+    #[cfg(feature = "plugins")]
     init_plugin_manager(&mut game)?;
     Ok(game)
 }
@@ -75,7 +78,7 @@ fn init_world_source(game: &mut Game, config: &Config) {
     };
     game.world = World::with_gen_and_path(generator, config.world.name.clone());
 }
-
+#[cfg(feature = "plugins")]
 fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let mut plugin_manager = PluginManager::new();
     plugin_manager.load_dir(game, PLUGINS_DIRECTORY)?;
