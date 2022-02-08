@@ -70,9 +70,16 @@ unlicensed = "deny"
 # See https://spdx.org/licenses/ for list of possible licenses
 # [possible values: any SPDX 3.11 short identifier (+ optional exception)].
 allow = [
-    #"MIT",
-    #"Apache-2.0",
-    #"Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MPL-2.0",
+    "ISC",
+    "Zlib",
+    "BSD-3-Clause",
+    "BSD-2-Clause",
+    "CC0-1.0",
+    "LicenseRef-ring",
 ]
 # List of explicitly disallowed licenses
 # See https://spdx.org/licenses/ for list of possible licenses
@@ -105,6 +112,14 @@ exceptions = [
     # Each entry is the crate and version constraint, and its specific allow
     # list
     #{ allow = ["Zlib"], name = "adler32", version = "*" },
+]
+
+
+[[licenses.clarify]]
+name = "ring"
+expression = "LicenseRef-ring"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0eed23 },
 ]
 
 # Some crates don't have (easily) machine readable licensing information,
