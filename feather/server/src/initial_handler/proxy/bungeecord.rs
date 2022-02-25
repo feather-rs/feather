@@ -88,8 +88,9 @@ mod tests {
     fn extract_bungeecord_data_too_long() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2\x00a\x00b"
-                .to_string(),
+            server_address:
+                "192.168.1.87\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2\x00a\x00b"
+                    .to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
