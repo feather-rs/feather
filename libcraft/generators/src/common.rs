@@ -32,7 +32,6 @@ pub fn compress_and_write<T: Serialize>(data: Vec<T>, path: &str) -> Result<()> 
 pub fn state_name_to_block_kind(name: &str) -> Result<BlockKind> {
     name.split(':')
         .last()
-        .map(BlockKind::from_name)
-        .flatten()
+        .and_then(BlockKind::from_name)
         .ok_or_else(|| anyhow!("Could not convert state name to BlockKind"))
 }

@@ -49,11 +49,13 @@ impl InventorySlot {
     }
 
     /// Takes all items and makes self empty.
+    #[must_use]
     pub fn take_all(&mut self) -> Self {
         mem::take(self)
     }
 
     /// Takes half (rounded down) of the items in self.
+    #[must_use]
     pub fn take_half(&mut self) -> Self {
         let half = (self.count() + 1) / 2;
         self.try_take(half)
@@ -63,6 +65,7 @@ impl InventorySlot {
     /// and put it into the output. If amount is bigger
     /// then what self can provide then this is the same
     /// as calling take.
+    #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub fn try_take(&mut self, amount: u32) -> Self {
         if amount == 0 {
