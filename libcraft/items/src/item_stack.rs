@@ -455,12 +455,14 @@ impl ItemStackBuilder {
     }
 
     /// Set the item `title`.
+    #[must_use]
     pub fn title(mut self, title: impl AsRef<str>) -> Self {
         self.get_or_init_meta().title = title.as_ref().to_owned();
         self
     }
 
     /// Set the item `lore`.
+    #[must_use]
     pub fn lore(mut self, lore: impl AsRef<str>) -> Self {
         self.get_or_init_meta().lore = lore.as_ref().to_owned();
         self
