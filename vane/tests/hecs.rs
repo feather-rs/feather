@@ -1,7 +1,7 @@
 //! Tests taken from the `hecs` crate. Original source
 //! available at https://github.com/Ralith/hecs/blob/master/tests/tests.rs.
 //!
-//! Adjusted to fit API differences. Some tests have been ommitted or
+//! Adjusted to fit API differences. Some tests have been omitted or
 //! commented out, because they test features not available in this library.
 
 // Copyright 2019 Google LLC
