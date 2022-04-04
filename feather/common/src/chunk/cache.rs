@@ -103,9 +103,10 @@ impl ChunkCache {
 
 #[cfg(test)]
 mod tests {
+    use base::world::Sections;
+    use base::{Chunk, ChunkHandle, ChunkLock};
+    use libcraft_core::ChunkPosition;
     use std::{sync::Arc, thread::sleep};
-
-    use base::{Chunk, ChunkHandle, ChunkLock, ChunkPosition};
 
     use super::{ChunkCache, CACHE_TIME};
 
@@ -115,7 +116,10 @@ mod tests {
         let mut stored_handles: Vec<ChunkHandle> = vec![];
         let mut used_count = 0;
         for i in 0..100 {
-            let handle = Arc::new(ChunkLock::new(Chunk::new(ChunkPosition::new(i, 0)), false));
+            let handle = Arc::new(ChunkLock::new(
+                Chunk::new(ChunkPosition::new(i, 0), Sections(16), 0),
+                false,
+            ));
             if rand::random::<bool>() {
                 // clone this handle and pretend it is used
                 used_count += 1;
@@ -133,7 +137,10 @@ mod tests {
         let mut stored_handles: Vec<ChunkHandle> = vec![];
         let mut used_count = 0;
         for i in 0..100 {
-            let handle = Arc::new(ChunkLock::new(Chunk::new(ChunkPosition::new(i, 0)), false));
+            let handle = Arc::new(ChunkLock::new(
+                Chunk::new(ChunkPosition::new(i, 0), Sections(16), 0),
+                false,
+            ));
             if rand::random::<bool>() {
                 // clone this handle and pretend it is used
                 used_count += 1;

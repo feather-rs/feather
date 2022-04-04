@@ -13,16 +13,16 @@ pub use game::Game;
 pub use setup::Setup;
 
 #[doc(inline)]
-pub use libcraft_blocks::{BlockKind, BlockState};
+pub use libcraft_blocks::{BlockId, BlockKind};
 #[doc(inline)]
-pub use libcraft_core::{BlockPosition, ChunkPosition, Gamemode, Position};
+pub use libcraft_core::{BlockPosition, ChunkPosition, EntityKind, Gamemode, Position};
 #[doc(inline)]
 pub use libcraft_particles::{Particle, ParticleKind};
 #[doc(inline)]
 pub use libcraft_text::*;
 
 #[doc(inline)]
-pub use quill_common::{components, entity_init::EntityInit, events, Component};
+pub use quill_common::{components, events, Component};
 #[doc(inline)]
 pub use uuid::Uuid;
 

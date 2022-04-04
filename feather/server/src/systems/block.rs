@@ -13,8 +13,8 @@
 //! like WorldEdit. This module chooses the optimal packet from
 //! the above three options to achieve ideal performance.
 
-use ahash::AHashMap;
-use base::{chunk::SECTION_VOLUME, position, ChunkPosition, CHUNK_WIDTH};
+use base::{chunk::SECTION_VOLUME, position, CHUNK_WIDTH};
+use common::world::Dimensions;
 use common::{events::BlockChangeEvent, Game};
 use ecs::{SysResult, SystemExecutor};
 
@@ -50,33 +50,46 @@ fn broadcast_block_change_chunk_overwrite(
     game: &Game,
     server: &mut Server,
 ) {
-    let mut sections: AHashMap<ChunkPosition, Vec<usize>> = AHashMap::new();
-    for (chunk, section, _) in event.iter_affected_chunk_sections() {
-        sections.entry(chunk).or_default().push(section + 1); // + 1 to account for the void air chunk
-    }
-
-    for (chunk_pos, sections) in sections {
-        let chunk = game.world.chunk_map().chunk_handle_at(chunk_pos);
-        if let Some(chunk) = chunk {
+    let mut query = game.ecs.query::<&Dimensions>();
+    let dimension = query
+        .iter()
+        .find(|(world, _)| *world == *event.world())
+        .unwrap()
+        .1
+        .get(&**event.dimension())
+        .unwrap();
+    for (chunk_pos, _, _) in event.iter_affected_chunk_sections() {
+        if let Some(chunk) = dimension.chunk_map().chunk_handle_at(chunk_pos) {
             let position = position!(
                 (chunk_pos.x * CHUNK_WIDTH as i32) as f64,
                 0.0,
                 (chunk_pos.z * CHUNK_WIDTH as i32) as f64,
             );
-            server.broadcast_nearby_with(position, |client| {
-                client.overwrite_chunk_sections(&chunk, sections.clone());
+            server.broadcast_nearby_with(event.world(), event.dimension(), position, |client| {
+                client.overwrite_chunk(&chunk);
             })
         }
     }
 }
 
 fn broadcast_block_change_simple(event: &BlockChangeEvent, game: &Game, server: &mut Server) {
+    let mut query = game.ecs.query::<&Dimensions>();
+    let dimension = query
+        .iter()
+        .find(|(world, _)| *world == *event.world())
+        .unwrap()
+        .1
+        .get(&**event.dimension())
+        .unwrap();
     for pos in event.iter_changed_blocks() {
-        let new_block = game.block(pos);
+        let new_block = dimension.block_at(pos);
         if let Some(new_block) = new_block {
-            server.broadcast_nearby_with(pos.position(), |client| {
-                client.send_block_change(pos, new_block)
-            });
+            server.broadcast_nearby_with(
+                event.world(),
+                event.dimension(),
+                pos.position(),
+                |client| client.send_block_change(pos, new_block),
+            );
         }
     }
 }

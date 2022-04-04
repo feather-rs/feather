@@ -1,10 +1,9 @@
 use arrayvec::ArrayVec;
+use libcraft_core::{vec3, Position, Vec3d};
 use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
-
-use crate::{vec3, Position, Vec3d};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum EntityDataKind {
@@ -179,33 +178,6 @@ pub struct ItemData {
     pub nbt: Option<ItemNbt>,
 }
 
-impl Default for ItemData {
-    fn default() -> Self {
-        Self {
-            count: 0,
-            item: Item::Air.name().to_owned(),
-            nbt: None,
-        }
-    }
-}
-
-impl From<ItemData> for ItemStack {
-    fn from(item: ItemData) -> Self {
-        ItemStack::from(&item)
-    }
-}
-
-// Can't do proper Borrow trait impl because of orphan rule
-impl From<&ItemData> for ItemStack {
-    fn from(item: &ItemData) -> Self {
-        ItemNbt::item_stack(
-            &item.nbt,
-            Item::from_name(item.item.as_str()).unwrap_or(Item::Air),
-            item.count as u8,
-        )
-    }
-}
-
 impl<S> From<S> for ItemData
 where
     S: std::borrow::Borrow<ItemStack>,
@@ -268,7 +240,7 @@ where
 }
 
 /// Data for an Item entity (`minecraft:item`).
-#[derive(Clone, Default, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ItemEntityData {
     // Inherit base entity data
     #[serde(flatten)]

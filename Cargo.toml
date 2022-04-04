@@ -3,7 +3,6 @@ members = [
     # libcraft
     "libcraft/core",
     "libcraft/blocks",
-    "libcraft/generators",
     "libcraft/items",
     "libcraft/macros",
     "libcraft/particles",
@@ -31,8 +30,6 @@ members = [
 
     # Feather (common and server)
     "feather/utils",
-    "feather/blocks",
-    "feather/blocks/generator",
     "feather/base",
     "feather/ecs",
     "feather/datapacks",
@@ -42,6 +39,8 @@ members = [
     "feather/plugin-host/macros",
     "feather/plugin-host",
     "feather/server",
+    
+    "data_generators",
 
     # Other
     "proxy",

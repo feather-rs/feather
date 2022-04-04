@@ -7,6 +7,7 @@ mod plugin_message;
 
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
+use quill_common::components::{EntityDimension, EntityWorld};
 
 /// Event triggered when a player changes their `View`,
 /// meaning they crossed into a new chunk.
@@ -19,15 +20,25 @@ pub struct ViewUpdateEvent {
     pub new_chunks: Vec<ChunkPosition>,
     /// Chunks that are in `old_view` but not in `new_view`
     pub old_chunks: Vec<ChunkPosition>,
+
+    pub new_world: EntityWorld,
+    pub old_world: EntityWorld,
+
+    pub new_dimension: EntityDimension,
+    pub old_dimension: EntityDimension,
 }
 
 impl ViewUpdateEvent {
-    pub fn new(old_view: View, new_view: View) -> Self {
+    pub fn new(old_view: &View, new_view: &View) -> Self {
         let mut this = Self {
-            old_view,
-            new_view,
-            new_chunks: new_view.difference(old_view).collect(),
-            old_chunks: old_view.difference(new_view).collect(),
+            old_view: old_view.clone(),
+            new_view: new_view.clone(),
+            new_chunks: new_view.difference(old_view),
+            old_chunks: old_view.difference(new_view),
+            new_world: new_view.world(),
+            old_world: old_view.world(),
+            new_dimension: new_view.dimension().clone(),
+            old_dimension: old_view.dimension().clone(),
         };
         this.new_chunks
             .sort_unstable_by_key(|chunk| chunk.distance_squared_to(new_view.center()));
@@ -51,6 +62,7 @@ pub struct ChunkCrossEvent {
 pub struct ChunkLoadEvent {
     pub position: ChunkPosition,
     pub chunk: ChunkHandle,
+    pub dimension: String,
 }
 
 /// Triggered when an error occurs while loading a chunk.
@@ -58,3 +70,18 @@ pub struct ChunkLoadEvent {
 pub struct ChunkLoadFailEvent {
     pub position: ChunkPosition,
 }
+
+/// Triggered when an entity is removed from the world.
+///
+/// The entity will remain alive for one tick after it is
+/// destroyed to allow systems to observe this event.
+#[derive(Debug)]
+pub struct EntityRemoveEvent;
+
+/// Triggered when an entity is added into the world.
+#[derive(Debug)]
+pub struct EntityCreateEvent;
+
+/// Triggered when a player joins, changes dimension and respawns after death
+#[derive(Debug)]
+pub struct PlayerRespawnEvent;

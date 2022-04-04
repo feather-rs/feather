@@ -79,7 +79,7 @@ fn send_keepalives(_game: &mut Game, server: &mut Server) -> SysResult {
 
 /// Ticks `Client`s.
 fn tick_clients(_game: &mut Game, server: &mut Server) -> SysResult {
-    for client in server.clients.iter() {
+    for client in server.clients.iter_mut() {
         client.tick();
     }
 

@@ -1,15 +1,15 @@
-use libcraft_items::{Item, ItemStack};
+use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::{
-    collections::HashMap,
     fs,
     fs::File,
     path::{Path, PathBuf},
 };
 
-use nbt::Value;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use libcraft_items::{Item, ItemStack};
 use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
     WalkSpeed,
@@ -30,6 +30,8 @@ pub struct PlayerData {
     pub gamemode: i32,
     #[serde(rename = "previousPlayerGameType")]
     pub previous_gamemode: i32,
+    #[serde(rename = "Dimension")]
+    pub dimension: String,
     #[serde(rename = "Inventory")]
     pub inventory: Vec<InventorySlot>,
     #[serde(rename = "SelectedItemSlot")]
@@ -127,45 +129,52 @@ impl InventorySlot {
         }
     }
 
-    pub fn into_nbt_value(self) -> Value {
+    pub fn into_nbt_value(self) -> nbt::Value {
         let mut compound = HashMap::new();
 
-        compound.insert(String::from("Count"), Value::Byte(self.count));
-        compound.insert(String::from("id"), Value::String(self.item));
-        compound.insert(String::from("Slot"), Value::Byte(self.slot));
+        compound.insert(String::from("Count"), nbt::Value::Byte(self.count));
+        compound.insert(String::from("id"), nbt::Value::String(self.item));
+        compound.insert(String::from("Slot"), nbt::Value::Byte(self.slot));
 
         let mut tags_compound = HashMap::new();
         if let Some(nbt) = self.nbt {
             if let Some(damage) = nbt.damage {
-                tags_compound.insert(String::from("Damage"), Value::Int(damage));
+                tags_compound.insert(String::from("Damage"), nbt::Value::Int(damage));
             }
         }
-        compound.insert(String::from("tag"), Value::Compound(tags_compound));
-        Value::Compound(compound)
+        compound.insert(String::from("tag"), nbt::Value::Compound(tags_compound));
+        nbt::Value::Compound(compound)
     }
 }
 
-impl From<InventorySlot> for ItemStack {
-    fn from(slot: InventorySlot) -> Self {
-        ItemStack::from(&slot)
+#[derive(Debug)]
+pub struct NoSuckItemError;
+
+impl TryFrom<InventorySlot> for ItemStack {
+    type Error = NoSuckItemError;
+
+    fn try_from(slot: InventorySlot) -> Result<Self, Self::Error> {
+        ItemStack::try_from(&slot)
     }
 }
 
 // Can't do proper Borrow trait impl because of orphan rule
-impl From<&InventorySlot> for ItemStack {
-    fn from(slot: &InventorySlot) -> Self {
-        ItemNbt::item_stack(
+impl TryFrom<&InventorySlot> for ItemStack {
+    type Error = NoSuckItemError;
+
+    fn try_from(slot: &InventorySlot) -> Result<Self, Self::Error> {
+        Ok(ItemNbt::item_stack(
             &slot.nbt,
-            Item::from_name(slot.item.as_str()).unwrap_or(Item::Air),
+            Item::from_name(slot.item.as_str()).ok_or(NoSuckItemError)?,
             slot.count as u8,
-        )
+        ))
     }
 }
 
-pub fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
+pub fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, anyhow::Error> {
     let file_path = file_path(world_dir, uuid);
-    let mut file = File::open(file_path)?;
-    let data = nbt::from_gzip_reader(&mut file)?;
+    let file = File::open(file_path)?;
+    let data = nbt::from_gzip_reader(&file)?;
     Ok(data)
 }
 
@@ -187,14 +196,11 @@ fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::convert::TryInto;
     use std::io::Cursor;
 
+    use libcraft_core::Gamemode;
     use num_traits::ToPrimitive;
-
-    use crate::{
-        inventory::{SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS},
-        Gamemode,
-    };
 
     use super::*;
 
@@ -221,7 +227,7 @@ mod tests {
             nbt: None,
         };
 
-        let item_stack: ItemStack = slot.into();
+        let item_stack: ItemStack = slot.try_into().unwrap();
         assert_eq!(item_stack.item(), Item::Feather);
         assert_eq!(item_stack.count(), 1);
     }
@@ -235,7 +241,7 @@ mod tests {
             nbt: Some(ItemNbt { damage: Some(42) }),
         };
 
-        let item_stack: ItemStack = slot.into();
+        let item_stack: ItemStack = slot.try_into().unwrap();
         assert_eq!(item_stack.item(), Item::DiamondAxe);
         assert_eq!(item_stack.count(), 1);
         assert_eq!(item_stack.damage_taken(), Some(42));
@@ -250,8 +256,8 @@ mod tests {
             nbt: None,
         };
 
-        let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item(), Item::Air);
+        let item_stack: Result<ItemStack, NoSuckItemError> = slot.try_into();
+        assert!(item_stack.is_err());
     }
 
     #[test]

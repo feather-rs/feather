@@ -315,9 +315,10 @@ impl ItemStack {
         match &mut self.meta.clone().unwrap().damage {
             Some(damage) => {
                 *damage += amount;
-                if let Some(durability) = self.item.durability() {
-                    // Convert to a larger type for a safe conversion
-                    i64::from(*damage) >= i64::from(durability)
+                if let Some(durability) = self.item.max_durability() {
+                    // This unwrap would only fail if our generated file contains an erroneous
+                    // default damage value.
+                    *damage >= durability.try_into().unwrap()
                 } else {
                     false
                 }
@@ -376,7 +377,7 @@ impl ItemStackMeta {
     #[must_use]
     pub fn new(item: Item) -> Self {
         Self {
-            title: item.display_name().to_owned(),
+            title: item.name().to_owned(),
             lore: "".to_owned(),
             damage: None,
             repair_cost: None,
@@ -511,7 +512,7 @@ impl ItemStackBuilder {
             s
         } else {
             self.meta = Some(ItemStackMeta {
-                title: self.item.display_name().to_owned(),
+                title: self.item.name().to_owned(),
                 ..ItemStackMeta::default()
             });
             self.meta.as_mut().unwrap()

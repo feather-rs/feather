@@ -27,15 +27,17 @@ url = ""
 # Optional SHA1 hash of the resource pack file.
 hash = ""
 
-[world]
-# The name of the directory containing the world.
-name = "world"
+[worlds]
+# World names
+worlds = [ "world" ]
+# The default world where players will spawn on join
+default_world = "world"
 # The generator to use if the world does not exist.
-# Implemented values are: default, flat, void
-generator = "default"
+# Implemented values are: flat
+generator = "flat"
 # The seed to use if the world does not exist.
 # Leaving this value empty will generate a random seed.
-# If this value is not a valid integer (i64), the string
+# If this value is not a valid integer, the string
 # will be converted using a hash function.
 seed = ""
 

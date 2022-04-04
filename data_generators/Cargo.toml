@@ -1,0 +1,20 @@
+[package]
+name = "data-generators"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+convert_case = "0.4"
+regex = "1"
+quote = "1"
+proc-macro2 = "1"
+rayon = "1"
+ureq = { version = "2", default-features = false, features = [ "tls" ] }
+once_cell = "1"
+indexmap = { version = "1", features = [ "serde" ] }
+bincode = "1"
+fs_extra = "1"
+log = "0.4"
+feather-base = { path = "../feather/base" }

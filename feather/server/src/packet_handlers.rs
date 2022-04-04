@@ -12,7 +12,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill_common::components::Name;
+use quill_common::components::{EntityDimension, EntityWorld, Name};
 
 use crate::{NetworkId, Server};
 
@@ -82,7 +82,6 @@ pub fn handle_packet(
         | ClientPlayPacket::SetDifficulty(_)
         | ClientPlayPacket::ClientStatus(_)
         | ClientPlayPacket::TabComplete(_)
-        | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
         | ClientPlayPacket::CloseWindow(_)
         | ClientPlayPacket::PluginMessage(_)
@@ -109,7 +108,8 @@ pub fn handle_packet(
         | ClientPlayPacket::UpdateStructureBlock(_)
         | ClientPlayPacket::UpdateSign(_)
         | ClientPlayPacket::Spectate(_)
-        | ClientPlayPacket::UseItem(_) => Ok(()),
+        | ClientPlayPacket::UseItem(_)
+        | ClientPlayPacket::Pong(_) => Ok(()),
     }
 }
 
@@ -118,7 +118,6 @@ fn handle_animation(
     player: EntityRef,
     packet: client::Animation,
 ) -> SysResult {
-    let pos = *player.get::<Position>()?;
     let network_id = *player.get::<NetworkId>()?;
 
     let animation = match packet.hand {
@@ -126,9 +125,12 @@ fn handle_animation(
         Hand::Off => Animation::SwingOffhand,
     };
 
-    server.broadcast_nearby_with(pos, |client| {
-        client.send_entity_animation(network_id, animation.clone())
-    });
+    server.broadcast_nearby_with(
+        *player.get::<EntityWorld>()?,
+        &*player.get::<EntityDimension>()?,
+        *player.get::<Position>()?,
+        |client| client.send_entity_animation(network_id, animation.clone()),
+    );
     Ok(())
 }
 

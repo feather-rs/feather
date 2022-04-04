@@ -8,7 +8,6 @@ edition = "2018"
 aes = "0.7"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
-blocks = { path = "../blocks", package = "feather-blocks" }
 bytemuck = "1"
 byteorder = "1"
 bytes = "0.5"
@@ -24,3 +23,5 @@ thiserror = "1"
 uuid = "0.8"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
+libcraft-blocks = { path = "../../libcraft/blocks" }
+either = "1"

@@ -1,9 +1,7 @@
 //! Foundational types and constants for Minecraft.
 
-mod biome;
 pub mod block;
 mod consts;
-mod dimension;
 mod entity;
 mod gamemode;
 mod gamerules;
@@ -11,9 +9,7 @@ mod interaction;
 mod player;
 mod positions;
 
-pub use biome::Biome;
 pub use consts::*;
-pub use dimension::Dimension;
 pub use entity::EntityKind;
 pub use gamemode::Gamemode;
 pub use gamerules::GameRules;

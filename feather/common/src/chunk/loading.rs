@@ -7,12 +7,16 @@ use std::{
 };
 
 use ahash::AHashMap;
+
 use base::ChunkPosition;
 use ecs::{Entity, SysResult, SystemExecutor};
 use quill_common::events::EntityRemoveEvent;
 use utils::vec_remove_item;
 
 use crate::{chunk::worker::LoadRequest, events::ViewUpdateEvent, Game};
+use quill_common::components::{EntityDimension, EntityWorld};
+
+use crate::world::Dimensions;
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     game.insert_resource(ChunkLoadState::default());
@@ -37,7 +41,13 @@ struct ChunkLoadState {
 }
 
 impl ChunkLoadState {
-    pub fn remove_ticket(&mut self, chunk: ChunkPosition, ticket: Ticket) {
+    pub fn remove_ticket(
+        &mut self,
+        chunk: ChunkPosition,
+        ticket: Ticket,
+        world: EntityWorld,
+        dimension: EntityDimension,
+    ) {
         self.chunk_tickets.remove_ticket(chunk, ticket);
 
         // If this was the last ticket, then queue the chunk to be
@@ -45,23 +55,27 @@ impl ChunkLoadState {
         if self.chunk_tickets.num_tickets(chunk) == 0 {
             self.chunk_tickets.remove_chunk(chunk);
             self.chunk_unload_queue
-                .push_back(QueuedChunkUnload::new(chunk));
+                .push_back(QueuedChunkUnload::new(chunk, world, dimension));
         }
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 struct QueuedChunkUnload {
     pos: ChunkPosition,
     /// Time after which the chunk should be unloaded.
     unload_at_time: Instant,
+    world: EntityWorld,
+    dimension: EntityDimension,
 }
 
 impl QueuedChunkUnload {
-    pub fn new(pos: ChunkPosition) -> Self {
+    pub fn new(pos: ChunkPosition, world: EntityWorld, dimension: EntityDimension) -> Self {
         Self {
             pos,
             unload_at_time: Instant::now() + UNLOAD_DELAY,
+            world,
+            dimension,
         }
     }
 }
@@ -115,12 +129,16 @@ struct Ticket(Entity);
 
 /// System to populate chunk tickets based on players' views.
 fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
-    for (player, event) in game.ecs.query::<&ViewUpdateEvent>().iter() {
+    for (player, (event, world, dimension)) in game
+        .ecs
+        .query::<(&ViewUpdateEvent, &EntityWorld, &EntityDimension)>()
+        .iter()
+    {
         let player_ticket = Ticket(player);
 
         // Remove old tickets
         for &old_chunk in &event.old_chunks {
-            state.remove_ticket(old_chunk, player_ticket);
+            state.remove_ticket(old_chunk, player_ticket, *world, dimension.clone());
         }
 
         // Create new tickets
@@ -128,8 +146,16 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
             state.chunk_tickets.insert_ticket(new_chunk, player_ticket);
 
             // Load if needed
-            if !game.world.is_chunk_loaded(new_chunk) && !game.world.is_chunk_loading(new_chunk) {
-                game.world.queue_chunk_load(LoadRequest { pos: new_chunk });
+            let mut query = game.ecs.query::<&mut Dimensions>();
+            let dimension = query
+                .iter()
+                .find(|(world, _dimensions)| *world == *event.new_world)
+                .unwrap()
+                .1
+                .get_mut(&*event.new_dimension)
+                .unwrap();
+            if !dimension.is_chunk_loaded(new_chunk) && !dimension.is_chunk_loading(new_chunk) {
+                dimension.queue_chunk_load(LoadRequest { pos: new_chunk });
             }
         }
     }
@@ -138,7 +164,7 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
 
 /// System to unload chunks from the `ChunkUnloadQueue`.
 fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
-    while let Some(&unload) = state.chunk_unload_queue.get(0) {
+    while let Some(unload) = state.chunk_unload_queue.get(0) {
         if unload.unload_at_time > Instant::now() {
             // None of the remaining chunks in the queue are
             // ready for unloading, because the queue is ordered
@@ -146,24 +172,40 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
             break;
         }
 
-        state.chunk_unload_queue.pop_front();
+        let unload = state.chunk_unload_queue.pop_front().unwrap();
 
         // If the chunk has acquired new tickets, then abort unloading it.
         if state.chunk_tickets.num_tickets(unload.pos) > 0 {
             continue;
         }
 
-        game.world.unload_chunk(unload.pos)?;
+        game.ecs
+            .query::<&mut Dimensions>()
+            .iter()
+            .find(|(world, _dimensions)| *world == *unload.world)
+            .unwrap()
+            .1
+            .get_mut(&*unload.dimension)
+            .unwrap()
+            .unload_chunk(unload.pos)?;
     }
-    game.world.cache.purge_unused();
+    for dimensions in game.ecs.query::<&mut Dimensions>().iter() {
+        for dimension in dimensions.1.iter_mut() {
+            dimension.cache.purge_unused();
+        }
+    }
     Ok(())
 }
 
 fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
-    for (entity, _event) in game.ecs.query::<&EntityRemoveEvent>().iter() {
+    for (entity, (_event, world, dimension)) in game
+        .ecs
+        .query::<(&EntityRemoveEvent, &EntityWorld, &EntityDimension)>()
+        .iter()
+    {
         let entity_ticket = Ticket(entity);
         for chunk in state.chunk_tickets.take_entity_tickets(entity_ticket) {
-            state.remove_ticket(chunk, entity_ticket);
+            state.remove_ticket(chunk, entity_ticket, *world, dimension.clone());
         }
     }
     Ok(())
@@ -171,5 +213,14 @@ fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResul
 
 /// System to call `World::load_chunks` each tick
 fn load_chunks(game: &mut Game, _state: &mut ChunkLoadState) -> SysResult {
-    game.world.load_chunks(&mut game.ecs)
+    let mut events = Vec::new();
+    for dimensions in game.ecs.query::<&mut Dimensions>().iter() {
+        for dimension in dimensions.1.iter_mut() {
+            events.extend(dimension.load_chunks()?)
+        }
+    }
+    events
+        .into_iter()
+        .for_each(|event| game.ecs.insert_event(event));
+    Ok(())
 }

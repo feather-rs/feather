@@ -2,10 +2,10 @@ macro_rules! user_type {
     (VarInt) => {
         i32
     };
-    (VarIntPrefixedVec <$inner:ident>) => {
+    (VarIntPrefixedVec <$inner:ty>) => {
         Vec<$inner>
     };
-    (ShortPrefixedVec <$inner:ident>) => {
+    (ShortPrefixedVec <$inner:ty>) => {
         Vec<$inner>
     };
     (LengthInferredVecU8) => {
@@ -23,10 +23,10 @@ macro_rules! user_type_convert_to_writeable {
     (VarInt, $e:expr) => {
         VarInt(*$e as i32)
     };
-    (VarIntPrefixedVec <$inner:ident>, $e:expr) => {
+    (VarIntPrefixedVec <$inner:ty>, $e:expr) => {
         VarIntPrefixedVec::from($e.as_slice())
     };
-    (ShortPrefixedVec <$inner:ident>, $e:expr) => {
+    (ShortPrefixedVec <$inner:ty>, $e:expr) => {
         ShortPrefixedVec::from($e.as_slice())
     };
     (LengthInferredVecU8, $e:expr) => {
@@ -43,48 +43,59 @@ macro_rules! user_type_convert_to_writeable {
 macro_rules! packets {
     (
         $(
-            $packet:ident {
-                $(
-                    $field:ident $typ:ident $(<$generics:ident>)?
-                );* $(;)?
-            } $(,)?
+            $packet:ident
+            $(
+                {
+                    $(
+                        $field:ident $typ:ident $(<$generics:ty>)?
+                    );* $(;)?
+                }
+            )? $(,)?
         )*
     ) => {
         $(
             #[derive(Debug, Clone)]
             pub struct $packet {
                 $(
-                    pub $field: user_type!($typ $(<$generics>)?),
-                )*
+                    $(
+                        pub $field: user_type!($typ $(<$generics>)?),
+                    )*
+                )?
             }
 
             #[allow(unused_imports, unused_variables)]
-            impl crate::Readable for $packet {
-                fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: crate::ProtocolVersion) -> anyhow::Result<Self>
+            impl $crate::Readable for $packet {
+                fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: $crate::ProtocolVersion) -> anyhow::Result<Self>
                 where
                     Self: Sized
                 {
                     use anyhow::Context as _;
                     $(
-                        let $field = <$typ $(<$generics>)?>::read(buffer, version)
-                            .context(concat!("failed to read field `", stringify!($field), "` of packet `", stringify!($packet), "`"))?
-                            .into();
-                    )*
+                        $(
+                            let $field = <$typ $(<$generics>)?>::read(buffer, version)
+                                .context(concat!("failed to read field `", stringify!($field), "` of packet `", stringify!($packet), "`"))?
+                                .into();
+                        )*
+                    )?
 
                     Ok(Self {
                         $(
-                            $field,
-                        )*
+                            $(
+                                $field,
+                            )*
+                        )?
                     })
                 }
             }
 
             #[allow(unused_variables)]
-            impl crate::Writeable for $packet {
-                fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+            impl $crate::Writeable for $packet {
+                fn write(&self, buffer: &mut Vec<u8>, version: $crate::ProtocolVersion) -> anyhow::Result<()> {
                     $(
-                        user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version)?;
-                    )*
+                        $(
+                            user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version)?;
+                        )*
+                    )?
                     Ok(())
                 }
             }
@@ -130,8 +141,8 @@ macro_rules! def_enum {
             )*
         }
 
-        impl crate::Readable for $ident {
-            fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: crate::ProtocolVersion) -> anyhow::Result<Self>
+        impl $crate::Readable for $ident {
+            fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: $crate::ProtocolVersion) -> anyhow::Result<Self>
                 where
                     Self: Sized
             {
@@ -169,8 +180,8 @@ macro_rules! def_enum {
             }
         }
 
-        impl crate::Writeable for $ident {
-            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+        impl $crate::Writeable for $ident {
+            fn write(&self, buffer: &mut Vec<u8>, version: $crate::ProtocolVersion) -> anyhow::Result<()> {
                 match self {
                     $(
                         $ident::$variant $(
@@ -219,8 +230,8 @@ macro_rules! packet_enum {
             }
         }
 
-        impl crate::Readable for $ident {
-            fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: crate::ProtocolVersion) -> anyhow::Result<Self>
+        impl $crate::Readable for $ident {
+            fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: $crate::ProtocolVersion) -> anyhow::Result<Self>
             where
                 Self: Sized
             {
@@ -234,8 +245,8 @@ macro_rules! packet_enum {
             }
         }
 
-        impl crate::Writeable for $ident {
-            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+        impl $crate::Writeable for $ident {
+            fn write(&self, buffer: &mut Vec<u8>, version: $crate::ProtocolVersion) -> anyhow::Result<()> {
                 VarInt(self.id() as i32).write(buffer, version)?;
                 match self {
                     $(
@@ -283,12 +294,6 @@ pub trait VariantOf<Enum> {
     where
         Self: Sized;
 }
-
-use crate::io::{Angle, LengthInferredVecU8, Nbt, ShortPrefixedVec, VarInt, VarIntPrefixedVec};
-use crate::Slot;
-use base::BlockId;
-use nbt::Blob;
-use uuid::Uuid;
 
 pub mod client;
 pub mod server;

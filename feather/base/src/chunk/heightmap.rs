@@ -1,35 +1,28 @@
+use std::convert::TryInto;
 use std::marker::PhantomData;
 
-use blocks::{BlockId, SimplifiedBlockKind};
-
-use crate::{CHUNK_HEIGHT, CHUNK_WIDTH};
+use libcraft_blocks::{BlockId, SimplifiedBlockKind};
 
 use super::PackedArray;
+use crate::chunk::{CHUNK_WIDTH, SECTION_WIDTH};
+use crate::world::WorldHeight;
 
 /// Stores heightmaps for a chunk.
 #[derive(Debug, Clone)]
 pub struct HeightmapStore {
     pub motion_blocking: Heightmap<MotionBlocking>,
     pub motion_blocking_no_leaves: Heightmap<MotionBlockingNoLeaves>,
-    pub light_blocking: Heightmap<LightBlocking>,
     pub ocean_floor: Heightmap<OceanFloor>,
     pub world_surface: Heightmap<WorldSurface>,
 }
 
-impl Default for HeightmapStore {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl HeightmapStore {
-    pub fn new() -> Self {
+    pub fn new(height: WorldHeight) -> Self {
         Self {
-            motion_blocking: Heightmap::new(),
-            motion_blocking_no_leaves: Heightmap::new(),
-            light_blocking: Heightmap::new(),
-            ocean_floor: Heightmap::new(),
-            world_surface: Heightmap::new(),
+            motion_blocking: Heightmap::new(height),
+            motion_blocking_no_leaves: Heightmap::new(height),
+            ocean_floor: Heightmap::new(height),
+            world_surface: Heightmap::new(height),
         }
     }
 
@@ -46,8 +39,6 @@ impl HeightmapStore {
             .update(x, y, z, old_block, new_block, &get_block);
         self.motion_blocking_no_leaves
             .update(x, y, z, old_block, new_block, &get_block);
-        self.light_blocking
-            .update(x, y, z, old_block, new_block, &get_block);
         self.ocean_floor
             .update(x, y, z, old_block, new_block, &get_block);
         self.world_surface
@@ -57,7 +48,6 @@ impl HeightmapStore {
     pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockId) {
         self.motion_blocking.recalculate(&get_block);
         self.motion_blocking_no_leaves.recalculate(&get_block);
-        self.light_blocking.recalculate(&get_block);
         self.ocean_floor.recalculate(&get_block);
         self.world_surface.recalculate(&get_block);
     }
@@ -114,25 +104,23 @@ impl HeightmapFunction for WorldSurface {
 #[derive(Debug, Clone)]
 pub struct Heightmap<F> {
     heights: PackedArray,
+    height: WorldHeight,
     _marker: PhantomData<F>,
-}
-
-impl<F> Default for Heightmap<F>
-where
-    F: HeightmapFunction,
-{
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl<F> Heightmap<F>
 where
     F: HeightmapFunction,
 {
-    pub fn new() -> Self {
+    pub fn new(height: WorldHeight) -> Self {
         Self {
-            heights: PackedArray::new(256, 9),
+            heights: PackedArray::new(
+                SECTION_WIDTH * SECTION_WIDTH,
+                ((*height as f64 + 1.0).log2().ceil() as usize)
+                    .try_into()
+                    .unwrap(),
+            ),
+            height,
             _marker: PhantomData,
         }
     }
@@ -190,13 +178,21 @@ where
     pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockId) {
         for x in 0..CHUNK_WIDTH {
             for z in 0..CHUNK_WIDTH {
-                for y in (0..CHUNK_HEIGHT).rev() {
+                for y in (0..*self.height).rev() {
                     if F::is_solid(get_block(x, y, z)) {
                         self.set_height(x, z, y + 1);
                         break;
                     }
                 }
             }
+        }
+    }
+
+    pub fn from_u64_vec(vec: Vec<u64>, height: WorldHeight) -> Heightmap<F> {
+        Heightmap {
+            heights: PackedArray::from_u64_vec(vec, SECTION_WIDTH * SECTION_WIDTH),
+            height,
+            _marker: PhantomData,
         }
     }
 }

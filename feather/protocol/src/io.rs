@@ -3,7 +3,7 @@
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
-    anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
+    anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, EntityMetadata,
     Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
@@ -21,8 +21,13 @@ use std::{
     marker::PhantomData,
     num::TryFromIntError,
 };
+
+use base::chunk::paletted_container::{Paletteable, PalettedContainer};
+use base::{Direction};
 use thiserror::Error;
 use uuid::Uuid;
+
+use libcraft_items::InventorySlot::*;
 
 /// Trait implemented for types which can be read
 /// from a buffer.
@@ -602,9 +607,9 @@ impl Readable for EntityMetadata {
         let mut values = BTreeMap::new();
 
         loop {
-            let index = u8::read(buffer, version)?;
+            let index = i8::read(buffer, version)?;
 
-            if index == 0xFF {
+            if index == -1 {
                 break;
             }
 
@@ -798,8 +803,12 @@ impl Readable for ValidBlockPosition {
         let val = i64::read(buffer, version)?;
 
         let x = (val >> 38) as i32;
-        let y = (val & 0xFFF) as i32;
+        let mut y = (val & 0xFFF) as i32;
         let z = (val << 26 >> 38) as i32;
+
+        if y >= 1 << 11 {
+            y -= 1 << 12
+        }
 
         Ok(BlockPosition { x, y, z }.try_into()?)
     }
@@ -860,7 +869,7 @@ impl Readable for BlockId {
         let id = VarInt::read(buffer, version)?.0;
 
         let block = BlockId::from_vanilla_id(id.try_into()?);
-        Ok(block)
+        Ok(block.unwrap_or_default())
     }
 }
 
@@ -913,5 +922,121 @@ impl Readable for PreviousGamemode {
 impl Writeable for PreviousGamemode {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         self.id().write(buffer, version)
+    }
+}
+
+macro_rules! tuple_impl {
+    ($($item: ident),*) => {
+        impl<$($item: Readable),*> Readable for ($($item,)*) {
+            fn read(#[allow(unused)] buffer: &mut Cursor<&[u8]>, #[allow(unused)] version: ProtocolVersion) -> anyhow::Result<Self>
+                where
+                    Self: Sized,
+                {
+                    Ok(($($item::read(buffer, version)?,)*))
+                }
+        }
+        impl<$($item: Writeable),*> Writeable for ($($item,)*) {
+            fn write(&self, #[allow(unused)] buffer: &mut Vec<u8>, #[allow(unused)] version: ProtocolVersion) -> anyhow::Result<()> {
+                #[allow(non_snake_case)]
+                let ($($item,)*): &($($item,)*) = self;
+                $($item.write(buffer, version)?;)*
+                Ok(())
+            }
+        }
+    };
+}
+
+tuple_impl!();
+tuple_impl!(T1);
+tuple_impl!(T1, T2);
+tuple_impl!(T1, T2, T3);
+
+// TODO remove and use bitvec instead
+#[derive(Default)]
+pub struct BitMask(Vec<u64>);
+
+impl BitMask {
+    // pushes a bit to this bitmask
+    pub fn set(&mut self, i: usize, bit: bool) {
+        let n = i / 64;
+        while n >= self.0.len() {
+            self.0.push(0);
+        }
+        self.0[n] |= (bit as u64) << (i % 64);
+    }
+
+    pub fn is_set(&self, i: usize) -> bool {
+        let n = i / 64;
+        if n >= self.0.len() {
+            false
+        } else {
+            self.0[n] & (1 << (i % 64)) != 0
+        }
+    }
+
+    pub fn max_len(&self) -> usize {
+        self.0.len() * u64::BITS as usize / 8
+    }
+}
+
+impl Writeable for BitMask {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        VarInt(self.0.len() as i32).write(buffer, version)?;
+        for long in &self.0 {
+            long.write(buffer, version)?
+        }
+        Ok(())
+    }
+}
+
+impl Readable for BitMask {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let mut bitmask = Vec::new();
+        for _ in 0..VarInt::read(buffer, version)?.0 {
+            bitmask.push(u64::read(buffer, version)?);
+        }
+        Ok(BitMask(bitmask))
+    }
+}
+
+impl<T> Writeable for PalettedContainer<T>
+where
+    T: Paletteable,
+{
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        let data = self.data();
+        (data
+            .map(|arr| arr.bits_per_value().get())
+            .unwrap_or_default() as u8)
+            .write(buffer, version)?;
+
+        match self {
+            PalettedContainer::SingleValue(value) => {
+                VarInt(value.default_palette_index() as i32).write(buffer, version)?
+            }
+            PalettedContainer::MultipleValues { palette, .. } => {
+                VarInt(palette.len() as i32).write(buffer, version)?;
+                for item in palette {
+                    VarInt(item.default_palette_index() as i32).write(buffer, version)?;
+                }
+            }
+            PalettedContainer::GlobalPalette { .. } => {}
+        }
+
+        VarInt(
+            data.map(|data| data.as_u64_slice().len())
+                .unwrap_or_default() as i32,
+        )
+        .write(buffer, version)?;
+        if let Some(data) = data {
+            for u64 in data.as_u64_slice() {
+                u64.write(buffer, version)?;
+            }
+        }
+
+        Ok(())
     }
 }

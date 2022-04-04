@@ -1,8 +1,13 @@
-use libcraft_items::InventorySlot;
+use std::convert::TryFrom;
+use std::sync::Arc;
+
 use log::debug;
 
 use base::anvil::player::PlayerAbilities;
+use base::biome::BiomeList;
 use base::{Gamemode, Inventory, ItemStack, Position, Text};
+use common::events::PlayerRespawnEvent;
+use common::world::{Dimensions, WorldName, WorldPath};
 use common::{
     chat::{ChatKind, ChatPreference},
     entities::player::HotbarSlot,
@@ -11,17 +16,24 @@ use common::{
     ChatBox, Game, Window,
 };
 use ecs::{SysResult, SystemExecutor};
+use libcraft_core::EntityKind;
+use libcraft_items::InventorySlot;
+use quill_common::components;
 use quill_common::components::{
-    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
-    Invulnerable, PreviousGamemode, WalkSpeed,
+    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
+    Health, Instabreak, Invulnerable, PreviousGamemode, WalkSpeed,
 };
 use quill_common::events::GamemodeEvent;
-use quill_common::{components::Name, entity_init::EntityInit};
+use quill_common::{components::Name};
 
+use crate::config::Config;
 use crate::{ClientId, NetworkId, Server};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
-    systems.group::<Server>().add_system(poll_new_players);
+    systems
+        .group::<Server>()
+        .add_system(poll_new_players)
+        .add_system(send_respawn_packets);
 }
 
 /// Polls for new clients and sends them the necessary packets
@@ -34,8 +46,38 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
+    let config = game.resources.get::<Config>().unwrap().clone();
     let client = server.clients.get_mut(client_id).unwrap();
-    let player_data = game.world.load_player_data(client.uuid());
+    let (player_data, world) = {
+        let mut query = game.ecs.query::<(&WorldName, &WorldPath)>();
+        let (world, (_, world_path)) = query
+            .iter()
+            .find(|(_, (name, _))| ***name == config.worlds.default_world)
+            .unwrap();
+        (
+            world_path.load_player_data(client.uuid()),
+            EntityWorld(world),
+        )
+    };
+    let biomes = Arc::clone(&game.resources.get::<Arc<BiomeList>>().unwrap());
+
+    let dimension = EntityDimension(
+        player_data
+            .as_ref()
+            .map(|data| data.dimension.to_owned())
+            .unwrap_or_else(|_| String::from("minecraft:overworld")), // TODO make it configurable
+    );
+    let position = player_data
+        .as_ref()
+        .map(|data| Position {
+            x: data.animal.base.position[0],
+            y: data.animal.base.position[1],
+            z: data.animal.base.position[2],
+            yaw: data.animal.base.rotation[0],
+            pitch: data.animal.base.rotation[1],
+        })
+        .unwrap_or_default();
+
     let mut builder = game.create_entity_builder(
         player_data
             .as_ref()
@@ -47,7 +89,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                 pitch: data.animal.base.rotation[1],
             })
             .unwrap_or_default(),
-        EntityInit::Player,
+        EntityKind::Player,
     );
     client.set_network_id(*builder.get::<NetworkId>().unwrap());
 
@@ -57,13 +99,28 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let gamemode = player_data
         .as_ref()
         .map(|data| Gamemode::from_id(data.gamemode as u8).expect("Unsupported gamemode"))
-        .unwrap_or(server.options.default_gamemode);
+        .unwrap_or(config.server.default_gamemode);
     let previous_gamemode = player_data
         .as_ref()
         .map(|data| PreviousGamemode::from_id(data.previous_gamemode as i8))
-        .unwrap_or(PreviousGamemode(None));
+        .unwrap_or_default();
 
-    client.send_join_game(gamemode, previous_gamemode);
+    {
+        let mut query = game.ecs.query::<(&WorldName, &Dimensions)>();
+        let (_, (_, dimensions)) = query
+            .iter()
+            .find(|(_, (name, _))| ***name == config.worlds.default_world)
+            .unwrap();
+        client.send_join_game(
+            gamemode,
+            previous_gamemode,
+            dimensions,
+            &*biomes,
+            config.server.max_players as i32,
+            dimension.clone(),
+            world,
+        );
+    }
     client.send_brand();
 
     // Abilities
@@ -71,13 +128,11 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         player_data.as_ref().map(|data| data.abilities.clone()).ok(),
         gamemode,
     );
-    client.send_abilities(&abilities);
 
     let hotbar_slot = player_data
         .as_ref()
         .map(|data| HotbarSlot::new(data.held_item as usize))
         .unwrap_or_else(|_e| HotbarSlot::new(0));
-    client.set_hotbar_slot(hotbar_slot.get() as u8);
 
     let inventory = Inventory::player();
     let window = Window::new(BackingWindow::Player {
@@ -94,30 +149,38 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                 }
             };
 
-            // This can't fail since the earlier match filters out all incorrect indexes.
             window
-                .set_item(slot, InventorySlot::Filled(ItemStack::from(inventory_slot)))
-                .unwrap();
+                .set_item(
+                    slot,
+                    InventorySlot::Filled(
+                        ItemStack::try_from(inventory_slot)
+                            .expect("The player has an invalid item saved in their inventory"),
+                    ),
+                )
+                .unwrap(); // This can't fail since the earlier match filters out all incorrect indexes.
         }
     }
 
-    client.send_window_items(&window);
-
     builder
         .add(client_id)
+        .add(position)
         .add(View::new(
-            Position::default().chunk(),
-            server.options.view_distance,
+            position.chunk(),
+            config.server.view_distance,
+            world,
+            dimension.clone(),
         ))
         .add(gamemode)
         .add(previous_gamemode)
-        .add(Name::new(client.username()))
+        .add(components::Name::new(client.username()))
         .add(client.uuid())
         .add(client.profile().to_vec())
         .add(ChatBox::new(ChatPreference::All))
         .add(inventory)
         .add(window)
         .add(hotbar_slot)
+        .add(dimension)
+        .add(world)
         .add(Health(
             player_data
                 .as_ref()
@@ -159,4 +222,53 @@ fn player_abilities_or_default(
         instabreak: Instabreak(matches!(gamemode, Gamemode::Creative)),
         invulnerable: Invulnerable(matches!(gamemode, Gamemode::Creative | Gamemode::Spectator)),
     })
+}
+
+fn send_respawn_packets(game: &mut Game, server: &mut Server) -> SysResult {
+    for (
+        _,
+        (
+            _,
+            &client_id,
+            &walk_speed,
+            &fly_speed,
+            &may_fly,
+            &is_flying,
+            &may_build,
+            &instabreak,
+            &invulnerable,
+            hotbar_slot,
+            window,
+        ),
+    ) in game
+        .ecs
+        .query::<(
+            &PlayerRespawnEvent,
+            &ClientId,
+            &WalkSpeed,
+            &CreativeFlyingSpeed,
+            &CanCreativeFly,
+            &CreativeFlying,
+            &CanBuild,
+            &Instabreak,
+            &Invulnerable,
+            &HotbarSlot,
+            &Window,
+        )>()
+        .iter()
+    {
+        let client = server.clients.get(client_id).unwrap();
+        client.send_abilities(&PlayerAbilities {
+            walk_speed,
+            fly_speed,
+            may_fly,
+            is_flying,
+            may_build,
+            instabreak,
+            invulnerable,
+        });
+        client.send_hotbar_slot(hotbar_slot.get() as u8);
+        client.send_window_items(window);
+    }
+    Ok(())
 }
