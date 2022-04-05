@@ -13,7 +13,7 @@ use feather_core::{
     util::{BlockPosition, Position},
 };
 use feather_server_types::BlockEntity;
-use fecs::{EntityBuilder, EntityRef};
+use fvane::{EntityBuilder, EntityRef};
 pub use init::{on_block_entity_create_insert_to_map, on_block_update_create_block_entity};
 
 /// A function which determines whether a given change between

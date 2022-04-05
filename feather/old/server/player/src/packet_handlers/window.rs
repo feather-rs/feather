@@ -1,13 +1,13 @@
 use crate::IteratorExt;
 use feather_core::{inventory::Window, network::packets::CloseWindowServerbound};
 use feather_server_types::{Game, PacketBuffers, WindowCloseEvent};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use smallvec::SmallVec;
 use std::sync::Arc;
 
 /// When a client sends Close Window, resets their `Window`
 /// to the normal player window.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_close_window(
     game: &mut Game,
     world: &mut World,

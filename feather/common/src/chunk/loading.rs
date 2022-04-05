@@ -8,10 +8,11 @@ use std::{
 
 use ahash::AHashMap;
 
+use anyhow::Context;
 use base::ChunkPosition;
-use ecs::{Entity, SysResult, SystemExecutor};
 use quill_common::events::EntityRemoveEvent;
 use utils::vec_remove_item;
+use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{chunk::worker::LoadRequest, events::ViewUpdateEvent, Game};
 use quill_common::components::{EntityDimension, EntityWorld};
@@ -146,14 +147,10 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
             state.chunk_tickets.insert_ticket(new_chunk, player_ticket);
 
             // Load if needed
-            let mut query = game.ecs.query::<&mut Dimensions>();
-            let dimension = query
-                .iter()
-                .find(|(world, _dimensions)| *world == *event.new_world)
-                .unwrap()
-                .1
+            let mut dimensions = game.ecs.get_mut::<Dimensions>(event.new_world.0)?;
+            let dimension = dimensions
                 .get_mut(&*event.new_dimension)
-                .unwrap();
+                .context("missing dimension")?;
             if !dimension.is_chunk_loaded(new_chunk) && !dimension.is_chunk_loading(new_chunk) {
                 dimension.queue_chunk_load(LoadRequest { pos: new_chunk });
             }
@@ -189,8 +186,8 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
             .unwrap()
             .unload_chunk(unload.pos)?;
     }
-    for dimensions in game.ecs.query::<&mut Dimensions>().iter() {
-        for dimension in dimensions.1.iter_mut() {
+    for (_, mut dimensions) in game.ecs.query::<&mut Dimensions>().iter() {
+        for dimension in dimensions.iter_mut() {
             dimension.cache.purge_unused();
         }
     }
@@ -214,8 +211,8 @@ fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResul
 /// System to call `World::load_chunks` each tick
 fn load_chunks(game: &mut Game, _state: &mut ChunkLoadState) -> SysResult {
     let mut events = Vec::new();
-    for dimensions in game.ecs.query::<&mut Dimensions>().iter() {
-        for dimension in dimensions.1.iter_mut() {
+    for (_, mut dimensions) in game.ecs.query::<&mut Dimensions>().iter() {
+        for dimension in dimensions.iter_mut() {
             events.extend(dimension.load_chunks()?)
         }
     }

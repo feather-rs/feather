@@ -1,7 +1,7 @@
 use feather_core::inventory::{slot, Area, SlotIndex};
 use feather_core::items::ItemStack;
 use feather_server_types::{HeldItem, Inventory};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use num_derive::{FromPrimitive, ToPrimitive};
 
 pub trait InventoryExt {

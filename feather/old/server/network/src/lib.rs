@@ -16,7 +16,7 @@ use feather_core::util::Position;
 use feather_server_types::{
     Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage, WrappedBanInfo,
 };
-use fecs::Entity;
+use fvane::Entity;
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 use std::net::SocketAddr;

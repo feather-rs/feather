@@ -16,7 +16,7 @@ use feather_server_types::{
     PacketBuffers,
 };
 use feather_server_util::is_block_supported_at;
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use once_cell::sync::Lazy;
 use smallvec::smallvec;
 use std::boxed::Box;
@@ -43,7 +43,7 @@ static INTERACTION_HANDLERS: Lazy<HashMap<BlockKind, &'static dyn InteractionHan
 /// and updating the world accordingly.
 ///
 /// Also handles block interactions because they are handled with the same packet.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_player_block_placement(
     game: &mut Game,
     world: &mut World,

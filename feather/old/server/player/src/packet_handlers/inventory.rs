@@ -12,14 +12,14 @@ use feather_core::util::Gamemode;
 use feather_server_types::{
     Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, Network, PacketBuffers,
 };
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use smallvec::smallvec;
 use std::convert::TryFrom;
 use std::sync::Arc;
 use thiserror::Error;
 
 /// System for handling Creative Inventory Action packets.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_creative_inventory_action(
     game: &mut Game,
     world: &mut World,
@@ -92,7 +92,7 @@ pub fn handle_creative_inventory_action(
 }
 
 /// System for handling Held Item Change packets.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_held_item_change(
     game: &mut Game,
     world: &mut World,
@@ -260,7 +260,7 @@ enum PaintAction {
 /// System for handling Click Window packets.
 ///
 /// This is a bulky one
-#[fecs::system]
+#[fvane::system]
 pub fn handle_click_windows(
     game: &mut Game,
     world: &mut World,

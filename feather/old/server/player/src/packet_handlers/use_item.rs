@@ -5,10 +5,10 @@ use feather_core::items::Item;
 use feather_core::network::packets::UseItem;
 use feather_core::util::Hand;
 use feather_server_types::{Game, Name, PacketBuffers};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use std::sync::Arc;
 
-#[fecs::system]
+#[fvane::system]
 pub fn handle_player_use_item(
     game: &mut Game,
     world: &mut World,

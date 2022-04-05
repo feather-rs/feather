@@ -1,10 +1,10 @@
 use feather_core::network::packets::ChangeGameState;
 use feather_core::util::Gamemode;
 use feather_server_types::{GamemodeUpdateEvent, Network};
-use fecs::World;
+use fvane::World;
 
 /// Sends a Change Game State packet to update player's gamemode.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_gamemode_update_send(event: &GamemodeUpdateEvent, world: &mut World) {
     let packet = ChangeGameState {
         reason: 3, // change gamemode

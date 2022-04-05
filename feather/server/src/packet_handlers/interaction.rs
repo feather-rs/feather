@@ -1,10 +1,10 @@
+use anyhow::Context;
 use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use base::BlockId;
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::world::Dimensions;
 use common::{Game, Window};
-use ecs::{Entity, EntityRef, SysResult};
 use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
 use libcraft_core::{InteractionType, Vec3f};
 use protocol::packets::client::{
@@ -16,6 +16,7 @@ use quill_common::{
     events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
     EntityId,
 };
+use vane::{Entity, EntityRef, SysResult};
 
 use crate::{ClientId, NetworkId, Server};
 
@@ -62,14 +63,10 @@ pub fn handle_player_block_placement(
         let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
         let (_, (player_world, player_dimension)) =
             query.iter().find(|(e, _)| *e == player).unwrap();
-        let mut query = game.ecs.query::<&Dimensions>();
-        let dimension = query
-            .iter()
-            .find(|(world, _)| *world == **player_world)
-            .unwrap()
-            .1
+        let dimensions = game.ecs.get::<Dimensions>(**player_world)?;
+        let dimension = dimensions
             .get(&**player_dimension)
-            .unwrap();
+            .context("missing dimension")?;
         let result = dimension.block_at(packet.position);
         match result {
             Some(block) => block.kind(),
@@ -139,14 +136,10 @@ pub fn handle_player_digging(
             let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
             let (_, (player_world, player_dimension)) =
                 query.iter().find(|(e, _)| *e == player).unwrap();
-            let mut query = game.ecs.query::<&Dimensions>();
-            let dimension = query
-                .iter()
-                .find(|(world, _)| *world == **player_world)
-                .unwrap()
-                .1
+            let dimensions = game.ecs.get::<Dimensions>(**player_world)?;
+            let dimension = dimensions
                 .get(&**player_dimension)
-                .unwrap();
+                .context("missing dimension")?;
             dimension.set_block_at(packet.position, BlockId::air());
             Ok(())
         }
@@ -184,7 +177,7 @@ pub fn handle_interact_entity(
 ) -> SysResult {
     let target = {
         let mut found_entity = None;
-        for (entity, &network_id) in game.ecs.query::<&NetworkId>().iter() {
+        for (entity, network_id) in game.ecs.query::<&NetworkId>().iter() {
             if network_id.0 == packet.entity_id {
                 found_entity = Some(entity);
                 break;
@@ -207,14 +200,14 @@ pub fn handle_interact_entity(
 
     let event = match packet.kind {
         InteractEntityKind::Attack => InteractEntityEvent {
-            target: EntityId(target.id() as u64),
+            target: EntityId(target.index() as u64),
             ty: InteractionType::Attack,
             target_pos: None,
             hand: None,
             sneaking: packet.sneaking,
         },
         InteractEntityKind::Interact => InteractEntityEvent {
-            target: EntityId(target.id() as u64),
+            target: EntityId(target.index() as u64),
             ty: InteractionType::Interact,
             target_pos: None,
             hand: None,
@@ -233,7 +226,7 @@ pub fn handle_interact_entity(
             };
 
             InteractEntityEvent {
-                target: EntityId(target.id() as u64),
+                target: EntityId(target.index() as u64),
                 ty: InteractionType::Attack,
                 target_pos: Some(Vec3f::new(
                     target_x as f32,

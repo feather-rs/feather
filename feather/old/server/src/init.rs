@@ -12,7 +12,7 @@ use feather_server_types::{task, BanInfo, Config, Game, Shared, ShutdownChannels
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
-use fecs::{EntityBuilder, Executor, OwnedResources, ResourcesProvider, World};
+use fvane::{EntityBuilder, Executor, OwnedResources, ResourcesProvider, World};
 use fxhash::FxHasher;
 use rand::Rng;
 use std::hash::{Hash, Hasher};

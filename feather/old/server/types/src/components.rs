@@ -15,7 +15,7 @@ use ahash::AHashSet;
 use dashmap::DashMap;
 use feather_core::text::Text;
 use feather_core::util::{ChunkPosition, Position};
-use fecs::Entity;
+use fvane::Entity;
 
 /// The item an entity is currently holding.
 ///

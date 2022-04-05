@@ -2,10 +2,10 @@
 
 use feather_core::network::packets::ChatMessageClientbound;
 use feather_server_types::{ChatEvent, ChatPosition, Game, MessageReceiver, Network, Player};
-use fecs::{component, IntoQuery, Read, World, Write};
+use fvane::{component, IntoQuery, Read, World, Write};
 
 /// System that broadcasts chat messages to all players
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chat_broadcast(event: &ChatEvent, game: &Game, world: &mut World) {
     let packet = ChatMessageClientbound {
         json_data: event.message.clone(),
@@ -19,7 +19,7 @@ pub fn on_chat_broadcast(event: &ChatEvent, game: &Game, world: &mut World) {
 }
 
 /// System to flush a players `MessageReceiver` component and send the messages.
-#[fecs::system]
+#[fvane::system]
 pub fn flush_player_message_receiver(world: &mut World) {
     <(Write<MessageReceiver>, Read<Network>)>::query()
         .filter(component::<Player>())

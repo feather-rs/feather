@@ -4,7 +4,7 @@ use anyhow::{anyhow, bail};
 
 use base::{Area, Item};
 
-use ecs::SysResult;
+use vane::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
 use libcraft_inventory::WindowError;
 use libcraft_items::InventorySlot::{self, Empty};

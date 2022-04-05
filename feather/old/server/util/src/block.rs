@@ -22,7 +22,7 @@ use feather_core::blocks::{BlockId, BlockKind, Face};
 use feather_core::chunk_map::chunk_relative_pos;
 use feather_core::util::BlockPosition;
 use feather_server_types::{BlockUpdateEvent, Game};
-use fecs::{EntityBuilder, World};
+use fvane::{EntityBuilder, World};
 use std::cmp::max;
 use std::iter;
 
@@ -67,7 +67,7 @@ fn notify_entity_for_block(block: BlockId, pos: BlockPosition) -> Option<EntityB
 
 /// When a block is updated, spawns notify entities
 /// for adjacent blocks.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_block_update_notify_adjacent(
     event: &BlockUpdateEvent,
     game: &mut Game,

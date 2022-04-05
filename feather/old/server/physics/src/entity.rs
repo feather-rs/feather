@@ -6,12 +6,12 @@ use feather_core::blocks::BlockKind;
 use feather_core::position;
 use feather_core::util::Position;
 use feather_server_types::{AABBExt, EntityLandEvent, Game, Physics, Velocity};
-use fecs::{IntoQuery, Read, World, Write};
+use fvane::{IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 
 /// System for updating all entities' positions and velocities
 /// each tick.
-#[fecs::system]
+#[fvane::system]
 pub fn entity_physics(game: &mut Game, world: &mut World) {
     // Go through entities and update their positions according
     // to their velocities.

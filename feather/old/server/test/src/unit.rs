@@ -18,7 +18,7 @@ use feather_server_types::{
     WorkerToServerMessage,
 };
 use feather_server_util::on_chunk_cross_update_chunk_entities;
-use fecs::{
+use fvane::{
     Entity, EntityBuilder, Event, EventHandlers, Executor, OwnedResources, RawEventHandler,
     RawSystem, RefResources, ResourcesEnum, ResourcesProvider, World,
 };

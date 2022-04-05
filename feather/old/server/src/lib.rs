@@ -5,7 +5,7 @@
 use feather_server_chunk::ChunkWorkerHandle;
 use feather_server_lighting::LightingWorkerHandle;
 use feather_server_types::{BanInfo, Game, ShutdownChannels, TPS};
-use fecs::{Executor, OwnedResources, ResourcesProvider, World};
+use fvane::{Executor, OwnedResources, ResourcesProvider, World};
 use spin_sleep::LoopHelper;
 use std::ops::Deref;
 use std::panic::AssertUnwindSafe;

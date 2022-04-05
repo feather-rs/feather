@@ -2,7 +2,7 @@
 
 use std::{any::type_name, marker::PhantomData, sync::Arc};
 
-use crate::{Resources, World};
+use crate::{Resources, Entities};
 
 /// The result type returned by a system function.
 ///
@@ -41,19 +41,19 @@ pub trait HasResources {
     fn resources(&self) -> Arc<Resources>;
 }
 
-/// A type containing a `World`.
-pub trait HasWorld {
-    fn world(&self) -> &World;
+/// A type containing an `Entities`.
+pub trait HasEntities {
+    fn entities(&self) -> &Entities;
 
-    fn world_mut(&mut self) -> &mut World;
+    fn entities_mut(&mut self) -> &mut Entities;
 }
 
-impl HasWorld for World {
-    fn world(&self) -> &World {
+impl HasEntities for Entities {
+    fn entities(&self) -> &Entities {
         self
     }
 
-    fn world_mut(&mut self) -> &mut World {
+    fn entities_mut(&mut self) -> &mut Entities {
         self
     }
 }
@@ -127,10 +127,10 @@ impl<Input> SystemExecutor<Input> {
     /// Errors are logged using the `log` crate.
     pub fn run(&mut self, input: &mut Input)
     where
-        Input: HasWorld,
+        Input: HasEntities,
     {
         for (i, system) in self.systems.iter_mut().enumerate() {
-            input.world_mut().set_current_system_index(i);
+            input.entities_mut().set_current_system_index(i);
 
             // For the first cycle, we don't want to clear
             // events because some code may have triggered
@@ -138,7 +138,7 @@ impl<Input> SystemExecutor<Input> {
             // this check, these events would be cleared before
             // any system could observe them.
             if !self.is_first_run {
-                input.world_mut().remove_old_events();
+                input.entities_mut().remove_old_events();
             }
 
             let result = (system.function)(input);

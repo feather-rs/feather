@@ -15,7 +15,7 @@ use feather_server_types::{
     SpawnPacketCreator, Uuid, Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{degrees_to_stops, nearby_entities, protocol_velocity};
-use fecs::{component, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
+use fvane::{component, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 use rand::Rng;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -37,7 +37,7 @@ inventory::submit! {
 
 /// Handler for spawning an item entity when
 /// an item is dropped.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_item_drop_spawn_item_entity(event: &ItemDropEvent, game: &mut Game, world: &mut World) {
     // Spawn item entity.
 
@@ -79,7 +79,7 @@ pub fn on_item_drop_spawn_item_entity(event: &ItemDropEvent, game: &mut Game, wo
 }
 
 /// System to add items to player inventories when the player comes near.
-#[fecs::system]
+#[fvane::system]
 pub fn item_collect(game: &mut Game, world: &mut World) {
     // run every 1/10 second
     if game.tick_count % (TPS / 10) != 0 {

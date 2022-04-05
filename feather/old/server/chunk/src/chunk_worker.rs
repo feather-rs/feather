@@ -16,7 +16,7 @@ use feather_core::chunk::Chunk;
 use feather_core::util::ChunkPosition;
 use feather_server_util::EntityLoader;
 use feather_server_worldgen::WorldGenerator;
-use fecs::EntityBuilder;
+use fvane::EntityBuilder;
 use parking_lot::RwLock;
 use smallvec::SmallVec;
 use std::path::{Path, PathBuf};

@@ -4,11 +4,11 @@ use feather_core::util::Position;
 use feather_server_types::{
     BlocksFallen, BumpVec, CanTakeDamage, Dead, Game, Health, PreviousPosition,
 };
-use fecs::{component, Entity, IntoQuery, Read, World, Write};
+use fvane::{component, Entity, IntoQuery, Read, World, Write};
 use std::cell::RefCell;
 
 /// System which updates `BlocksFallen` for all entities.
-#[fecs::system]
+#[fvane::system]
 pub fn update_blocks_fallen(game: &mut Game, world: &mut World) {
     // Entities who went from !on_ground => on_ground
 

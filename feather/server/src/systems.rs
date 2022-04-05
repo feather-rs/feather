@@ -14,7 +14,7 @@ pub mod view;
 use std::time::{Duration, Instant};
 
 use common::Game;
-use ecs::{SysResult, SystemExecutor};
+use vane::{SysResult, SystemExecutor};
 use quill_common::components::Name;
 
 use crate::{client::ClientId, Server};
@@ -47,8 +47,8 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
 fn handle_packets(game: &mut Game, server: &mut Server) -> SysResult {
     let mut packets = Vec::new();
 
-    for (player, &client_id) in game.ecs.query::<&ClientId>().iter() {
-        if let Some(client) = server.clients.get(client_id) {
+    for (player, client_id) in game.ecs.query::<&ClientId>().iter() {
+        if let Some(client) = server.clients.get(*client_id) {
             for packet in client.received_packets() {
                 packets.push((player, packet));
             }

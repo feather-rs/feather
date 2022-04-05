@@ -4,7 +4,7 @@ use vane::*;
 
 #[test]
 fn insert_and_get() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     let entity = EntityBuilder::new()
         .add(10i32)
@@ -19,7 +19,7 @@ fn insert_and_get() {
 #[test]
 #[cfg_attr(miri, ignore)]
 fn spawn_many_entities() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     let mut entities = Vec::new();
     for i in 0..10_000 {
@@ -41,7 +41,7 @@ fn spawn_many_entities() {
 
 #[test]
 fn zero_sized_components() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     #[derive(PartialEq, Debug)]
     struct ZeroSized;
@@ -53,7 +53,7 @@ fn zero_sized_components() {
 
 #[test]
 fn remove_components() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     let entity1 = world.spawn_bundle((10i32, "string"));
     let entity2 = world.spawn_bundle((15i32, "string2"));
@@ -66,9 +66,9 @@ fn remove_components() {
 #[test]
 #[cfg_attr(miri, ignore)]
 fn remove_components_large_storage() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
-    let mut entities: Vec<EntityId> = (0..10_000usize).map(|i| world.spawn_bundle((i,))).collect();
+    let mut entities: Vec<Entity> = (0..10_000usize).map(|i| world.spawn_bundle((i,))).collect();
 
     let removed_entity = entities.remove(5000);
     world.remove::<usize>(removed_entity).unwrap();
@@ -82,7 +82,7 @@ fn remove_components_large_storage() {
 
 #[test]
 fn remove_nonexisting() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     let entity = world.spawn_bundle((10i32,));
     assert!(world.remove::<usize>(entity).is_err());
@@ -90,7 +90,7 @@ fn remove_nonexisting() {
 
 #[test]
 fn query_basic() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     let entity1 = world.spawn_bundle((10i32, "name1"));
     let entity2 = world.spawn_bundle((15i32, "name2", 50.0f32));
@@ -113,7 +113,7 @@ fn query_basic() {
 
 #[test]
 fn query_big_ecs_after_despawn() {
-    let mut world = World::new();
+    let mut world = Entities::new();
 
     let mut entities = Vec::new();
     for i in 0..100usize {
@@ -131,7 +131,7 @@ fn query_big_ecs_after_despawn() {
     let last = entities.len() - 1;
     world.despawn(entities.remove(last)).unwrap();
 
-    let queried: HashMap<EntityId, (Ref<String>, Ref<usize>)> =
+    let queried: HashMap<Entity, (Ref<String>, Ref<usize>)> =
         world.query::<(&String, &usize)>().iter().collect();
 
     for (i, entity) in entities.iter().copied().enumerate() {
@@ -145,14 +145,14 @@ fn query_big_ecs_after_despawn() {
 
 #[test]
 fn empty_query() {
-    let world = World::new();
+    let world = Entities::new();
 
     assert_eq!(world.query::<&i32>().iter().count(), 0);
 }
 
 #[test]
 fn mutable_access() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let entity = world.spawn_bundle((10i32,));
     *world.get_mut::<i32>(entity).unwrap() = 15;
     assert_eq!(*world.get::<i32>(entity).unwrap(), 15);
@@ -160,7 +160,7 @@ fn mutable_access() {
 
 #[test]
 fn borrow_conflict_mutable() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let entity = world.spawn_bundle((10i32,));
 
     let mut reference = world.get_mut::<i32>(entity).unwrap();
@@ -177,7 +177,7 @@ fn borrow_conflict_mutable() {
 
 #[test]
 fn borrow_conflict_shared() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let entity = world.spawn_bundle((10i32,));
 
     let _reference = world.get::<i32>(entity).unwrap();
@@ -189,7 +189,7 @@ fn borrow_conflict_shared() {
 
 #[test]
 fn too_many_shared_borrows() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let entity = world.spawn_bundle((10i32,));
 
     let refs: Vec<_> = (0..254)

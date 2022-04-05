@@ -1,14 +1,14 @@
-use crate::{Component, ComponentError, EntityId, Ref, RefMut, World};
+use crate::{Component, ComponentError, Entity, Ref, RefMut, Entities};
 
 /// Convenient wrapper over an `EntityId` that
 /// gives access to components.
 pub struct EntityRef<'a> {
-    entity: EntityId,
-    world: &'a World,
+    entity: Entity,
+    world: &'a Entities,
 }
 
 impl<'a> EntityRef<'a> {
-    pub(crate) fn new(entity: EntityId, world: &'a World) -> Self {
+    pub(crate) fn new(entity: Entity, world: &'a Entities) -> Self {
         Self { entity, world }
     }
 

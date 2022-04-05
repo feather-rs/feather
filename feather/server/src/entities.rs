@@ -1,7 +1,7 @@
 use base::{EntityKind, Position};
-use ecs::{EntityBuilder, EntityRef, SysResult};
 use quill_common::components::OnGround;
 use uuid::Uuid;
+use vane::{EntityBuilder, EntityRef, SysResult};
 
 use crate::{Client, NetworkId};
 
@@ -34,8 +34,8 @@ pub fn add_entity_components(builder: &mut EntityBuilder, kind: EntityKind) {
     // can't panic because this is only called after both position and onground is added to all entities.
     // Position is added in the caller of this function and on_ground is added in the
     // build default function. All entity builder functions call the build default function.
-    let prev_position = *builder.get::<Position>().unwrap();
-    let on_ground = *builder.get::<OnGround>().unwrap();
+    let prev_position = builder.get::<Position>().unwrap();
+    let on_ground = builder.get::<OnGround>().unwrap();
 
     builder
         .add(PreviousPosition(prev_position))

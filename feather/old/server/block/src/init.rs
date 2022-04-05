@@ -3,7 +3,7 @@ use ahash::AHashMap;
 use feather_core::blocks::BlockKind;
 use feather_core::util::BlockPosition;
 use feather_server_types::{BlockEntity, BlockUpdateEvent, EntitySpawnEvent, Game};
-use fecs::{EntityBuilder, World};
+use fvane::{EntityBuilder, World};
 use once_cell::sync::Lazy;
 
 type BlockEntityCreator = fn(BlockPosition) -> EntityBuilder;
@@ -20,7 +20,7 @@ static BLOCK_ENTITY_MAP: Lazy<AHashMap<BlockKind, BlockEntityCreator>> = Lazy::n
 /// When a block is created, and there is a block entity kind
 /// associated with it, creates the block entity. Additionally,
 /// removes any old block entity, if it existed.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_block_update_create_block_entity(
     event: &BlockUpdateEvent,
     game: &mut Game,
@@ -46,7 +46,7 @@ pub fn on_block_update_create_block_entity(
     }
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_block_entity_create_insert_to_map(
     event: &EntitySpawnEvent,
     game: &mut Game,

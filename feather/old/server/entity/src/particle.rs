@@ -4,7 +4,7 @@ use feather_core::misc::ParticleData;
 use feather_core::network::{packets, Packet};
 use feather_core::util::Position;
 use feather_server_types::{ParticleCount, SpawnPacketCreator};
-use fecs::{EntityBuilder, EntityRef};
+use fvane::{EntityBuilder, EntityRef};
 
 /// Creates a particle with the given kind and count.
 pub fn create(kind: ParticleData, count: u32) -> EntityBuilder {

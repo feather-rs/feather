@@ -301,7 +301,7 @@ pub struct EntityDimension(pub String);
 bincode_component_impl!(EntityDimension);
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, derive_more::Deref, derive_more::DerefMut)]
-pub struct EntityWorld(pub ecs::Entity);
+pub struct EntityWorld(pub vane::Entity);
 
 impl Serialize for EntityWorld {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -317,7 +317,7 @@ impl<'de> Deserialize<'de> for EntityWorld {
     where
         D: Deserializer<'de>,
     {
-        Ok(EntityWorld(ecs::Entity::from_bits(u64::deserialize(
+        Ok(EntityWorld(vane::Entity::from_bits(u64::deserialize(
             deserializer,
         )?)))
     }

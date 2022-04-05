@@ -6,10 +6,10 @@ use feather_core::{
     util::BlockPosition,
 };
 use feather_server_types::{BlockEntity, EntityDespawnEvent, Game, NetworkId, Player, Uuid};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 
 /// Broadcasts when an entity is deleted.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_despawn_broadcast_despawn(
     event: &EntityDespawnEvent,
     game: &mut Game,

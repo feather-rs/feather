@@ -15,7 +15,7 @@ use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
     BanInfo, Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
 };
-use fecs::Entity;
+use fvane::Entity;
 use futures::future::Either;
 use futures::SinkExt;
 use futures::StreamExt;

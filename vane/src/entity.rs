@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 /// to access the entity's components.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(C)]
-pub struct EntityId {
+pub struct Entity {
     index: u32,
     generation: u32,
 }
 
-impl EntityId {
+impl Entity {
     pub fn to_bits(self) -> u64 {
         ((self.index as u64) << 32) | (self.generation as u64)
     }
@@ -37,26 +37,26 @@ pub struct GenerationMismatch;
 /// Allocator for entity IDs. Maintains generations
 /// and indices.
 #[derive(Default)]
-pub(crate) struct Entities {
+pub(crate) struct EntityIds {
     free_indices: Vec<u32>,
     next_index: u32,
     generations: Vec<u32>,
 }
 
-impl Entities {
+impl EntityIds {
     /// Allocates a new, unique entity ID.
-    pub fn allocate(&mut self) -> EntityId {
+    pub fn allocate(&mut self) -> Entity {
         let index = self.free_indices.pop().unwrap_or_else(|| {
             self.next_index += 1;
             self.next_index - 1
         });
         let generation = self.new_generation(index);
 
-        EntityId { index, generation }
+        Entity { index, generation }
     }
 
     /// Deallocates an entity ID, allowing its index to be reused.
-    pub fn deallocate(&mut self, entity: EntityId) -> Result<(), GenerationMismatch> {
+    pub fn deallocate(&mut self, entity: Entity) -> Result<(), GenerationMismatch> {
         self.check_generation(entity)?;
 
         self.free_indices.push(entity.index);
@@ -76,7 +76,7 @@ impl Entities {
     }
 
     /// Verifies that the generation of `entity` is up to date.
-    pub fn check_generation(&self, entity: EntityId) -> Result<(), GenerationMismatch> {
+    pub fn check_generation(&self, entity: Entity) -> Result<(), GenerationMismatch> {
         if self.generations[entity.index as usize] != entity.generation {
             Err(GenerationMismatch)
         } else {
@@ -85,18 +85,18 @@ impl Entities {
     }
 
     /// Gets the entity with generation for the given index.
-    pub fn get(&self, index: u32) -> EntityId {
-        EntityId {
+    pub fn get(&self, index: u32) -> Entity {
+        Entity {
             index,
             generation: self.generations[index as usize],
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = EntityId> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Entity> + '_ {
         self.generations
             .iter()
             .enumerate()
-            .map(|(index, &generation)| EntityId {
+            .map(|(index, &generation)| Entity {
                 index: index as u32,
                 generation,
             })
@@ -110,11 +110,11 @@ mod tests {
 
     #[test]
     fn to_bits_from_bits_roundtrip() {
-        let entity = EntityId {
+        let entity = Entity {
             index: 10000,
             generation: 10000000,
         };
-        assert_eq!(EntityId::from_bits(entity.to_bits()), entity);
+        assert_eq!(Entity::from_bits(entity.to_bits()), entity);
     }
 
     #[test]
@@ -129,7 +129,7 @@ mod tests {
         }
 
         entities
-            .deallocate(EntityId {
+            .deallocate(Entity {
                 index: 5,
                 generation: 0,
             })

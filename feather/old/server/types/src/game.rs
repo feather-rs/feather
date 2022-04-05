@@ -13,7 +13,7 @@ use feather_core::network::{packets::DisconnectPlay, Packet};
 use feather_core::text::Text;
 use feather_core::util::{BlockPosition, ChunkPosition, Position};
 use feather_server_config::Config;
-use fecs::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
+use fvane::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 use smallvec::SmallVec;
@@ -406,12 +406,12 @@ impl Time {
     }
 }
 
-#[fecs::system]
+#[fvane::system]
 pub fn reset_bump_allocators(game: &mut Game) {
     game.bump.iter_mut().for_each(Bump::reset);
 }
 
-#[fecs::system]
+#[fvane::system]
 pub fn increment_tick_count(game: &mut Game) {
     game.tick_count += 1;
 }

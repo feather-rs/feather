@@ -6,7 +6,7 @@ use feather_server_types::{
     ComponentSerializer, Game, NetworkId, PhysicsBuilder, SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::{degrees_to_stops, protocol_velocity};
-use fecs::{EntityBuilder, EntityRef};
+use fvane::{EntityBuilder, EntityRef};
 
 pub fn create() -> EntityBuilder {
     crate::base()

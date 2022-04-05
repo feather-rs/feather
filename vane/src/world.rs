@@ -6,7 +6,7 @@ use itertools::Either;
 use crate::{
     bundle::ComponentBundle,
     component::{Component, ComponentMeta},
-    entity::{Entities, EntityId},
+    entity::{Entity, EntityIds},
     entity_builder::EntityBuilder,
     entity_ref::EntityRef,
     event::EventTracker,
@@ -35,15 +35,15 @@ pub struct EntityDead;
 
 /// The entity-component data structure.
 ///
-/// A `World` stores _components_ for _entities_.
+/// An `Entities` stores _components_ for _entities_.
 #[derive(Default)]
-pub struct World {
+pub struct Entities {
     components: Components,
-    entities: Entities,
+    entity_ids: EntityIds,
     event_tracker: EventTracker,
 }
 
-impl World {
+impl Entities {
     /// Creates a new, empty ECS.
     pub fn new() -> Self {
         Self::default()
@@ -58,7 +58,7 @@ impl World {
     /// to acquire more will result in anerror.
     ///
     /// Time complexity: O(1)
-    pub fn get<T: Component>(&self, entity: EntityId) -> Result<Ref<T>, ComponentError> {
+    pub fn get<T: Component>(&self, entity: Entity) -> Result<Ref<T>, ComponentError> {
         self.check_entity(entity)?;
         self.components.get(entity.index())
     }
@@ -69,13 +69,18 @@ impl World {
     /// component are still alive, this function will return an error.
     ///
     /// Time complexity: O(1)
-    pub fn get_mut<T: Component>(&self, entity: EntityId) -> Result<RefMut<T>, ComponentError> {
+    pub fn get_mut<T: Component>(&self, entity: Entity) -> Result<RefMut<T>, ComponentError> {
         self.check_entity(entity)?;
         self.components.get_mut(entity.index())
     }
 
+    /// Determines whether the given entity has the given component.
+    pub fn has<T: Component>(&self, entity: Entity) -> bool {
+        self.get::<T>(entity).is_ok()
+    }
+
     /// Gets an `EntityRef` to the given entity.
-    pub fn entity(&self, entity_id: EntityId) -> Result<EntityRef, EntityDead> {
+    pub fn entity(&self, entity_id: Entity) -> Result<EntityRef, EntityDead> {
         self.check_entity(entity_id)?;
         Ok(EntityRef::new(entity_id, self))
     }
@@ -86,11 +91,7 @@ impl World {
     /// is overriden.
     ///
     /// Time complexity: O(1)
-    pub fn insert<T: Component>(
-        &mut self,
-        entity: EntityId,
-        component: T,
-    ) -> Result<(), EntityDead> {
+    pub fn insert<T: Component>(&mut self, entity: Entity, component: T) -> Result<(), EntityDead> {
         self.check_entity(entity)?;
         self.components.insert(entity.index(), component);
         Ok(())
@@ -102,7 +103,7 @@ impl World {
     /// or if it did not have the component.
     ///
     /// Time complexity: O(1)
-    pub fn remove<T: Component>(&mut self, entity: EntityId) -> Result<(), ComponentError> {
+    pub fn remove<T: Component>(&mut self, entity: Entity) -> Result<(), ComponentError> {
         self.check_entity(entity)?;
         self.components.remove::<T>(entity.index())
     }
@@ -110,8 +111,8 @@ impl World {
     /// Creates a new entity with no components.
     ///
     /// Time complexity: O(1)
-    pub fn spawn_empty(&mut self) -> EntityId {
-        self.entities.allocate()
+    pub fn spawn_empty(&mut self) -> Entity {
+        self.entity_ids.allocate()
     }
 
     /// Creates a new entity and adds all components
@@ -120,7 +121,7 @@ impl World {
     /// `builder` is reset and can be reused after this call.
     ///
     /// Time complexity: O(n) with respect to the number of components in `builder`.
-    pub fn spawn_builder(&mut self, builder: &mut EntityBuilder) -> EntityId {
+    pub fn spawn_builder(&mut self, builder: &mut EntityBuilder) -> Entity {
         let entity = self.spawn_empty();
 
         for (component_meta, component) in builder.drain() {
@@ -139,7 +140,7 @@ impl World {
     /// a tuple of components.
     ///
     /// Time complexity: O(n) with respect to the number of components in `bundle`.
-    pub fn spawn_bundle(&mut self, bundle: impl ComponentBundle) -> EntityId {
+    pub fn spawn_bundle(&mut self, bundle: impl ComponentBundle) -> Entity {
         let entity = self.spawn_empty();
 
         bundle.add_to_entity(self, entity);
@@ -152,8 +153,8 @@ impl World {
     ///
     /// Time complexity: O(n) with respect to the total number of components
     /// stored in this ECS.
-    pub fn despawn(&mut self, entity: EntityId) -> Result<(), EntityDead> {
-        self.entities.deallocate(entity).map_err(|_| EntityDead)?;
+    pub fn despawn(&mut self, entity: Entity) -> Result<(), EntityDead> {
+        self.entity_ids.deallocate(entity).map_err(|_| EntityDead)?;
 
         // PERF: could we somehow optimize this linear search
         // by only checking storages containing the entity?
@@ -166,7 +167,7 @@ impl World {
 
     /// Defers removing an entity until before the next time this system
     /// runs, allowing it to be observed by systems one last time.
-    pub fn defer_despawn(&mut self, entity: EntityId) {
+    pub fn defer_despawn(&mut self, entity: Entity) {
         // a bit of a hack - but this will change once
         // hecs allows taking out components of a despawned entity
         self.event_tracker.insert_event(entity);
@@ -185,14 +186,14 @@ impl World {
         Query {
             driver,
             sparse_sets,
-            entities: &self.entities,
+            entities: &self.entity_ids,
             _marker: PhantomData,
         }
     }
 
     /// Iterates over all alive entities in this world.
-    pub fn iter(&self) -> impl Iterator<Item = EntityId> + '_ {
-        self.entities.iter()
+    pub fn iter(&self) -> impl Iterator<Item = Entity> + '_ {
+        self.entity_ids.iter()
     }
 
     /// Creates an event not related to any entity. Use
@@ -209,7 +210,7 @@ impl World {
     /// to observe the event before it is dropped.
     pub fn insert_entity_event<T: Component>(
         &mut self,
-        entity: EntityId,
+        entity: Entity,
         event: T,
     ) -> Result<(), EntityDead> {
         self.insert(entity, event)?;
@@ -230,8 +231,8 @@ impl World {
         self.event_tracker = tracker;
     }
 
-    fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {
-        self.entities
+    fn check_entity(&self, entity: Entity) -> Result<(), EntityDead> {
+        self.entity_ids
             .check_generation(entity)
             .map_err(|_| EntityDead)
     }
@@ -243,7 +244,7 @@ impl World {
 pub struct Query<'w, 'q, Q> {
     driver: QueryDriver<'w, 'q>,
     sparse_sets: Vec<&'w SparseSetStorage>,
-    entities: &'w Entities,
+    entities: &'w EntityIds,
     _marker: PhantomData<Q>,
 }
 
@@ -264,7 +265,7 @@ where
 pub struct QueryIter<'w, 'q, Q> {
     driver: QueryDriverIter<'w, 'q>,
     sparse_sets: &'q [&'w SparseSetStorage],
-    entities: &'w Entities,
+    entities: &'w EntityIds,
     _marker: PhantomData<Q>,
 }
 
@@ -272,7 +273,7 @@ impl<'w, 'q, Q> Iterator for QueryIter<'w, 'q, Q>
 where
     Q: QueryTuple<'w>,
 {
-    type Item = (EntityId, Q::Output);
+    type Item = (Entity, Q::Output);
 
     fn next(&mut self) -> Option<Self::Item> {
         let item = self.driver.next()?;

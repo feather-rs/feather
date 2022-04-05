@@ -1,9 +1,9 @@
 use feather_core::network::packets::KeepAliveClientbound;
 use feather_server_types::{Game, TPS};
-use fecs::World;
+use fvane::World;
 
 /// Broadcasts keepalives every second.
-#[fecs::system]
+#[fvane::system]
 pub fn broadcast_keepalive(game: &Game, world: &mut World) {
     if game.tick_count % TPS == 0 {
         let packet = KeepAliveClientbound {

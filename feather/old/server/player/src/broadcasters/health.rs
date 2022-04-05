@@ -1,9 +1,9 @@
 use feather_core::network::packets::UpdateHealth;
 use feather_server_types::{HealthUpdateEvent, Network};
-use fecs::World;
+use fvane::World;
 
 /// When a player's health is updated, updates it on the client.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_health_update_send(event: &HealthUpdateEvent, world: &mut World) {
     if let Some(network) = world.try_get::<Network>(event.entity) {
         let packet = UpdateHealth {

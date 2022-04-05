@@ -17,7 +17,7 @@ use feather_server_types::{
     ReleaseChunkRequest, TPS,
 };
 use feather_server_util::current_time_in_millis;
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use parking_lot::RwLock;
 use rayon::prelude::*;
 use smallvec::SmallVec;
@@ -37,7 +37,7 @@ pub struct ChunkWorkerHandle {
 }
 
 /// System for handling replies from the chunk worker thread.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_chunk_worker_replies(
     game: &mut Game,
     world: &mut World,
@@ -129,7 +129,7 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// could quickly move between chunk boundaries, causing
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
-#[fecs::system]
+#[fvane::system]
 pub fn chunk_unload(
     game: &mut Game,
     world: &mut World,
@@ -173,7 +173,7 @@ pub fn chunk_unload(
 
 /// Event handler which handles holder release events. If
 /// a chunk has no more holders, then a chunk unload is queued.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_holder_release_unload_chunk(
     event: &ChunkHolderReleaseEvent,
     game: &mut Game,
@@ -192,7 +192,7 @@ pub fn on_chunk_holder_release_unload_chunk(
 
 /// System for removing an entity's chunk holds
 /// once it is destroyed.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_despawn_remove_chunk_holder(
     event: &EntityDespawnEvent,
     game: &mut Game,
@@ -223,7 +223,7 @@ const CHUNK_OPTIMIZE_INTERVAL: u64 = TPS * 60 * 5; // 5 minutes
 /// For optimal performance, this system is fully
 /// concurrent - each chunk optimization is split
 /// into a separate job and fed into `rayon`.
-#[fecs::system]
+#[fvane::system]
 pub fn chunk_optimize(game: &mut Game) {
     // Only run every CHUNK_OPTIMIZE_INTERVAL ticks
     if game.tick_count % CHUNK_OPTIMIZE_INTERVAL != 0 {
@@ -319,12 +319,12 @@ pub fn save_chunk(
         .unwrap();
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn release_chunk_request(event: &ReleaseChunkRequest, game: &mut Game, world: &mut World) {
     release_chunk(game, world, event.chunk, event.player);
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn hold_chunk_request(event: &HoldChunkRequest, game: &mut Game, world: &mut World) {
     hold_chunk(
         game,
@@ -334,7 +334,7 @@ pub fn hold_chunk_request(event: &HoldChunkRequest, game: &mut Game, world: &mut
     );
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn load_chunk_request(
     event: &LoadChunkRequest,
     handle: &ChunkWorkerHandle,

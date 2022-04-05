@@ -1,6 +1,6 @@
 use anyhow::bail;
 use base::EntityKind;
-use ecs::{EntityBuilder, SysResult};
+use vane::{EntityBuilder, SysResult};
 use quill_common::{
     components::{CreativeFlying, Sneaking, Sprinting},
     entities::Player,

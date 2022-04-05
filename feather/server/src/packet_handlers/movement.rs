@@ -1,6 +1,5 @@
 use base::Position;
 use common::Game;
-use ecs::{Entity, EntityRef, SysResult};
 use protocol::packets::client::{
     PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
 };
@@ -8,6 +7,7 @@ use quill_common::{
     components::{CreativeFlying, OnGround},
     events::CreativeFlyingEvent,
 };
+use vane::{Entity, EntityRef, SysResult};
 
 use crate::{ClientId, Server};
 
@@ -43,12 +43,15 @@ pub fn handle_player_position(
     if should_skip_movement(server, &player)? {
         return Ok(());
     }
+    let pos = {
     let mut pos = player.get_mut::<Position>()?;
     pos.x = packet.x;
     pos.y = packet.feet_y;
     pos.z = packet.z;
     player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    update_client_position(server, player, *pos)?;
+    *pos
+    };
+    update_client_position(server, player, pos)?;
     Ok(())
 }
 
@@ -60,14 +63,17 @@ pub fn handle_player_position_and_rotation(
     if should_skip_movement(server, &player)? {
         return Ok(());
     }
-    let mut pos = player.get_mut::<Position>()?;
-    pos.x = packet.x;
-    pos.y = packet.feet_y;
-    pos.z = packet.z;
-    pos.yaw = packet.yaw;
-    pos.pitch = packet.pitch;
-    player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    update_client_position(server, player, *pos)?;
+    let pos = {
+        let mut pos = player.get_mut::<Position>()?;
+        pos.x = packet.x;
+        pos.y = packet.feet_y;
+        pos.z = packet.z;
+        pos.yaw = packet.yaw;
+        pos.pitch = packet.pitch;
+        player.get_mut::<OnGround>()?.0 = packet.on_ground;
+        *pos
+    };
+    update_client_position(server, player, pos)?;
     Ok(())
 }
 
@@ -79,11 +85,14 @@ pub fn handle_player_rotation(
     if should_skip_movement(server, &player)? {
         return Ok(());
     }
-    let mut pos = player.get_mut::<Position>()?;
-    pos.yaw = packet.yaw;
-    pos.pitch = packet.pitch;
-    player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    update_client_position(server, player, *pos)?;
+    let pos = {
+        let mut pos = player.get_mut::<Position>()?;
+        pos.yaw = packet.yaw;
+        pos.pitch = packet.pitch;
+        player.get_mut::<OnGround>()?.0 = packet.on_ground;
+        *pos
+    };
+    update_client_position(server, player, pos)?;
     Ok(())
 }
 

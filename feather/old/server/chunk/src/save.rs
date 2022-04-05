@@ -12,7 +12,7 @@ use feather_server_types::{
     tasks, BlockSerializer, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, Health,
     HeldItem, PlayerLeaveEvent, Uuid, TICK_LENGTH, TPS,
 };
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
@@ -31,7 +31,7 @@ struct SaveTask {
 struct SaveQueue(VecDeque<SaveTask>);
 
 /// On a chunk load, adds the chunk to the save queue.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_load_queue_for_saving(
     event: &ChunkLoadEvent,
     game: &mut Game,
@@ -41,7 +41,7 @@ pub fn on_chunk_load_queue_for_saving(
 }
 
 /// On a chunk unload, saves the chunk first.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_unload_save_chunk(
     event: &ChunkUnloadEvent,
     game: &mut Game,
@@ -65,7 +65,7 @@ fn queue_for_saving(game: &mut Game, save_queue: &mut SaveQueue, chunk: ChunkPos
 
 /// System which checks for chunks which have been queued for saving
 /// and, if it is time, saves them.
-#[fecs::system]
+#[fvane::system]
 pub fn chunk_save(
     game: &mut Game,
     world: &mut World,
@@ -174,7 +174,7 @@ fn serialize_entities<'a>(
     (entities, block_entities)
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_leave_save_data(event: &PlayerLeaveEvent, game: &Game, world: &mut World) {
     save_player_data(game, world, event.player);
 }

@@ -3,12 +3,12 @@ use feather_core::network::packets::ClientStatus;
 use feather_core::network::packets::Respawn;
 use feather_core::util::{Gamemode, Position};
 use feather_server_types::{Dead, Health, Network, PacketBuffers, Teleported};
-use fecs::World;
+use fvane::World;
 use std::sync::Arc;
 
 /// Handles the Client Status packet, which is sent
 /// when the user clicks the respawn button.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_client_status(world: &mut World, packet_buffers: &Arc<PacketBuffers>) {
     packet_buffers
         .received::<ClientStatus>()

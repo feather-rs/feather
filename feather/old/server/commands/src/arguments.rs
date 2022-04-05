@@ -3,7 +3,7 @@ use feather_core::position;
 use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{Game, Name, NetworkId, Player};
-use fecs::{component, Entity, IntoQuery, Read, World};
+use fvane::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
 use rand::Rng;
 use smallvec::SmallVec;

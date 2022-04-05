@@ -1,7 +1,6 @@
 use base::anvil::player::PlayerAbilities;
 use base::Gamemode;
 use common::Game;
-use ecs::{SysResult, SystemExecutor};
 use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
     PreviousGamemode, WalkSpeed,
@@ -10,6 +9,7 @@ use quill_common::events::{
     BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,
     InvulnerabilityEvent,
 };
+use vane::{SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};
 
@@ -27,16 +27,16 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         entity,
         (
             event,
-            &client_id,
-            &walk_speed,
-            &fly_speed,
+            client_id,
+            walk_speed,
+            fly_speed,
             mut may_fly,
             mut is_flying,
             mut instabreak,
             mut may_build,
             mut invulnerable,
-            gamemode,
-            prev_gamemode,
+            mut gamemode,
+            mut prev_gamemode,
         ),
     ) in game
         .ecs
@@ -60,7 +60,7 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         }
         *prev_gamemode = PreviousGamemode(Some(*gamemode));
         *gamemode = **event;
-        match gamemode {
+        match *gamemode {
             Gamemode::Creative => {
                 if !**instabreak {
                     instabreak_changes.push((entity, true));
@@ -148,16 +148,16 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         }
         server
             .clients
-            .get(client_id)
+            .get(*client_id)
             .unwrap()
             .change_gamemode(**event);
         server
             .clients
-            .get(client_id)
+            .get(*client_id)
             .unwrap()
             .send_abilities(&PlayerAbilities {
-                walk_speed,
-                fly_speed,
+                walk_speed: *walk_speed,
+                fly_speed: *fly_speed,
                 may_fly: *may_fly,
                 is_flying: *is_flying,
                 may_build: *may_build,

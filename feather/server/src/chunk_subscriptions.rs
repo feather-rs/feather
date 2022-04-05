@@ -1,7 +1,7 @@
 use ahash::AHashMap;
 use base::ChunkPosition;
 use common::{events::ViewUpdateEvent, view::View, Game};
-use ecs::{SysResult, SystemExecutor};
+use vane::{SysResult, SystemExecutor};
 use quill_common::events::EntityRemoveEvent;
 use quill_common::components::{EntityDimension, EntityWorld};
 use utils::vec_remove_item;
@@ -35,7 +35,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult {
     // Update players whose views have changed
-    for (_, (event, &client_id)) in game.ecs.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
+    for (_, (event, client_id)) in game.ecs.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
         for new_chunk in event.new_view.difference(&event.old_view) {
             server
                 .chunk_subscriptions
@@ -46,7 +46,7 @@ fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult
                     new_chunk,
                 ))
                 .or_default()
-                .push(client_id);
+                .push(*client_id);
         }
         for old_chunk in event.old_view.difference(&event.new_view) {
             remove_subscription(
@@ -56,13 +56,13 @@ fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult
                     event.old_view.dimension().clone(),
                     old_chunk,
                 ),
-                client_id,
+                *client_id,
             );
         }
     }
 
     // Update players that have left
-    for (_, (_event, &client_id, view, &world, dimension)) in game
+    for (_, (_event, client_id, view, world, dimension)) in game
         .ecs
         .query::<(
             &EntityRemoveEvent,
@@ -76,8 +76,8 @@ fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult
         for chunk in view.iter() {
             remove_subscription(
                 server,
-                DimensionChunkPosition(world, dimension.clone(), chunk),
-                client_id,
+                DimensionChunkPosition(*world, dimension.clone(), chunk),
+                *client_id,
             );
         }
     }

@@ -1,6 +1,6 @@
 use feather_core::network::packets::ChangeGameState;
 use feather_server_types::{Game, Network, PlayerPreJoinEvent, Weather, WeatherChangeEvent};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use rand::Rng;
 
 const TICKS_DAY: i32 = 24_000;
@@ -16,7 +16,7 @@ pub fn clear_weather(game: &mut Game) {
     set_weather(game, Weather::Clear, duration);
 }
 
-#[fecs::system]
+#[fvane::system]
 pub fn update_weather(game: &mut Game, world: &mut World) {
     if game.level.clear_weather_time >= 0 {
         game.level.clear_weather_time -= 1;
@@ -96,12 +96,12 @@ pub fn set_weather(game: &mut Game, weather: Weather, duration: i32) -> Weather 
     from
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_join_send_weather(event: &PlayerPreJoinEvent, game: &Game, world: &mut World) {
     send_weather(world, event.player, get_weather(game));
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_weather_change_broadcast_weather(
     event: &WeatherChangeEvent,
     game: &mut Game,

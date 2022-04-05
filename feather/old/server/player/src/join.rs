@@ -10,11 +10,11 @@ use feather_server_types::{
     BumpVec, ChunkSendEvent, Game, HeldItem, Network, NetworkId, PlayerJoinEvent,
     WorkerToServerMessage,
 };
-use fecs::{IntoQuery, Read, World};
+use fvane::{IntoQuery, Read, World};
 use std::iter;
 
 /// System which polls for player disconnects.
-#[fecs::system]
+#[fvane::system]
 pub fn poll_player_disconnect(game: &mut Game, world: &mut World) {
     // For each player with a Network component,
     // check their channel for disconnects.
@@ -37,7 +37,7 @@ pub fn poll_player_disconnect(game: &mut Game, world: &mut World) {
 }
 
 /// System which polls for new clients from the listener task.
-#[fecs::system]
+#[fvane::system]
 pub fn poll_new_clients(game: &mut Game, world: &mut World, io_handle: &mut NetworkIoManager) {
     while let Ok(msg) = io_handle.rx.lock().try_recv() {
         match msg {
@@ -69,7 +69,7 @@ pub struct Joined;
 /// System to run the join sequence. To determine when a player is ready to join,
 /// we wait for the chunk that the player is in to be sent—this appears to work
 /// well with the client.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_send_join_player(event: &ChunkSendEvent, game: &Game, world: &mut World) {
     if world.try_get::<Joined>(event.player).is_some() {
         return; // already joined
@@ -107,7 +107,7 @@ pub fn on_chunk_send_join_player(event: &ChunkSendEvent, game: &Game, world: &mu
     network.send(packet);
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_join_send_join_packets(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
     let network = world.get::<Network>(event.player);
     let id = world.get::<NetworkId>(event.player);

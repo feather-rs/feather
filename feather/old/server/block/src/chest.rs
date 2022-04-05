@@ -22,7 +22,7 @@ use feather_server_types::{
     EntityDespawnEvent, Game, InteractionHandler, Inventory, Network, SpawnPacketCreator,
     WindowCloseEvent, WindowOpenEvent,
 };
-use fecs::{Entity, EntityBuilder, EntityRef, World};
+use fvane::{Entity, EntityBuilder, EntityRef, World};
 use num_traits::ToPrimitive;
 
 pub const SLOTS: usize = 27;
@@ -61,7 +61,7 @@ fn should_replace(_old: BlockId, new: BlockId) -> bool {
 }
 
 /// When a chest is despawned, drops its contents.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chest_break_drop_contents(
     event: &EntityDespawnEvent,
     game: &mut Game,
@@ -85,7 +85,7 @@ pub fn on_chest_break_drop_contents(
     }
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chest_create_try_connect(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
     if event.new.kind() != BlockKind::Chest {
         return;
@@ -100,7 +100,7 @@ pub fn on_chest_create_try_connect(event: &BlockUpdateEvent, game: &mut Game, wo
 
 /// When a chest is broken and it is connected with another chest,
 /// set the other chest as ChestKind::Single.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chest_break_try_disconnect(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
     if event.old.kind() != BlockKind::Chest || event.new.kind() == BlockKind::Chest {
         return;
@@ -134,7 +134,7 @@ fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     Box::new(viewers_packet(accessor))
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chest_open_increment_viewers(event: &WindowOpenEvent, game: &Game, world: &mut World) {
     let should_resend = if let Some(mut viewers) = world.try_get_mut::<ChestViewers>(event.opened) {
         viewers.0 += 1;
@@ -148,7 +148,7 @@ pub fn on_chest_open_increment_viewers(event: &WindowOpenEvent, game: &Game, wor
     }
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chest_close_decrement_viewers(event: &WindowCloseEvent, game: &Game, world: &mut World) {
     let should_resend = if let Some(mut viewers) = world.try_get_mut::<ChestViewers>(event.closed) {
         viewers.0 = viewers.0.checked_sub(1).unwrap_or_default();

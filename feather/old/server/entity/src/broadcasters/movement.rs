@@ -11,12 +11,12 @@ use feather_server_types::{
     PreviousPosition, PreviousVelocity, Velocity,
 };
 use feather_server_util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
-use fecs::{IntoQuery, Read, World};
+use fvane::{IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
 
 /// System to broadcast when an entity moves.
-#[fecs::system]
+#[fvane::system]
 pub fn broadcast_movement(game: &mut Game, world: &mut World) {
     <(Read<Position>, Read<PreviousPosition>, Read<NetworkId>)>::query().par_entities_for_each(
         world.inner(),
@@ -65,7 +65,7 @@ pub fn broadcast_movement(game: &mut Game, world: &mut World) {
     );
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_send_update_last_known_positions(event: &EntitySendEvent, world: &mut World) {
     if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(event.client) {
         let pos = *world.get::<Position>(event.entity);
@@ -78,7 +78,7 @@ pub fn on_entity_send_update_last_known_positions(event: &EntitySendEvent, world
     }
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_client_remove_update_last_known_positions(
     event: &EntityClientRemoveEvent,
     world: &mut World,
@@ -94,7 +94,7 @@ pub fn on_entity_client_remove_update_last_known_positions(
 }
 
 /// Broadcasts an entity's velocity.
-#[fecs::system]
+#[fvane::system]
 pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
     <(Read<Velocity>, Read<PreviousVelocity>, Read<NetworkId>)>::query().par_entities_for_each(
         world.inner(),

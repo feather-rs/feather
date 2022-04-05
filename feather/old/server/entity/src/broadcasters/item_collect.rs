@@ -1,9 +1,9 @@
 use feather_core::network::packets::CollectItem;
 use feather_server_types::{Game, ItemCollectEvent, NetworkId};
-use fecs::World;
+use fvane::World;
 
 /// Sends `CollectItem` packet when an item is collected.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_item_collect_broadcast(event: &ItemCollectEvent, game: &Game, world: &mut World) {
     let packet = CollectItem {
         collected: world.get::<NetworkId>(event.item).0,

@@ -15,7 +15,7 @@ use vane::*;
 
 #[test]
 fn random_access() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     assert_eq!(*world.get::<&str>(e).unwrap(), "abc");
@@ -28,7 +28,7 @@ fn random_access() {
 
 #[test]
 fn despawn() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456));
     assert_eq!(world.iter().count(), 2);
@@ -42,7 +42,7 @@ fn despawn() {
 
 #[test]
 fn query_all() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456));
 
@@ -63,7 +63,7 @@ fn query_all() {
 
 #[test]
 fn query_single_component() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     let ents = world
@@ -78,7 +78,7 @@ fn query_single_component() {
 
 #[test]
 fn query_missing_component() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456));
     assert!(world.query::<(&bool, &i32)>().iter().next().is_none());
@@ -86,7 +86,7 @@ fn query_missing_component() {
 
 #[test]
 fn query_sparse_component() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     let ents = world
@@ -116,7 +116,7 @@ fn query_optional_component() {
 
 #[test]
 fn build_entity() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let mut entity = EntityBuilder::new();
     entity.add("abc");
     entity.add(123);
@@ -134,7 +134,7 @@ fn build_entity() {
 
 #[test]
 fn access_builder_components() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let mut entity = EntityBuilder::new();
 
     entity.add("abc");
@@ -152,7 +152,7 @@ fn access_builder_components() {
 
 #[test]
 fn build_entity_bundle() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let mut entity = EntityBuilder::new();
     entity.add(123);
     entity.add("abc");
@@ -170,7 +170,7 @@ fn build_entity_bundle() {
 
 #[test]
 fn dynamic_components() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle((42,));
     world.insert(e, true).unwrap();
     world.insert(e, "abc").unwrap();
@@ -204,7 +204,7 @@ fn dynamic_components() {
 #[test]
 #[should_panic(expected = "query causes borrow conflicts: BorrowError")]
 fn illegal_borrow() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456));
 
@@ -213,7 +213,7 @@ fn illegal_borrow() {
 
 #[test]
 fn disjoint_queries() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     world.spawn_bundle(("abc", true));
     world.spawn_bundle(("def", 456));
 
@@ -223,7 +223,7 @@ fn disjoint_queries() {
 
 #[test]
 fn shared_borrow() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456));
 
@@ -233,7 +233,7 @@ fn shared_borrow() {
 #[test]
 #[should_panic(expected = "BorrowConflict(BorrowError)")]
 fn illegal_random_access() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle(("abc", 123));
     let _borrow = world.get_mut::<i32>(e).unwrap();
     world.get::<i32>(e).unwrap();
@@ -242,7 +242,7 @@ fn illegal_random_access() {
 #[test]
 #[cfg_attr(miri, ignore)]
 fn spawn_many() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     const N: usize = 100_000;
     for _ in 0..N {
         world.spawn_bundle((42u128,));
@@ -264,7 +264,7 @@ fn clear() {
 #[test]
 #[should_panic(expected = "query causes borrow conflicts: BorrowError")]
 fn alias() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456, true));
     let mut q = world.query::<&mut i32>();
@@ -275,7 +275,7 @@ fn alias() {
 
 #[test]
 fn remove_missing() {
-    let mut world = World::new();
+    let mut world = Entities::new();
     let e = world.spawn_bundle(("abc", 123));
     assert!(world.remove::<bool>(e).is_err());
 }

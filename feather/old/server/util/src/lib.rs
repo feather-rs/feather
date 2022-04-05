@@ -16,7 +16,7 @@ mod load;
 pub use load::*;
 
 use feather_server_types::{Game, Uuid};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};
 use serde::{Deserialize, Serialize};

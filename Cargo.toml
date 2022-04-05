@@ -35,8 +35,6 @@ members = [
     "feather/worldgen",
     "feather/common",
     "feather/protocol",
-    "feather/plugin-host/macros",
-    "feather/plugin-host",
     "feather/server",
     
     "data_generators",

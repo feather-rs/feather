@@ -5,7 +5,7 @@ use feather_core::{
     blocks::BlockKind,
     util::BlockPosition,
 };
-use fecs::{Entity, EntityBuilder, World};
+use fvane::{Entity, EntityBuilder, World};
 
 pub type BumpVec<'bump, T> = bumpalo::collections::Vec<'bump, T>;
 

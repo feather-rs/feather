@@ -3,11 +3,11 @@ use feather_core::network::packets::ChatMessageServerbound;
 use feather_core::text::{TextRoot, Translate};
 use feather_server_commands::CommandState;
 use feather_server_types::{ChatEvent, ChatPosition, Game, Name, PacketBuffers};
-use fecs::World;
+use fvane::World;
 use std::sync::Arc;
 
 /// Handles chat packets.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_chat(
     game: &mut Game,
     world: &mut World,

@@ -18,7 +18,7 @@
 
 use ahash::AHashMap;
 use feather_core::network::{cast_packet, Packet, PacketType};
-use fecs::Entity;
+use fvane::Entity;
 use indexmap::set::IndexSet;
 use num_traits::ToPrimitive;
 use once_cell::sync::Lazy;
@@ -344,7 +344,7 @@ impl ArrayBuffer {
 mod tests {
     use super::*;
     use feather_core::network::packets::Request;
-    use fecs::{EntityBuilder, World};
+    use fvane::{EntityBuilder, World};
 
     #[test]
     fn map_buffer() {

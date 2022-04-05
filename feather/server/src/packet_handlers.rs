@@ -1,6 +1,6 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
-use ecs::{Entity, EntityRef, SysResult};
+use vane::{Entity, EntityRef, SysResult};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,

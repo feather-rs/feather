@@ -3,11 +3,11 @@
 use feather_core::entitymeta::EntityMetadata;
 use feather_core::network::packets::PacketEntityMetadata;
 use feather_server_types::{EntitySendEvent, Network, NetworkId};
-use fecs::World;
+use fvane::World;
 
 /// System which sends entity metadata when an entity
 /// is sent to a player.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_send_send_metadata(event: &EntitySendEvent, world: &mut World) {
     if let Some(metadata) = world.try_get::<EntityMetadata>(event.entity) {
         if let Some(network) = world.try_get::<Network>(event.client) {

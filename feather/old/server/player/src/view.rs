@@ -27,7 +27,7 @@ use feather_server_types::{
     EntitySendEvent, Game, HoldChunkRequest, LoadChunkRequest, Network, NetworkId, PlayerJoinEvent,
     PreviousPosition, ReleaseChunkRequest, SpawnPacketCreator,
 };
-use fecs::{Entity, IntoQuery, Read, World};
+use fvane::{Entity, IntoQuery, Read, World};
 use itertools::Either;
 use parking_lot::RwLock;
 use smallvec::SmallVec;
@@ -37,7 +37,7 @@ use std::sync::Arc;
 
 /// System which polls for updated positions and
 /// calls `Game::on_chunk_cross()` accordingly.
-#[fecs::system]
+#[fvane::system]
 pub fn check_crossed_chunks(world: &mut World, game: &mut Game) {
     let mut crossed = BumpVec::new_in(game.bump());
     for (entity, (pos, prev_pos)) in
@@ -63,7 +63,7 @@ pub fn check_crossed_chunks(world: &mut World, game: &mut Game) {
 }
 
 /// Triggers a chunk cross when a new player joins.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_join_trigger_chunk_cross(
     event: &PlayerJoinEvent,
     game: &mut Game,
@@ -82,7 +82,7 @@ pub fn on_player_join_trigger_chunk_cross(
 
 /// System which sends new chunks and unloads old chunks on the client
 /// when the view is updated.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_cross_update_chunks(
     event: &ChunkCrossEvent,
     game: &mut Game,
@@ -114,7 +114,7 @@ pub fn on_chunk_cross_update_chunks(
 
 /// System which sends new entities and removes old entities
 /// when a player crosses into a new view.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_cross_update_entities(event: &ChunkCrossEvent, game: &mut Game, world: &mut World) {
     let network = match world.try_get::<Network>(event.entity) {
         Some(net) => net,
@@ -322,7 +322,7 @@ fn unload_chunk_for_player(
 }
 
 /// System which sends chunks to pending players when a chunk is loaded.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_load_send_to_clients(
     event: &ChunkLoadEvent,
     game: &mut Game,

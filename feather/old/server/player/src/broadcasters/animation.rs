@@ -1,9 +1,9 @@
 use feather_core::network::packets::AnimationClientbound;
 use feather_server_types::{Game, NetworkId, PlayerAnimationEvent};
-use fecs::World;
+use fvane::World;
 
 /// Broadcasts animations.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_animation_broadcast_animation(
     event: &PlayerAnimationEvent,
     game: &mut Game,

@@ -8,7 +8,6 @@ edition = "2018"
 ahash = "0.7"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
-ecs = { path = "../ecs", package = "feather-ecs" }
 flume = "0.10"
 itertools = "0.10"
 log = "0.4"
@@ -24,4 +23,5 @@ libcraft-blocks = { path = "../../libcraft/blocks" }
 rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 rand = "0.8"
-derive_more = "0.99 "
+derive_more = "0.99"
+vane = { path = "../../vane" }

@@ -16,7 +16,7 @@
 use base::{chunk::SECTION_VOLUME, position, CHUNK_WIDTH};
 use common::world::Dimensions;
 use common::{events::BlockChangeEvent, Game};
-use ecs::{SysResult, SystemExecutor};
+use vane::{SysResult, SystemExecutor};
 
 use crate::Server;
 
@@ -28,7 +28,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn broadcast_block_changes(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, event) in game.ecs.query::<&BlockChangeEvent>().iter() {
-        broadcast_block_change(event, game, server);
+        broadcast_block_change(&event, game, server);
     }
     Ok(())
 }
@@ -50,14 +50,8 @@ fn broadcast_block_change_chunk_overwrite(
     game: &Game,
     server: &mut Server,
 ) {
-    let mut query = game.ecs.query::<&Dimensions>();
-    let dimension = query
-        .iter()
-        .find(|(world, _)| *world == *event.world())
-        .unwrap()
-        .1
-        .get(&**event.dimension())
-        .unwrap();
+    let mut dimensions = game.ecs.get_mut::<Dimensions>(event.world().0).unwrap();
+    let dimension = dimensions.get_mut(&**event.dimension()).unwrap();
     for (chunk_pos, _, _) in event.iter_affected_chunk_sections() {
         if let Some(chunk) = dimension.chunk_map().chunk_handle_at(chunk_pos) {
             let position = position!(
@@ -73,14 +67,8 @@ fn broadcast_block_change_chunk_overwrite(
 }
 
 fn broadcast_block_change_simple(event: &BlockChangeEvent, game: &Game, server: &mut Server) {
-    let mut query = game.ecs.query::<&Dimensions>();
-    let dimension = query
-        .iter()
-        .find(|(world, _)| *world == *event.world())
-        .unwrap()
-        .1
-        .get(&**event.dimension())
-        .unwrap();
+    let dimensions = game.ecs.get::<Dimensions>(event.world().0).unwrap();
+    let dimension = dimensions.get(&**event.dimension()).unwrap();
     for pos in event.iter_changed_blocks() {
         let new_block = dimension.block_at(pos);
         if let Some(new_block) = new_block {

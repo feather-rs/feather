@@ -146,7 +146,7 @@ pub fn generate() {
                 path,
                 quote! {
                     use base::EntityKind;
-                    use ecs::EntityBuilder;
+                    use vane::EntityBuilder;
                     use quill_common::entities::#name;
 
                     pub fn build_default(builder: &mut EntityBuilder) {
@@ -171,7 +171,7 @@ pub fn generate() {
         "feather/common/src/entities.rs",
         quote! {
             use base::EntityKind;
-            use ecs::EntityBuilder;
+            use vane::EntityBuilder;
             use quill_common::components::OnGround;
             use uuid::Uuid;
 

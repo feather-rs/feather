@@ -29,13 +29,13 @@ use feather_core::util::Position;
 use feather_server_types::{
     ChunkCrossEvent, Game, NetworkId, PreviousPosition, PreviousVelocity, Velocity,
 };
-use fecs::{EntityBuilder, IntoQuery, Read, World, Write};
+use fvane::{EntityBuilder, IntoQuery, Read, World, Write};
 use std::sync::atomic::{AtomicI32, Ordering};
 
 /// Entity ID counter, used to create new entity IDs.
 pub static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
 
-#[fecs::system]
+#[fvane::system]
 pub fn previous_position_velocity_reset(world: &mut World) {
     <(Read<Position>, Write<PreviousPosition>)>::query().par_for_each_mut(
         world.inner_mut(),
@@ -51,7 +51,7 @@ pub fn previous_position_velocity_reset(world: &mut World) {
     );
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_cross_mark_modified(event: &ChunkCrossEvent, game: &mut Game) {
     if let Some(pos) = event.old {
         if let Some(mut old_chunk) = game.chunk_map.chunk_at_mut(pos) {

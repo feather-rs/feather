@@ -5,7 +5,7 @@
 //! * All scheduled tasks will complete at some point.
 
 use crate::Game;
-use fecs::World;
+use fvane::World;
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use std::future::Future;
@@ -191,7 +191,7 @@ impl TaskManager {
 }
 
 /// System to run sync-queued tasks.
-#[fecs::system]
+#[fvane::system]
 pub fn run_sync_tasks(game: &mut Game, world: &mut World) {
     tasks().flush_sync(game, world);
 }

@@ -1,6 +1,6 @@
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};
-use ecs::{Entity, SysResult, SystemExecutor};
+use vane::{Entity, SysResult, SystemExecutor};
 use quill_common::events::{EntityCreateEvent, EntityRemoveEvent};
 use utils::vec_remove_item;
 
@@ -50,7 +50,7 @@ impl ChunkEntities {
 fn update_chunk_entities(game: &mut Game) -> SysResult {
     // Entities that have crossed chunks
     let mut events = Vec::new();
-    for (entity, (old_chunk, &position)) in
+    for (entity, (mut old_chunk, position)) in
         game.ecs.query::<(&mut ChunkPosition, &Position)>().iter()
     {
         let new_chunk = position.chunk();
@@ -74,7 +74,7 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
 
     // Entities that have been created
     let mut insertions = Vec::new();
-    for (entity, (_event, &position)) in game.ecs.query::<(&EntityCreateEvent, &Position)>().iter()
+    for (entity, (_event, position)) in game.ecs.query::<(&EntityCreateEvent, &Position)>().iter()
     {
         let chunk = position.chunk();
         game.chunk_entities.update(entity, None, chunk);
@@ -86,12 +86,12 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
     }
 
     // Entities that have been destroyed
-    for (entity, (_event, &chunk)) in game
+    for (entity, (_event, chunk)) in game
         .ecs
         .query::<(&EntityRemoveEvent, &ChunkPosition)>()
         .iter()
     {
-        game.chunk_entities.remove_entity(entity, chunk);
+        game.chunk_entities.remove_entity(entity, *chunk);
     }
 
     Ok(())

@@ -59,7 +59,7 @@ use std::collections::VecDeque;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_block_update_notify_lighting_worker(
     event: &BlockUpdateEvent,
     #[default] handle: &LightingWorkerHandle,
@@ -71,7 +71,7 @@ pub fn on_block_update_notify_lighting_worker(
         .expect("failed to notify lighting worker of block update");
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_load_notify_lighting_worker(
     event: &ChunkLoadEvent,
     game: &mut Game,
@@ -91,7 +91,7 @@ pub fn on_chunk_load_notify_lighting_worker(
         .expect("failed to notify lighting worker of chunk load");
 }
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_chunk_unload_notify_lighting_worker(
     event: &ChunkUnloadEvent,
     handle: &LightingWorkerHandle,

@@ -6,7 +6,7 @@ use feather_server_lighting::*;
 use feather_server_player::*;
 use feather_server_util::*;
 use feather_server_weather::*;
-use fecs::EventHandlers;
+use fvane::EventHandlers;
 
 macro_rules! event_handlers {
     ($($handler:path,)*) => {

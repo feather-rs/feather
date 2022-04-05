@@ -4,14 +4,15 @@
 //! determined based on the player's [`common::view::View`].
 
 use ahash::AHashMap;
+use anyhow::Context;
 use base::{ChunkPosition, Position};
 use common::world::Dimensions;
 use common::{
     events::{ChunkLoadEvent, ViewUpdateEvent},
     Game,
 };
-use ecs::{Entity, SysResult, SystemExecutor};
 use quill_common::components::{EntityDimension, EntityWorld};
+use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
 
@@ -37,7 +38,7 @@ impl WaitingChunks {
 }
 
 fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
-    for (player, (&client_id, event, &position)) in game
+    for (player, (client_id, event, position)) in game
         .ecs
         .query::<(&ClientId, &ViewUpdateEvent, &Position)>()
         .iter()
@@ -45,14 +46,14 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
         // As ecs removes the client one tick after it gets removed here, it can
         // happen that a client is still listed in the ecs but actually removed here so
         // we need to check if the client is actually still there.
-        if let Some(client) = server.clients.get_mut(client_id) {
+        if let Some(client) = server.clients.get_mut(*client_id) {
             client.update_own_chunk(event.new_view.center());
             update_chunks(
                 game,
                 player,
                 client,
-                event,
-                position,
+                &event,
+                *position,
                 &mut server.waiting_chunks,
             )?;
         }
@@ -72,14 +73,9 @@ fn update_chunks(
     for &pos in &event.new_chunks {
         let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
         let (_, (world, dimension)) = query.iter().find(|(e, _)| *e == player).unwrap();
-        let mut query = game.ecs.query::<&Dimensions>();
-        let dimension = query
-            .iter()
-            .find(|(e, _)| *e == **world)
-            .unwrap()
-            .1
-            .get(&**dimension)
-            .unwrap();
+        
+        let mut dimensions = game.ecs.get_mut::<Dimensions>(world.0)?;
+        let dimension = dimensions.get_mut(&**dimension).context("missing dimension")?;
         if let Some(chunk) = dimension.chunk_map().chunk_handle_at(pos) {
             client.send_chunk(&chunk);
         } else {

@@ -5,7 +5,7 @@
 
 use crate::{Area, Inventory, Slot, SlotIndex};
 use feather_items::ItemStack;
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use legion::borrow::Ref;
 use smallvec::{smallvec, SmallVec};
 use thiserror::Error;

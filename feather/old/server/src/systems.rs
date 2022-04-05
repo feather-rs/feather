@@ -1,6 +1,6 @@
 //! Defines all systems and the order in which they are executed.
 
-use fecs::Executor;
+use fvane::Executor;
 
 use feather_server_chunk as chunk_logic;
 use feather_server_entity as entity;

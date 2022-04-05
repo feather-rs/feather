@@ -9,7 +9,7 @@ mod impls;
 
 use feather_core::text::{Text, TextComponentBuilder};
 use feather_server_types::{Game, MessageReceiver};
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use impls::*;
 use lieutenant::CommandDispatcher;
 use std::ops::{Deref, DerefMut};

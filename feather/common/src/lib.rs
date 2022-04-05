@@ -6,8 +6,8 @@
 #![allow(clippy::unnecessary_wraps)] // systems are required to return Results
 
 mod game;
-use ecs::SystemExecutor;
 pub use game::Game;
+use vane::SystemExecutor;
 
 mod tick_loop;
 pub use tick_loop::TickLoop;

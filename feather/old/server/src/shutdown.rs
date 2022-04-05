@@ -6,7 +6,7 @@ use feather_server_chunk::chunk_worker::Request;
 use feather_server_chunk::{save_chunk_at, ChunkWorkerHandle};
 use feather_server_lighting::LightingWorkerHandle;
 use feather_server_types::{tasks, BanInfo, Game, Network, Player};
-use fecs::{IntoQuery, Read, World};
+use fvane::{IntoQuery, Read, World};
 use std::sync::{Arc, RwLock};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;

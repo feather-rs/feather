@@ -1,5 +1,5 @@
 use common::Game;
-use ecs::{Entity, SysResult};
+use vane::{Entity, SysResult};
 use protocol::packets::client::{EntityAction, EntityActionKind};
 use quill_common::{
     components::{Sneaking, Sprinting},

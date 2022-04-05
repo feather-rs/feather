@@ -18,7 +18,7 @@ use feather_server_types::{
     PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
-use fecs::{Entity, IntoQuery, Read, World, Write};
+use fvane::{Entity, IntoQuery, Read, World, Write};
 use smallvec::smallvec;
 use std::sync::Arc;
 
@@ -40,7 +40,7 @@ pub struct Digging {
 
 /// System responsible for polling for PlayerDigging
 /// packets and writing the corresponding events.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_player_digging(
     game: &mut Game,
     world: &mut World,
@@ -150,7 +150,7 @@ fn handle_started_digging(
 }
 
 /// System to advance the digging progress.
-#[fecs::system]
+#[fvane::system]
 pub fn advance_dig_progress(game: &mut Game, world: &mut World) {
     <(Write<Digging>, Read<Inventory>, Read<HeldItem>)>::query().par_for_each_mut(
         world.inner_mut(),

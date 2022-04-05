@@ -5,11 +5,11 @@ use feather_server_types::{
     CreationPacketCreator, EntitySendEvent, EntitySpawnEvent, Game, Network, NetworkId,
     PlayerJoinEvent, SpawnPacketCreator,
 };
-use fecs::{IntoQuery, Read, World};
+use fvane::{IntoQuery, Read, World};
 
 /// When an entity is created and has a `CreationPacketCreator` and/or `SpawnPacketCreator`,
 /// broadcasts the packets to all online clients.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_spawn_send_to_clients(
     event: &EntitySpawnEvent,
     game: &mut Game,
@@ -66,7 +66,7 @@ pub fn on_entity_spawn_send_to_clients(
 ///
 /// This only handles init packets (PlayerInfo, etc.)—spawn packets
 /// are handled by the view update mechanism in `crate::view`.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_join_send_existing_entities(event: &PlayerJoinEvent, world: &mut World) {
     let network = world.get::<Network>(event.player);
     for (entity, creator) in <Read<CreationPacketCreator>>::query().iter_entities(world.inner()) {

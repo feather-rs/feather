@@ -2,11 +2,11 @@ use crate::IteratorExt;
 use feather_core::network::packets::AnimationServerbound;
 use feather_core::util::{ClientboundAnimation, Hand};
 use feather_server_types::{Game, PacketBuffers, PlayerAnimationEvent};
-use fecs::World;
+use fvane::World;
 use std::sync::Arc;
 
 /// Handles animation packets.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_animation(game: &mut Game, world: &mut World, packet_buffers: &Arc<PacketBuffers>) {
     packet_buffers
         .received::<AnimationServerbound>()

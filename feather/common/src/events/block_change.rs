@@ -116,7 +116,7 @@ enum BlockChanges {
 #[cfg(test)]
 mod tests {
     use ahash::AHashSet;
-    use ecs::Entity;
+    use vane::Entity;
 
     use super::*;
 

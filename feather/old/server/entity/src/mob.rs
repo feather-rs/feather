@@ -14,7 +14,7 @@ use feather_core::network::Packet;
 use feather_core::util::Position;
 use feather_server_types::{NetworkId, SpawnPacketCreator, Uuid, Velocity};
 use feather_server_util::{degrees_to_stops, protocol_velocity};
-use fecs::{EntityBuilder, EntityRef};
+use fvane::{EntityBuilder, EntityRef};
 pub use hostile::*;
 pub use neutral::*;
 pub use passive::*;

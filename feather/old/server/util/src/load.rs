@@ -6,7 +6,7 @@ use feather_core::anvil::{
 use feather_server_types::{
     BlockEntityLoaderFn, BlockEntityLoaderRegistration, EntityLoaderFn, EntityLoaderRegistration,
 };
-use fecs::EntityBuilder;
+use fvane::EntityBuilder;
 
 /// Stores state for loading entities.
 pub struct EntityLoader {

@@ -1,19 +1,18 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
 use base::{Position, Text, Title};
-use ecs::{
-    Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
+use libcraft_core::EntityKind;
+use quill_common::entities::Player;
+use quill_common::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
+use vane::{
+    Entities, Entity, EntityBuilder, EntityDead, HasEntities, HasResources, Resources, SysResult,
     SystemExecutor,
 };
-use quill_common::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
-use quill_common::{entities::Player};
-use libcraft_core::EntityKind;
 
 use crate::events::PlayerRespawnEvent;
 use crate::{
     chat::{ChatKind, ChatMessage},
     chunk::entities::ChunkEntities,
-    events::BlockChangeEvent,
     ChatBox,
 };
 
@@ -23,8 +22,8 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, EntityKind)>;
 ///
 /// This contains:
 /// * A [`World`](crate::World) containing chunks and blocks.
-/// * An [`Ecs`](ecs::Ecs) containing entities.
-/// * A [`Resources`](ecs::Resources) containing additional, user-defined data.
+/// * An [`Ecs`](vane::Ecs) containing entities.
+/// * A [`Resources`](vane::Resources) containing additional, user-defined data.
 /// * A [`SystemExecutor`] to run systems.
 ///
 /// `feather-common` provides `Game` methods for actions such
@@ -32,7 +31,7 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, EntityKind)>;
 /// should be preferred over raw interaction with the ECS.
 pub struct Game {
     /// Contains entities, including players.
-    pub ecs: Ecs,
+    pub ecs: Entities,
     /// Contains systems.
     pub system_executor: Rc<RefCell<SystemExecutor<Game>>>,
 
@@ -62,7 +61,7 @@ impl Game {
     /// Creates a new, empty `Game`.
     pub fn new() -> Self {
         Self {
-            ecs: Ecs::new(),
+            ecs: Entities::new(),
             system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
             resources: Arc::new(Resources::new()),
             chunk_entities: ChunkEntities::default(),
@@ -114,11 +113,11 @@ impl Game {
         builder
     }
 
-    /// Spawns an entity and returns its [`Entity`](ecs::Entity) handle.
+    /// Spawns an entity and returns its [`Entity`](vane::Entity) handle.
     ///
     /// Also triggers necessary events, like `EntitySpawnEvent` and `PlayerJoinEvent`.
     pub fn spawn_entity(&mut self, mut builder: EntityBuilder) -> Entity {
-        let entity = self.ecs.spawn(builder.build());
+        let entity = self.ecs.spawn_builder(&mut builder);
         self.entity_builder = builder;
 
         self.trigger_entity_spawn_events(entity);
@@ -138,7 +137,7 @@ impl Game {
         self.ecs
             .insert_entity_event(entity, EntityCreateEvent)
             .unwrap();
-        if self.ecs.get::<Player>(entity).is_ok() {
+        if self.ecs.has::<Player>(entity) {
             self.ecs
                 .insert_entity_event(entity, PlayerJoinEvent)
                 .unwrap();
@@ -150,7 +149,7 @@ impl Game {
 
     /// Causes the given entity to be removed on the next tick.
     /// In the meantime, triggers `EntityRemoveEvent`.
-    pub fn remove_entity(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
+    pub fn remove_entity(&mut self, entity: Entity) -> Result<(), EntityDead> {
         self.ecs.defer_despawn(entity);
         self.ecs.insert_entity_event(entity, EntityRemoveEvent)
     }
@@ -159,7 +158,7 @@ impl Game {
     /// a `ChatBox` component (usually just players).
     pub fn broadcast_chat(&self, kind: ChatKind, message: impl Into<Text>) {
         let message = message.into();
-        for (_, mailbox) in self.ecs.query::<&mut ChatBox>().iter() {
+        for (_, mut mailbox) in self.ecs.query::<&mut ChatBox>().iter() {
             mailbox.send(ChatMessage::new(kind, message.clone()));
         }
     }
@@ -185,12 +184,12 @@ impl HasResources for Game {
     }
 }
 
-impl HasEcs for Game {
-    fn ecs(&self) -> &Ecs {
+impl HasEntities for Game {
+    fn entities(&self) -> &Entities {
         &self.ecs
     }
 
-    fn ecs_mut(&mut self) -> &mut Ecs {
+    fn entities_mut(&mut self) -> &mut Entities {
         &mut self.ecs
     }
 }

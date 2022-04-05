@@ -8,13 +8,13 @@ use feather_server_types::{
     EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
     Player,
 };
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use num_traits::ToPrimitive;
 use rand::Rng;
 use smallvec::smallvec;
 
 /// System for broadcasting equipment updates.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_inventory_update_broadcast_equipment_update(
     event: &InventoryUpdateEvent,
     game: &mut Game,
@@ -47,7 +47,7 @@ pub fn on_inventory_update_broadcast_equipment_update(
 
 /// System to send an entity's equipment when the
 /// entity is sent to a client.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World) {
     let client = event.client;
     let entity = event.entity;
@@ -96,7 +96,7 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
 
 /// System for sending the Set Slot packet
 /// when a player's inventory is updated.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &mut World) {
     if !world.has::<Player>(event.entity) {
         return;
@@ -131,7 +131,7 @@ fn is_equipment_update(held_item: usize, slot: SlotIndex) -> Result<Equipment, (
 }
 
 /// System for damaging inventory items which should take damage.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut World) {
     let inventory = world.get_mut::<Inventory>(event.player);
 

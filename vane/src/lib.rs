@@ -17,11 +17,11 @@ mod world;
 
 pub use borrow::{BorrowError, BorrowFlag, Ref, RefMut};
 pub use component::Component;
-pub use entity::EntityId;
+pub use entity::Entity;
 pub use entity_builder::EntityBuilder;
 pub use entity_ref::EntityRef;
 pub use query::{QueryDriver, QueryItem};
 pub use resources::{ResourceError, Resources};
 pub use storage::{SparseSetRef, SparseSetStorage};
-pub use system::{HasResources, HasWorld, SysResult, SystemExecutor};
-pub use world::{ComponentError, Components, EntityDead, World};
+pub use system::{HasResources, HasEntities, SysResult, SystemExecutor};
+pub use world::{ComponentError, Components, EntityDead, Entities};

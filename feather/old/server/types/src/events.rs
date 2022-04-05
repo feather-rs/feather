@@ -3,7 +3,7 @@ use feather_core::blocks::BlockId;
 use feather_core::inventory::SlotIndex;
 use feather_core::items::ItemStack;
 use feather_core::util::{BlockPosition, ChunkPosition, ClientboundAnimation, Gamemode, Position};
-use fecs::Entity;
+use fvane::Entity;
 use smallvec::SmallVec;
 
 #[derive(Copy, Clone, Debug)]

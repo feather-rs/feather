@@ -16,7 +16,7 @@ use feather_server_types::{
     Player, ShutdownChannels, Teleported, TimeUpdateEvent, WrappedBanInfo,
 };
 use feather_server_util::{name_to_uuid_offline, name_to_uuid_online};
-use fecs::{Entity, IntoQuery, Read, ResourcesProvider, World};
+use fvane::{Entity, IntoQuery, Read, ResourcesProvider, World};
 use lieutenant::command;
 use smallvec::SmallVec;
 use std::net::{IpAddr, SocketAddr};

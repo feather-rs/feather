@@ -1,8 +1,8 @@
 use feather_core::text::{Color, TextRoot, Translate};
 use feather_server_types::{ChatEvent, ChatPosition, Game, Name, PlayerJoinEvent};
-use fecs::World;
+use fvane::World;
 
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_join_broadcast_join_message(
     event: &PlayerJoinEvent,
     game: &mut Game,

@@ -5,12 +5,12 @@ use feather_core::util::Position;
 use feather_server_types::{
     BlockUpdateEvent, CanInstaBreak, EntitySpawnEvent, Game, Inventory, Velocity, TPS,
 };
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 use rand::Rng;
 
 /// When a block is broken with valid conditions,
 /// yields items from the block's loot table.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
     if event.old.is_air() || !event.new.is_air() {
         return;

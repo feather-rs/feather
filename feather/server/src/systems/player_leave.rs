@@ -6,11 +6,11 @@ use base::{Gamemode, Inventory, Position, Text};
 use common::entities::player::HotbarSlot;
 use common::world::WorldPath;
 use common::{chat::ChatKind, Game};
-use ecs::{SysResult, SystemExecutor};
 use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
     Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
 };
+use vane::{SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};
 
@@ -25,7 +25,7 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
     for (
         player,
         (
-            &client_id,
+            client_id,
             name,
             position,
             gamemode,
@@ -64,10 +64,10 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
     {
         let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
         let (world, dimension) = query.iter().find(|(e, _)| *e == player).unwrap().1;
-        let client = server.clients.get(client_id).unwrap();
+        let client = server.clients.get(*client_id).unwrap();
         if client.is_disconnected() {
             entities_to_remove.push(player);
-            broadcast_player_leave(game, name);
+            broadcast_player_leave(game, &name);
             game.ecs
                 .query::<&WorldPath>()
                 .iter()
@@ -91,12 +91,12 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
                             invulnerable: *invulnerable,
                         },
                         *hotbar_slot,
-                        inventory,
-                        dimension,
+                        &inventory,
+                        &dimension,
                     ),
                 )
                 .unwrap_or_else(|e| panic!("Couldn't save data for {}: {}", client.username(), e));
-            server.remove_client(client_id);
+            server.remove_client(*client_id);
         }
     }
 

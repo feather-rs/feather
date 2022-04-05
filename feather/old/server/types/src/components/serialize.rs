@@ -4,7 +4,7 @@
 use crate::Game;
 use feather_core::anvil::{block_entity::BlockEntityData, entity::EntityData};
 use feather_core::network::Packet;
-use fecs::EntityRef;
+use fvane::EntityRef;
 
 pub trait PacketCreatorFn: Fn(&EntityRef) -> Box<dyn Packet> + Send + Sync + 'static {}
 impl<F> PacketCreatorFn for F where F: Fn(&EntityRef) -> Box<dyn Packet> + Send + Sync + 'static {}

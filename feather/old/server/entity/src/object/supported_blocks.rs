@@ -5,11 +5,11 @@ use feather_server_types::{BlockUpdateCause, BumpVec, Game};
 use feather_server_util::{
     is_block_supported_at, BlockNotifyBlock, BlockNotifyPosition, BlockNotifySupportedBlock,
 };
-use fecs::{component, IntoQuery, Read, World};
+use fvane::{component, IntoQuery, Read, World};
 
 /// System to check for supporting block when a block notify
 /// entity is spawned with `BlockNotifySupportedBlock`.
-#[fecs::system]
+#[fvane::system]
 pub fn break_unsupported_blocks(game: &mut Game, world: &mut World) {
     let mut actions = BumpVec::new_in(game.bump());
 

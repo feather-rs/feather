@@ -9,14 +9,12 @@ use base::world::DimensionInfo;
 use common::world::{Dimensions, WorldName, WorldPath};
 use common::{Dimension, Game, TickLoop};
 use data_generators::extract_vanilla_data;
-use ecs::SystemExecutor;
 use feather_server::{config::Config, Server};
-use plugin_host::PluginManager;
+use vane::SystemExecutor;
 use worldgen::{SuperflatWorldGenerator, WorldGenerator};
 
 mod logging;
 
-const PLUGINS_DIRECTORY: &str = "plugins";
 const CONFIG_PATH: &str = "config.toml";
 
 #[tokio::main]
@@ -51,7 +49,6 @@ fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     init_biomes(&mut game)?;
     init_worlds(&mut game, config);
     init_dimensions(&mut game, config)?;
-    init_plugin_manager(&mut game)?;
     Ok(game)
 }
 
@@ -73,7 +70,7 @@ fn init_worlds(game: &mut Game, config: &Config) {
     for world in &config.worlds.worlds {
         //let seed = 42; // FIXME: load from the level file
 
-        game.ecs.spawn((
+        game.ecs.spawn_bundle((
             WorldName::new(world.to_string()),
             WorldPath::new(PathBuf::from(format!("worlds/{}", world))),
             Dimensions::default(),
@@ -121,7 +118,7 @@ fn init_dimensions(game: &mut Game, config: &Config) -> anyhow::Result<()> {
                         dimension_namespace, dimension_value
                     ))?;
 
-            for (_, (world_name, world_path, dimensions)) in game
+            for (_, (world_name, world_path, mut dimensions)) in game
                 .ecs
                 .query::<(&WorldName, &WorldPath, &mut Dimensions)>()
                 .iter()
@@ -208,15 +205,6 @@ fn init_biomes(game: &mut Game) -> anyhow::Result<()> {
         }
     }
     game.insert_resource(Arc::new(biomes));
-    Ok(())
-}
-
-fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
-    let mut plugin_manager = PluginManager::new();
-    plugin_manager.load_dir(game, PLUGINS_DIRECTORY)?;
-
-    let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
-    game.insert_resource(plugin_manager_rc);
     Ok(())
 }
 

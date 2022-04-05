@@ -15,7 +15,7 @@ pub use animation::handle_animation;
 pub use chat::handle_chat;
 pub use client_status::handle_client_status;
 pub use digging::*;
-use fecs::{Entity, World};
+use fvane::{Entity, World};
 pub use movement::handle_movement_packets;
 pub use placement::handle_player_block_placement;
 pub use use_item::handle_player_use_item;

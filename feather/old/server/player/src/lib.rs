@@ -23,7 +23,7 @@ use feather_server_types::{
     PreviousVelocity, ProfileProperties, SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::degrees_to_stops;
-use fecs::{Entity, EntityRef, World};
+use fvane::{Entity, EntityRef, World};
 
 pub use broadcasters::*;
 pub use chat::*;
@@ -165,7 +165,7 @@ fn add_gamemode_comps(world: &mut World, gamemode: Gamemode, entity: Entity) {
 
 /// When a player's gamemode is updated, updates their capability
 /// marker components (`CanBreak`, `CanTakeDamage`, etc)
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_gamemode_update_update_capabilities(event: &GamemodeUpdateEvent, world: &mut World) {
     if world.is_alive(event.player) {
         add_gamemode_comps(world, event.new, event.player);

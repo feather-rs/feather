@@ -14,7 +14,7 @@ libcraft-text = { path = "../../libcraft/text" }
 serde = { version = "1", features = ["derive"] }
 smartstring = { version = "0.2", features = ["serde"] }
 uuid = { version = "0.8", features = ["serde"] }
-ecs = { path = "../../feather/ecs", package = "feather-ecs" }
+vane = { path = "../../vane" }
 
 [dev-dependencies]
 quill = { path = "../api" }

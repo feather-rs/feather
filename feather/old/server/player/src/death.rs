@@ -8,10 +8,10 @@
 use entity::drops::drop_item;
 use feather_core::util::Position;
 use feather_server_types::{Dead, EntityDeathEvent, Game, Inventory, InventoryUpdateEvent, Player};
-use fecs::World;
+use fvane::World;
 
 /// Scatters a player's items when they die.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_death_scatter_inventory(
     event: &EntityDeathEvent,
     game: &mut Game,
@@ -52,7 +52,7 @@ pub fn on_player_death_scatter_inventory(
 ///
 /// The component will be removed once the user clicks the respawn
 /// button.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_player_death_mark_dead(event: &EntityDeathEvent, world: &mut World) {
     if world.has::<Player>(event.entity) {
         world.add(event.entity, Dead).unwrap();

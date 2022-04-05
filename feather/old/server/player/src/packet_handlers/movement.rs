@@ -3,11 +3,11 @@ use feather_core::network::packets::{
 };
 use feather_core::util::Position;
 use feather_server_types::{Network, PacketBuffers};
-use fecs::{component, IntoQuery, World, Write};
+use fvane::{component, IntoQuery, World, Write};
 use std::sync::Arc;
 
 /// System to handle player movement updates.
-#[fecs::system]
+#[fvane::system]
 pub fn handle_movement_packets(world: &mut World, packet_buffers: &Arc<PacketBuffers>) {
     <Write<Position>>::query()
         .filter(component::<Network>())

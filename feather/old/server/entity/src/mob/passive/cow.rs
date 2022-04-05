@@ -1,5 +1,5 @@
 use crate::{mob, MobKind};
-use fecs::EntityBuilder;
+use fvane::EntityBuilder;
 
 pub struct Cow;
 

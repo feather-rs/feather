@@ -1,6 +1,6 @@
 use ahash::AHashSet;
 use base::{ChunkPosition, Position};
-use ecs::{SysResult, SystemExecutor};
+use vane::{SysResult, SystemExecutor};
 use itertools::Either;
 use quill_common::components::Name;
 use quill_common::events::PlayerJoinEvent;
@@ -18,7 +18,7 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 /// Updates players' views when they change chunks.
 fn update_player_views(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (view, &position, name, &world, dimension)) in game
+    for (player, (mut view, position, name, world, dimension)) in game
         .ecs
         .query::<(&mut View, &Position, &Name, &EntityWorld, &EntityDimension)>()
         .iter()
@@ -28,7 +28,7 @@ fn update_player_views(game: &mut Game) -> SysResult {
             let new_view = View::new(
                 position.chunk(),
                 old_view.view_distance,
-                world,
+                *world,
                 dimension.clone(),
             );
 
@@ -49,7 +49,7 @@ fn update_player_views(game: &mut Game) -> SysResult {
 /// Triggers a ViewUpdateEvent when a player joins the game.
 fn update_view_on_join(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (view, name, &world, dimension, _)) in game
+    for (player, (view, name, world, dimension, _)) in game
         .ecs
         .query::<(
             &View,
@@ -60,7 +60,7 @@ fn update_view_on_join(game: &mut Game) -> SysResult {
         )>()
         .iter()
     {
-        let event = ViewUpdateEvent::new(&View::empty(world, dimension.clone()), view);
+        let event = ViewUpdateEvent::new(&View::empty(*world, dimension.clone()), &view);
         events.push((player, event));
         log::trace!("View of {} has been updated (player joined)", name);
     }

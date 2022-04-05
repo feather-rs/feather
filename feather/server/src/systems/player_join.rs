@@ -15,7 +15,6 @@ use common::{
     window::BackingWindow,
     ChatBox, Game, Window,
 };
-use ecs::{SysResult, SystemExecutor};
 use libcraft_core::EntityKind;
 use libcraft_items::InventorySlot;
 use quill_common::components;
@@ -24,7 +23,7 @@ use quill_common::components::{
     Health, Instabreak, Invulnerable, PreviousGamemode, WalkSpeed,
 };
 use quill_common::events::GamemodeEvent;
-use quill_common::{components::Name};
+use vane::{SysResult, SystemExecutor};
 
 use crate::config::Config;
 use crate::{ClientId, NetworkId, Server};
@@ -91,7 +90,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             .unwrap_or_default(),
         EntityKind::Player,
     );
-    client.set_network_id(*builder.get::<NetworkId>().unwrap());
+    client.set_network_id(builder.get::<NetworkId>().unwrap());
 
     if player_data.is_err() {
         debug!("{} is a new player", client.username())
@@ -114,7 +113,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         client.send_join_game(
             gamemode,
             previous_gamemode,
-            dimensions,
+            &dimensions,
             &*biomes,
             config.server.max_players as i32,
             dimension.clone(),
@@ -229,14 +228,14 @@ fn send_respawn_packets(game: &mut Game, server: &mut Server) -> SysResult {
         _,
         (
             _,
-            &client_id,
-            &walk_speed,
-            &fly_speed,
-            &may_fly,
-            &is_flying,
-            &may_build,
-            &instabreak,
-            &invulnerable,
+            client_id,
+            walk_speed,
+            fly_speed,
+            may_fly,
+        is_flying,
+            may_build,
+            instabreak,
+            invulnerable,
             hotbar_slot,
             window,
         ),
@@ -257,18 +256,18 @@ fn send_respawn_packets(game: &mut Game, server: &mut Server) -> SysResult {
         )>()
         .iter()
     {
-        let client = server.clients.get(client_id).unwrap();
+        let client = server.clients.get(*client_id).unwrap();
         client.send_abilities(&PlayerAbilities {
-            walk_speed,
-            fly_speed,
-            may_fly,
-            is_flying,
-            may_build,
-            instabreak,
-            invulnerable,
+            walk_speed: *walk_speed,
+            fly_speed: *fly_speed,
+            may_fly: *may_fly,
+            is_flying: *is_flying,
+            may_build: *may_build,
+            instabreak: *instabreak,
+            invulnerable: *invulnerable,
         });
         client.send_hotbar_slot(hotbar_slot.get() as u8);
-        client.send_window_items(window);
+        client.send_window_items(&window);
     }
     Ok(())
 }

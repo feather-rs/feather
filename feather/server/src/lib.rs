@@ -7,7 +7,6 @@ use flume::Receiver;
 use chunk_subscriptions::ChunkSubscriptions;
 pub use client::{Client, ClientId, Clients};
 use common::Game;
-use ecs::SystemExecutor;
 use initial_handler::NewPlayer;
 use libcraft_core::Position;
 use listener::Listener;
@@ -16,6 +15,7 @@ pub use options::Options;
 use player_count::PlayerCount;
 use quill_common::components::{EntityDimension, EntityWorld};
 use systems::view::WaitingChunks;
+use vane::SystemExecutor;
 
 use crate::chunk_subscriptions::DimensionChunkPosition;
 

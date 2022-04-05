@@ -1,7 +1,7 @@
 use anyhow::bail;
 use base::Gamemode;
 use common::{window::BackingWindow, Window};
-use ecs::{EntityRef, SysResult};
+use vane::{EntityRef, SysResult};
 use protocol::packets::client::{ClickWindow, CreativeInventoryAction};
 
 use crate::{ClientId, Server};

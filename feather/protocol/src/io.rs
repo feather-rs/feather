@@ -27,8 +27,6 @@ use base::{Direction};
 use thiserror::Error;
 use uuid::Uuid;
 
-use libcraft_items::InventorySlot::*;
-
 /// Trait implemented for types which can be read
 /// from a buffer.
 pub trait Readable {

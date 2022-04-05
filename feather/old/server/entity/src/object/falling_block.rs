@@ -16,7 +16,7 @@ use feather_server_util::{
     degrees_to_stops, protocol_velocity, BlockNotifyBlock, BlockNotifyFallingBlock,
     BlockNotifyPosition,
 };
-use fecs::{component, EntityBuilder, EntityRef, IntoQuery, Read, World};
+use fvane::{component, EntityBuilder, EntityRef, IntoQuery, Read, World};
 
 /// Marker component indicating an entity is a falling block.
 #[derive(Copy, Clone, Debug)]
@@ -28,7 +28,7 @@ pub struct FallingBlockType(pub BlockId);
 
 /// System to create a falling block when a block notify
 /// entity is spawned with `BlockNotifyFallingBlock`.
-#[fecs::system]
+#[fvane::system]
 pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
     let mut actions = BumpVec::new_in(game.bump());
 
@@ -78,7 +78,7 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
 /// it and creates a solid block where it landed or
 /// drops it on the ground if the block in the land position
 /// is not solid.
-#[fecs::event_handler]
+#[fvane::event_handler]
 pub fn on_entity_land_remove_falling_block(
     event: &EntityLandEvent,
     game: &mut Game,

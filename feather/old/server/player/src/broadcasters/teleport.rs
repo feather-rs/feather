@@ -1,7 +1,7 @@
 use feather_core::network::packets::PlayerPositionAndLookClientbound;
 use feather_core::util::Position;
 use feather_server_types::{BumpVec, Game, Network, Teleported};
-use fecs::{component, IntoQuery, Read, World};
+use fvane::{component, IntoQuery, Read, World};
 use std::sync::atomic::{AtomicI32, Ordering};
 
 /// TODO: how are we supposed to handle this?
@@ -9,7 +9,7 @@ static TELEPORT_ID_COUNTER: AtomicI32 = AtomicI32::new(1);
 
 /// System which polls for players with the `Teleported` component
 /// and notifies them of their new position.
-#[fecs::system]
+#[fvane::system]
 pub fn send_teleported(world: &mut World, game: &mut Game) {
     let mut to_delete = BumpVec::new_in(game.bump());
     for (entity, (network, pos)) in <(Read<Network>, Read<Position>)>::query()
