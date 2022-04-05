@@ -31,7 +31,6 @@ members = [
     # Feather (common and server)
     "feather/utils",
     "feather/base",
-    "feather/ecs",
     "feather/datapacks",
     "feather/worldgen",
     "feather/common",
@@ -44,6 +43,7 @@ members = [
 
     # Other
     "proxy",
+    "vane",
 ]
 
 # No longer need to use release for "development":
