@@ -1,3 +1,5 @@
+//! The game events exposed to plugins.
+
 pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
 pub use change::{
     BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,

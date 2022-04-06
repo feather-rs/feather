@@ -33,7 +33,7 @@ num-traits = "0.2"
 once_cell = "1"
 parking_lot = "0.11"
 protocol = { path = "../protocol", package = "feather-protocol" }
-quill-common = { path = "../../quill/common" }
+quill = { path = "../../quill" }
 vane = { path = "../../vane" }
 
 rand = "0.8"

@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use libcraft_blocks::{Ageable, BlockState};
+use libcraft_blocks::block_data::{Ageable, BlockState};
 
 #[test]
 fn update_block_data() {

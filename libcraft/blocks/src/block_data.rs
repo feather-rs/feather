@@ -1,3 +1,10 @@
+//! Provides access to block properties.
+//! 
+//! Some `BlockData` structs, such as [`Waterlogged`], are general to multiple blocks.
+//! Others are specific to one type of block.
+//! 
+//! This API is inspired by [Bukkit's BlockData API](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html).
+
 use crate::data::{RawBlockStateProperties, ValidProperties};
 use libcraft_core::block::{
     AttachedFace, Axis, BambooLeaves, BedPart, BellAttachment, BlockFace, BlockHalf, ChestType,
@@ -20,7 +27,7 @@ pub trait BlockData {
     fn apply(&self, raw: &mut RawBlockStateProperties);
 }
 
-/// Generalized BlockData structs
+// Generalized BlockData structs
 
 /// A block that has an "age" property that
 /// represents crop growth.

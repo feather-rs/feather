@@ -1,10 +1,10 @@
-use crate::EntityId;
 use libcraft_core::{Hand, InteractionType, Vec3f};
 use serde::{Deserialize, Serialize};
+use vane::Entity;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InteractEntityEvent {
-    pub target: EntityId,
+    pub target: Entity,
     pub ty: InteractionType,
     pub target_pos: Option<Vec3f>,
     pub hand: Option<Hand>,

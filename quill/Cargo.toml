@@ -1,0 +1,16 @@
+[package]
+name = "quill"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+derive_more = "0.99"
+libcraft-blocks = { path = "../libcraft/blocks" }
+libcraft-core = { path = "../libcraft/core" }
+libcraft-particles = { path = "../libcraft/particles" }
+libcraft-text = { path = "../libcraft/text" }
+serde = { version = "1", features = ["derive"] }
+smartstring = { version = "0.2", features = ["serde"] }
+uuid = { version = "0.8", features = ["serde"] }
+vane = { path = "../vane" }

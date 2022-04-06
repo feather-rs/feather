@@ -11,23 +11,7 @@ members = [
     "libcraft/generators",
 
     # Quill
-    "quill/sys-macros",
-    "quill/sys",
-    "quill/common",
-    "quill/api",
-    "quill/api/plugin-macro",
-    "quill/plugin-format",
-    "quill/cargo-quill",
-
-    # Quill example plugins
-    "quill/example-plugins/titles",
-    "quill/example-plugins/block-access",
-    "quill/example-plugins/block-place",
-    "quill/example-plugins/particle-example",
-    "quill/example-plugins/plugin-message",
-    "quill/example-plugins/query-entities",
-    "quill/example-plugins/simple",
-    "quill/example-plugins/observe-creativemode-flight-event",
+    "quill",
 
     # Feather (common and server)
     "feather/utils",

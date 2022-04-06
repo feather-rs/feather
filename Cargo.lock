@@ -65,35 +65,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "argh"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbb41d85d92dfab96cb95ab023c265c5e4261bb956c0fb49ca06d90c570f1958"
-dependencies = [
- "argh_derive",
- "argh_shared",
-]
-
-[[package]]
-name = "argh_derive"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be69f70ef5497dd6ab331a50bd95c6ac6b8f7f17a7967838332743fbd58dc3b5"
-dependencies = [
- "argh_shared",
- "heck 0.3.3",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "argh_shared"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6f8c380fa28aa1b36107cd97f0196474bb7241bb95a453c5c01a15ac74b2eac"
-
-[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -174,26 +145,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "block-access"
-version = "0.1.0"
-dependencies = [
- "quill",
-]
-
-[[package]]
 name = "block-buffer"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4152116fd6e9dadb291ae18fc1ec3575ed6d84c29642d97890f4b4a3417297e4"
 dependencies = [
  "generic-array",
-]
-
-[[package]]
-name = "block-place"
-version = "0.1.0"
-dependencies = [
- "quill",
 ]
 
 [[package]]
@@ -265,39 +222,6 @@ dependencies = [
  "cc",
  "libc",
  "pkg-config",
-]
-
-[[package]]
-name = "cargo-platform"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbdb825da8a5df079a43676dbe042702f1707b1109f713a01420fbb4cc71fa27"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "cargo-quill"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argh",
- "cargo_metadata",
- "heck 0.3.3",
- "quill-plugin-format",
-]
-
-[[package]]
-name = "cargo_metadata"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7714a157da7991e23d90686b9524b9e12e0407a108647f52e9328f4b3d51ac7f"
-dependencies = [
- "cargo-platform",
- "semver 0.11.0",
- "semver-parser 0.10.2",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -656,7 +580,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "parking_lot 0.11.2",
- "quill-common",
+ "quill",
  "rand",
  "rand_pcg",
  "serde",
@@ -687,7 +611,7 @@ dependencies = [
  "libcraft-items",
  "log",
  "parking_lot 0.11.2",
- "quill-common",
+ "quill",
  "rand",
  "rayon",
  "smartstring",
@@ -729,7 +653,7 @@ dependencies = [
  "libcraft-items",
  "num-traits",
  "parking_lot 0.11.2",
- "quill-common",
+ "quill",
  "serde",
  "thiserror",
  "uuid",
@@ -768,7 +692,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "parking_lot 0.11.2",
- "quill-common",
+ "quill",
  "rand",
  "ring",
  "rsa",
@@ -804,18 +728,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c9a4820f0ccc8a7afd67c39a0f1a0f4b07ca1725164271a64939d7aeb9af065"
 dependencies = [
  "log",
-]
-
-[[package]]
-name = "filetime"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "975ccf83d8d9d0d84682850a38c8169027be83368805971cc4f238c2b245bc98"
-dependencies = [
- "cfg-if",
- "libc",
- "redox_syscall",
- "winapi",
 ]
 
 [[package]]
@@ -1408,13 +1320,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "observe-creativemode-flight-event"
-version = "0.1.0"
-dependencies = [
- "quill",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1502,13 +1407,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "particle-example"
-version = "0.1.0"
-dependencies = [
- "quill",
-]
-
-[[package]]
 name = "pem-rfc7468"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1522,15 +1420,6 @@ name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
-
-[[package]]
-name = "pest"
-version = "2.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10f4872ae94d7b90ae48754df22fd42ad52ce740b8f370b03da4835417403e53"
-dependencies = [
- "ucd-trie",
-]
 
 [[package]]
 name = "pin-project"
@@ -1587,21 +1476,6 @@ name = "pkg-config"
 version = "0.3.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
-
-[[package]]
-name = "plugin-macro"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
-name = "plugin-message"
-version = "0.1.0"
-dependencies = [
- "quill",
-]
 
 [[package]]
 name = "ppv-lite86"
@@ -1669,14 +1543,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "query-entities"
-version = "0.1.0"
-dependencies = [
- "quill",
- "rand",
-]
-
-[[package]]
 name = "quickcheck"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1689,65 +1555,15 @@ dependencies = [
 name = "quill"
 version = "0.1.0"
 dependencies = [
- "bincode",
- "bytemuck",
- "itertools",
+ "derive_more",
  "libcraft-blocks",
  "libcraft-core",
  "libcraft-particles",
  "libcraft-text",
- "plugin-macro",
- "quill-common",
- "quill-sys",
- "thiserror",
- "uuid",
-]
-
-[[package]]
-name = "quill-common"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "bytemuck",
- "derive_more",
- "libcraft-core",
- "libcraft-particles",
- "libcraft-text",
- "quill",
  "serde",
  "smartstring",
  "uuid",
  "vane",
-]
-
-[[package]]
-name = "quill-plugin-format"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "flate2",
- "serde",
- "serde_json",
- "serde_with",
- "tar",
- "target-lexicon",
-]
-
-[[package]]
-name = "quill-sys"
-version = "0.1.0"
-dependencies = [
- "quill-common",
- "quill-sys-macros",
-]
-
-[[package]]
-name = "quill-sys-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -1963,17 +1779,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
 dependencies = [
- "semver-parser 0.7.0",
-]
-
-[[package]]
-name = "semver"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f301af10236f6df4160f7c3f04eec6dbc70ace82d23326abad5edee88801c6b6"
-dependencies = [
- "semver-parser 0.10.2",
- "serde",
+ "semver-parser",
 ]
 
 [[package]]
@@ -1987,15 +1793,6 @@ name = "semver-parser"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
-
-[[package]]
-name = "semver-parser"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b0bef5b7f9e0df16536d3961cfb6e84331c065b4066afb39768d0e319411f7"
-dependencies = [
- "pest",
-]
 
 [[package]]
 name = "serde"
@@ -2080,14 +1877,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e51e73328dc4ac0c7ccbda3a494dfa03df1de2f46018127f60c693f2648455b0"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "simple-plugin"
-version = "0.1.0"
-dependencies = [
- "quill",
- "rand",
 ]
 
 [[package]]
@@ -2224,23 +2013,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
-name = "tar"
-version = "0.4.38"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b55807c0344e1e6c04d7c965f5289c39a8d94ae23ed5c0b57aabac549f871c6"
-dependencies = [
- "filetime",
- "libc",
- "xattr",
-]
-
-[[package]]
-name = "target-lexicon"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "422045212ea98508ae3d28025bc5aaa2bd4a9cdaecd442a08da2ee620ee9ea95"
-
-[[package]]
 name = "termcolor"
 version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2328,13 +2100,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
-name = "titles"
-version = "0.1.0"
-dependencies = [
- "quill",
-]
-
-[[package]]
 name = "tokio"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2379,12 +2144,6 @@ name = "typenum"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
-
-[[package]]
-name = "ucd-trie"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56dee185309b50d1f11bfedef0fe6d036842e3fb77413abef29f8f8d1c5d4c1c"
 
 [[package]]
 name = "unicode-bidi"
@@ -2681,15 +2440,6 @@ name = "wyz"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85e60b0d1b5f99db2556934e21937020776a5d31520bf169e851ac44e6420214"
-
-[[package]]
-name = "xattr"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "244c3741f4240ef46274860397c7c74e50eb23624996930e484c16679633a54c"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "zeroize"

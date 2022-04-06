@@ -120,22 +120,16 @@ pub fn generate() {
 
     output("libcraft/core/src/entity.rs", out.to_string().as_str());
 
-    let mut markers = quote! {
-        use bytemuck::{Pod, Zeroable};
-    };
+    let mut markers = quote! {};
     for entity in entities.iter() {
         let name = format_ident!("{}", entity.name.to_case(Case::UpperCamel));
         let doc = format!("A marker component for {} entities.", entity.name);
         markers.extend(quote! {
-            #[derive(Debug, Copy, Clone, Zeroable, Pod)]
-            #[repr(C)]
+            #[derive(Debug, Copy, Clone)]
             #[doc = #doc]
-            pub struct #name;
-
-            pod_component_impl!(#name);
-        });
+            pub struct #name;        });
     }
-    output("quill/common/src/entities.rs", markers.to_string().as_str());
+    output("quill/src/entities.rs", markers.to_string().as_str());
 
     for entity in entities.iter() {
         let path = &format!("feather/common/src/entities/{}.rs", entity.name);

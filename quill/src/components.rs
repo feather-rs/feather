@@ -8,7 +8,8 @@ use std::fmt::Display;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use smartstring::{LazyCompact, SmartString};
 
-use libcraft_core::Gamemode;
+#[doc(inline)]
+pub use libcraft_core::{Gamemode, Position, ChunkPosition};
 
 /// Whether an entity is touching the ground.
 #[derive(
@@ -25,8 +26,6 @@ use libcraft_core::Gamemode;
 )]
 pub struct OnGround(pub bool);
 
-bincode_component_impl!(OnGround);
-
 /// A player's username.
 ///
 /// This component is immutable. Do not
@@ -36,8 +35,6 @@ bincode_component_impl!(OnGround);
 /// if you need to name an entity.
 #[derive(Clone, Debug, Serialize, Deserialize, derive_more::Deref)]
 pub struct Name(SmartString<LazyCompact>);
-
-bincode_component_impl!(Name);
 
 impl Name {
     pub fn new(string: &str) -> Self {
@@ -63,8 +60,6 @@ impl Display for Name {
 /// Giving a player a custom name has no effect.
 #[derive(Clone, Debug, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut)]
 pub struct CustomName(SmartString<LazyCompact>);
-
-bincode_component_impl!(CustomName);
 
 impl CustomName {
     /// Creates a custom name from a string.
@@ -93,8 +88,6 @@ impl Display for CustomName {
 )]
 pub struct WalkSpeed(pub f32);
 
-bincode_component_impl!(WalkSpeed);
-
 impl Default for WalkSpeed {
     fn default() -> Self {
         WalkSpeed(0.1)
@@ -106,8 +99,6 @@ impl Default for WalkSpeed {
     Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
 )]
 pub struct CreativeFlyingSpeed(pub f32);
-
-bincode_component_impl!(CreativeFlyingSpeed);
 
 impl Default for CreativeFlyingSpeed {
     fn default() -> Self {
@@ -130,8 +121,6 @@ impl Default for CreativeFlyingSpeed {
 )]
 pub struct CanCreativeFly(pub bool);
 
-bincode_component_impl!(CanCreativeFly);
-
 /// Whether a player is flying (like in creative mode, so it does not reflect if the player is flying by other means)
 #[derive(
     Copy,
@@ -146,8 +135,6 @@ bincode_component_impl!(CanCreativeFly);
     derive_more::DerefMut,
 )]
 pub struct CreativeFlying(pub bool);
-
-bincode_component_impl!(CreativeFlying);
 
 /// Whether a player can place and destroy blocks
 #[derive(
@@ -164,8 +151,6 @@ bincode_component_impl!(CreativeFlying);
 )]
 pub struct CanBuild(pub bool);
 
-bincode_component_impl!(CanBuild);
-
 /// Whether a player breaks blocks instantly (like in creative mode)
 #[derive(
     Copy,
@@ -180,8 +165,6 @@ bincode_component_impl!(CanBuild);
     derive_more::DerefMut,
 )]
 pub struct Instabreak(pub bool);
-
-bincode_component_impl!(Instabreak);
 
 /// Whether a player is immune to damage
 #[derive(
@@ -198,8 +181,6 @@ bincode_component_impl!(Instabreak);
 )]
 pub struct Invulnerable(pub bool);
 
-bincode_component_impl!(Invulnerable);
-
 /// Whether an entity is sneaking, like in pressing shift.
 #[derive(
     Copy,
@@ -214,7 +195,6 @@ bincode_component_impl!(Invulnerable);
     derive_more::DerefMut,
 )]
 pub struct Sneaking(pub bool);
-bincode_component_impl!(Sneaking);
 
 /// A player's previous gamemode
 #[derive(
@@ -231,8 +211,6 @@ bincode_component_impl!(Sneaking);
     derive_more::DerefMut,
 )]
 pub struct PreviousGamemode(pub Option<Gamemode>);
-
-bincode_component_impl!(PreviousGamemode);
 
 impl PreviousGamemode {
     /// Gets a previous gamemode from its ID.
@@ -263,7 +241,6 @@ impl PreviousGamemode {
     Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
 )]
 pub struct Health(pub f32);
-bincode_component_impl!(Health);
 
 /// A component on players that tracks if they are sprinting or not.
 #[derive(
@@ -284,7 +261,6 @@ impl Sprinting {
         Sprinting(value)
     }
 }
-bincode_component_impl!(Sprinting);
 
 #[derive(
     Clone,
@@ -298,29 +274,6 @@ bincode_component_impl!(Sprinting);
     Deserialize,
 )]
 pub struct EntityDimension(pub String);
-bincode_component_impl!(EntityDimension);
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, derive_more::Deref, derive_more::DerefMut)]
 pub struct EntityWorld(pub vane::Entity);
-
-impl Serialize for EntityWorld {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.0.to_bits().serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for EntityWorld {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        Ok(EntityWorld(vane::Entity::from_bits(u64::deserialize(
-            deserializer,
-        )?)))
-    }
-}
-
-bincode_component_impl!(EntityWorld);
