@@ -13,7 +13,7 @@ pub use chunk_lock::*;
 pub use consts::*;
 pub use libcraft_blocks::{BlockId, BlockKind};
 pub use libcraft_core::{
-    position, vec3, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d,
+    position, vec3, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d, consts,
 };
 pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackError};
@@ -27,7 +27,6 @@ pub mod biome;
 mod block;
 pub mod chunk;
 pub mod chunk_lock;
-mod consts;
 pub mod inventory;
 pub mod metadata;
 pub mod world;

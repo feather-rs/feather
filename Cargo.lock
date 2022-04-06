@@ -567,9 +567,9 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "convert_case",
- "feather-base",
  "fs_extra",
  "indexmap",
+ "libcraft-core",
  "log",
  "once_cell",
  "proc-macro2",

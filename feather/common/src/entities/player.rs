@@ -1,10 +1,10 @@
 use anyhow::bail;
 use base::EntityKind;
-use vane::{EntityBuilder, SysResult};
 use quill_common::{
     components::{CreativeFlying, Sneaking, Sprinting},
     entities::Player,
 };
+use vane::{EntityBuilder, SysResult};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

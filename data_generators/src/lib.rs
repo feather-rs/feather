@@ -1,7 +1,7 @@
 use fs_extra::dir::CopyOptions;
 use std::{io::Read, path::PathBuf};
 
-use feather_base::{SERVER_DOWNLOAD_URL, VERSION_STRING};
+use libcraft_core::{SERVER_DOWNLOAD_URL, VERSION_STRING};
 
 pub fn extract_vanilla_data() {
     const SERVER_JAR: &str = "server.jar";

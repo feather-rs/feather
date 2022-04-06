@@ -1,8 +1,8 @@
 // This file is @generated. Please do not edit.
 use base::EntityKind;
-use vane::EntityBuilder;
 use quill_common::components::OnGround;
 use uuid::Uuid;
+use vane::EntityBuilder;
 #[doc = "Adds default components shared between all entities."]
 fn build_default(builder: &mut EntityBuilder) {
     builder.add(Uuid::new_v4()).add(OnGround(true));
