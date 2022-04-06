@@ -1112,6 +1112,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "libcraft-generators"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "flate2",
+ "libcraft-blocks",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "libcraft-inventory"
 version = "0.1.0"
 dependencies = [

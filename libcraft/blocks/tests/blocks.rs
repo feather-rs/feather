@@ -6,7 +6,7 @@ use libcraft_blocks::{Ageable, BlockState};
 fn update_block_data() {
     let start = Instant::now();
 
-    let mut block = BlockState::from_id(1485).unwrap();
+    let mut block = BlockState::from_id(1528).unwrap();
     let mut fire = block.data_as::<Ageable>().unwrap();
     assert_eq!(fire.age(), 1);
     fire.set_age(3);
@@ -18,7 +18,7 @@ fn update_block_data() {
 
 #[test]
 fn set_only_valid_values() {
-    let mut block = BlockState::from_id(1485).unwrap();
+    let mut block = BlockState::from_id(1528).unwrap();
     let mut fire = block.data_as::<Ageable>().unwrap();
     assert_eq!(fire.age(), 1);
     fire.set_age(20);
@@ -32,7 +32,7 @@ fn set_only_valid_values() {
 
 #[test]
 fn block_data_valid_properties() {
-    let block = BlockState::from_id(1485).unwrap();
+    let block = BlockState::from_id(1528).unwrap();
     let fire = block.data_as::<Ageable>().unwrap();
     assert_eq!(
         fire.valid_age(),
@@ -42,7 +42,7 @@ fn block_data_valid_properties() {
 
 #[test]
 fn block_state_valid_properties() {
-    let block = BlockState::from_id(1485).unwrap();
+    let block = BlockState::from_id(1528).unwrap();
 
     assert_eq!(
         block.get_valid_properties().age,
