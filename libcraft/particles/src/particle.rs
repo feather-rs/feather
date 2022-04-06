@@ -1,4 +1,4 @@
-use libcraft_blocks::BlockId;
+use libcraft_blocks::{BlockKind, BlockState};
 use libcraft_items::Item;
 use ordinalizer::Ordinal;
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,7 @@ pub enum ParticleKind {
     AngryVillager,
     Barrier,
     /// Block break particles
-    Block(BlockId),
+    Block(BlockState),
     Bubble,
     Cloud,
     Crit,
@@ -50,7 +50,7 @@ pub enum ParticleKind {
     EntityEffect,
     ExplosionEmitter,
     Explosion,
-    FallingDust(BlockId),
+    FallingDust(BlockState),
     Firework,
     Fishing,
     Flame,
@@ -189,7 +189,7 @@ impl ParticleKind {
             0 => Some(ParticleKind::AmbientEntityEffect),
             1 => Some(ParticleKind::AngryVillager),
             2 => Some(ParticleKind::Barrier),
-            3 => Some(ParticleKind::Block(BlockId::default())),
+            3 => Some(ParticleKind::Block(BlockState::new(BlockKind::Stone))),
             4 => Some(ParticleKind::Bubble),
             5 => Some(ParticleKind::Cloud),
             6 => Some(ParticleKind::Crit),
@@ -214,7 +214,7 @@ impl ParticleKind {
             20 => Some(ParticleKind::EntityEffect),
             21 => Some(ParticleKind::ExplosionEmitter),
             22 => Some(ParticleKind::Explosion),
-            23 => Some(ParticleKind::FallingDust(BlockId::default())),
+            23 => Some(ParticleKind::FallingDust(BlockState::new(BlockKind::Stone))),
             24 => Some(ParticleKind::Firework),
             25 => Some(ParticleKind::Fishing),
             26 => Some(ParticleKind::Flame),

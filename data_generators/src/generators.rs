@@ -9,7 +9,7 @@ pub fn generate_all() {
     items::generate();
     blocks::generate();
     simplified_block::generate();
-    block_states::generate();
+    // block_states::generate();
     inventory::generate();
     entities::generate();
 }

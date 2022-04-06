@@ -65,15 +65,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "approx"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "argh"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -675,7 +666,7 @@ dependencies = [
  "smallvec",
  "thiserror",
  "uuid",
- "vek 0.14.1",
+ "vek",
 ]
 
 [[package]]
@@ -1093,15 +1084,18 @@ checksum = "efaa7b300f3b5fe8eb6bf21ce3895e1751d9665086af2d64b42f19701015ff4f"
 name = "libcraft-blocks"
 version = "0.1.0"
 dependencies = [
- "anyhow",
+ "ahash 0.7.6",
  "bincode",
+ "bytemuck",
+ "flate2",
+ "libcraft-core",
  "libcraft-items",
+ "libcraft-macros",
  "num-derive",
  "num-traits",
  "once_cell",
  "serde",
  "thiserror",
- "vek 0.15.7",
 ]
 
 [[package]]
@@ -1114,7 +1108,7 @@ dependencies = [
  "serde",
  "strum",
  "strum_macros",
- "vek 0.14.1",
+ "vek",
 ]
 
 [[package]]
@@ -2481,24 +2475,10 @@ version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04d6626f32b226e2c5b35f23ea87eaf683f3d93eaeb16b4084d0683479616f0f"
 dependencies = [
- "approx 0.4.0",
+ "approx",
  "num-integer",
  "num-traits",
  "rustc_version 0.2.3",
- "serde",
- "static_assertions",
-]
-
-[[package]]
-name = "vek"
-version = "0.15.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dcfb4368fdf4143fe9fe414293e7228b30e75a866ac94464d19824ca5c491df"
-dependencies = [
- "approx 0.5.1",
- "num-integer",
- "num-traits",
- "rustc_version 0.4.0",
  "serde",
  "static_assertions",
 ]
