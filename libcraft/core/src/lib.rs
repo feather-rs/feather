@@ -1,7 +1,7 @@
 //! Foundational types and constants for Minecraft.
 
 pub mod block;
-mod consts;
+pub mod consts;
 mod entity;
 mod gamemode;
 mod gamerules;

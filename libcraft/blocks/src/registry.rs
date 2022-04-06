@@ -1,5 +1,5 @@
 use crate::data::{RawBlockProperties, RawBlockState, RawBlockStateProperties, ValidProperties};
-use crate::{BlockData, BlockKind};
+use crate::{BlockData, BlockKind, SimplifiedBlockKind};
 
 use ahash::AHashMap;
 use bytemuck::{Pod, Zeroable};
@@ -41,6 +41,16 @@ impl BlockState {
     /// Gets the default block state for the given block kind.
     pub fn new(kind: BlockKind) -> Self {
         REGISTRY.default_state(kind)
+    }
+
+    /// Gets the kind of this block.
+    pub fn kind(self) -> BlockKind {
+        self.raw().kind
+    }
+
+    /// Gets the `SimplifiedKind` of this block.
+    pub fn simplified_kind(self) -> SimplifiedBlockKind {
+        self.kind().simplified_kind()
     }
 
     /// Gets this block as a struct implementing the [`BlockData`](crate::BlockData)

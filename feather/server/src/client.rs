@@ -11,8 +11,8 @@ use uuid::Uuid;
 
 use base::biome::BiomeList;
 use base::{
-    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle, Position,
-    ProfileProperty, Text, Title, ValidBlockPosition,
+    BlockState, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle,
+    Position, ProfileProperty, Text, Title, ValidBlockPosition,
 };
 use common::world::Dimensions;
 use common::{
@@ -22,11 +22,9 @@ use common::{
 use libcraft_items::InventorySlot;
 use packets::server::{SetSlot, SpawnLivingEntity};
 use protocol::packets::server::{
-    ChangeGameState, EntityPosition, EntityPositionAndRotation, EntityTeleport, GameStateChange,
-    HeldItemChange, PlayerAbilities,
-    ClearTitles, DimensionCodec, DimensionCodecEntry, DimensionCodecRegistry,
-        Respawn,
-    SetTitleSubtitle, SetTitleText, SetTitleTimes,
+    ChangeGameState, ClearTitles, DimensionCodec, DimensionCodecEntry, DimensionCodecRegistry,
+    EntityPosition, EntityPositionAndRotation, EntityTeleport, GameStateChange, HeldItemChange,
+    PlayerAbilities, Respawn, SetTitleSubtitle, SetTitleText, SetTitleTimes,
 };
 use protocol::{
     packets::{
@@ -373,7 +371,7 @@ impl Client {
         });
     }
 
-    pub fn send_block_change(&self, position: ValidBlockPosition, new_block: BlockId) {
+    pub fn send_block_change(&self, position: ValidBlockPosition, new_block: BlockState) {
         self.send_packet(BlockChange {
             position,
             block: new_block,
@@ -428,7 +426,7 @@ impl Client {
 
     pub fn unload_all_entities(&mut self) {
         self.unload_entities(&self.sent_entities.iter().copied().collect_vec())
-   }
+    }
 
     pub fn unload_entities(&mut self, ids: &[NetworkId]) {
         if !ids.is_empty() {
@@ -735,7 +733,7 @@ impl Client {
             state_change: GameStateChange::ChangeGamemode { gamemode },
         })
     }
-    
+
     fn register_entity(&mut self, network_id: NetworkId) {
         self.sent_entities.insert(network_id);
     }

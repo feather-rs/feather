@@ -8,7 +8,7 @@ use base::anvil::player::PlayerData;
 use base::biome::BiomeList;
 use base::world::{DimensionInfo, WorldHeight};
 use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition};
-use libcraft_blocks::BlockId;
+use libcraft_blocks::BlockState;
 use worldgen::WorldGenerator;
 
 use crate::{
@@ -178,7 +178,7 @@ impl Dimension {
     /// if its chunk was not loaded or the coordinates
     /// are out of bounds and thus no operation
     /// was performed.
-    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockState) -> bool {
         self.chunk_map.set_block_at(pos, block)
     }
 
@@ -186,7 +186,7 @@ impl Dimension {
     /// location. If the chunk in which the block
     /// exists is not loaded or the coordinates
     /// are out of bounds, `None` is returned.
-    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
+    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockState> {
         self.chunk_map.block_at(pos)
     }
 
@@ -260,7 +260,7 @@ impl ChunkMap {
         self.inner.get(&pos).map(Arc::clone)
     }
 
-    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
+    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockState> {
         check_coords(pos, self.height, self.min_y)?;
 
         let (x, y, z) = chunk_relative_pos(pos.into());
@@ -269,7 +269,7 @@ impl ChunkMap {
             .flatten()
     }
 
-    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockState) -> bool {
         if check_coords(pos, self.height, self.min_y).is_none() {
             return false;
         }

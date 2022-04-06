@@ -1,7 +1,7 @@
 use base::anvil::level::SuperflatGeneratorOptions;
 use base::chunk::Chunk;
 use base::world::Sections;
-use base::{BlockId, ChunkPosition, CHUNK_WIDTH};
+use base::{BlockKind, BlockState, ChunkPosition, CHUNK_WIDTH};
 
 use crate::BiomeList;
 use crate::WorldGenerator;
@@ -38,8 +38,8 @@ impl WorldGenerator for SuperflatWorldGenerator {
             if layer.height == 0 {
                 continue;
             }
-            // FIXME: get rid of this hack by having a consistent naming convention - Item::name() returns `stone` but BlockId::from_identifier requires `minecraft:stone`
-            let layer_block = BlockId::from_identifier(&format!("minecraft:{}", layer.block));
+            // FIXME: get rid of this hack by having a consistent naming convention - Item::name() returns `stone` but BlockState::from_namespaced_id requires `minecraft:stone`
+            let layer_block = BlockKind::from_namespaced_id(&format!("minecraft:{}", layer.block)).map(BlockState::new);
             if let Some(layer_block) = layer_block {
                 for y in y_counter..(y_counter + layer.height as i32) {
                     for x in 0..CHUNK_WIDTH {
@@ -134,17 +134,17 @@ mod tests {
         for x in 0usize..16 {
             for z in 0usize..16 {
                 for (y, block) in &[
-                    (0usize, BlockId::bedrock()),
-                    (1usize, BlockId::dirt()),
-                    (2usize, BlockId::dirt()),
-                    (3usize, BlockId::grass_block()),
+                    (0usize, BlockState::bedrock()),
+                    (1usize, BlockState::dirt()),
+                    (2usize, BlockState::dirt()),
+                    (3usize, BlockState::grass_block()),
                 ] {
                     assert_eq!(chunk.block_at(x, *y, z).unwrap(), *block);
                 }
                 for y in 4..16 * SECTION_HEIGHT {
                     assert_eq!(
                         chunk.block_at(x as usize, y as usize, z as usize).unwrap(),
-                        BlockId::air()
+                        BlockState::air()
                     );
                 }
                 assert_eq!(

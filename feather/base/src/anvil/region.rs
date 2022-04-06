@@ -24,7 +24,7 @@ use crate::chunk::{
 use crate::chunk::{LightStore, PackedArray};
 use crate::world::WorldHeight;
 use crate::ANVIL_VERSION;
-use libcraft_blocks::BlockId;
+use libcraft_blocks::{BlockKind, BlockState};
 use libcraft_core::ChunkPosition;
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
@@ -66,7 +66,7 @@ pub struct DataChunk {
 pub struct LevelSection {
     #[serde(rename = "Y")]
     y: i8,
-    block_states: PaletteAndData<BlockState>,
+    block_states: PaletteAndData<SerializedBlockState>,
     biomes: PaletteAndData<String>,
     #[serde(rename = "SkyLight")]
     sky_light: Option<Vec<i8>>,
@@ -83,7 +83,7 @@ struct PaletteAndData<T> {
 /// Represents a palette entry in a region file.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
-pub struct BlockState {
+pub struct SerializedBlockState {
     /// The identifier of the type of this block
     name: Cow<'static, str>,
     /// Optional properties for this block
@@ -372,14 +372,10 @@ fn read_section_into_chunk(
         }
 
         // Attempt to get block from the given values
-        let block = BlockId::from_identifier_and_properties(
-            entry.name.as_ref(),
-            &props
-                .into_iter()
-                .map(|(key, value)| (key.into_owned(), value.into_owned()))
-                .collect(),
-        )
-        .ok_or_else(|| Error::UnknownBlock(entry.name.to_string()))?;
+        let block = BlockState::new(
+            BlockKind::from_namespaced_id(&entry.name)
+                .ok_or_else(|| Error::UnknownBlock(entry.name.to_string()))?,
+        );
 
         block_palette.push(block);
     }
@@ -421,11 +417,11 @@ fn read_section_into_chunk(
         .map(|data| PackedArray::from_i64_vec(data, SECTION_VOLUME))
     {
         blocks.set_data(
-            if blocks_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
+            if blocks_data.bits_per_value() > <BlockState as Paletteable>::MAX_BITS_PER_ENTRY {
                 // Convert to GlobalPalette
                 let mut data = blocks_data
-                    .resized(PalettedContainer::<BlockId>::global_palette_bits_per_value());
-                PalettedContainer::<BlockId>::map_to_global_palette(
+                    .resized(PalettedContainer::<BlockState>::global_palette_bits_per_value());
+                PalettedContainer::<BlockState>::map_to_global_palette(
                     blocks.len(),
                     &block_palette,
                     &mut data,
@@ -442,7 +438,7 @@ fn read_section_into_chunk(
         .map(|data| PackedArray::from_i64_vec(data, BIOMES_PER_CHUNK_SECTION))
     {
         biomes.set_data(
-            if biomes_data.bits_per_value() > <BlockId as Paletteable>::MAX_BITS_PER_ENTRY {
+            if biomes_data.bits_per_value() > <BlockState as Paletteable>::MAX_BITS_PER_ENTRY {
                 // Convert to GlobalPalette
                 let mut data = biomes_data
                     .resized(PalettedContainer::<BiomeId>::global_palette_bits_per_value());
@@ -538,11 +534,11 @@ fn chunk_to_data_chunk(
                     y: (y as i8) - 1,
                     block_states: match section.blocks() {
                         PalettedContainer::SingleValue(block) => PaletteAndData {
-                            palette: vec![block_id_to_block_state(block)],
+                            palette: vec![serialize_block_state(block)],
                             data: None,
                         },
                         PalettedContainer::MultipleValues { data, palette } => PaletteAndData {
-                            palette: palette.iter().map(block_id_to_block_state).collect(),
+                            palette: palette.iter().map(serialize_block_state).collect(),
                             data: Some(bytemuck::cast_slice(data.as_u64_slice()).to_vec()),
                         },
                         PalettedContainer::GlobalPalette { data } => {
@@ -550,21 +546,23 @@ fn chunk_to_data_chunk(
                             let mut data = data.clone();
                             let mut palette = Vec::new();
                             data.iter().for_each(|value| {
-                                let block = BlockId::from_default_palette(value as u32).unwrap();
+                                let block = BlockState::from_default_palette(value as u32).unwrap();
                                 if !palette.contains(&block) {
                                     palette.push(block);
                                 }
                             });
-                            PalettedContainer::<BlockId>::map_from_global_palette(
+                            PalettedContainer::<BlockState>::map_from_global_palette(
                                 section.blocks().len(),
                                 &palette,
                                 &mut data,
                             );
                             let data = data.resized(
-                                PalettedContainer::<BlockId>::palette_bits_per_value(palette.len()),
+                                PalettedContainer::<BlockState>::palette_bits_per_value(
+                                    palette.len(),
+                                ),
                             );
                             PaletteAndData {
-                                palette: palette.iter().map(block_id_to_block_state).collect(),
+                                palette: palette.iter().map(serialize_block_state).collect(),
                                 data: Some(bytemuck::cast_slice(data.as_u64_slice()).to_vec()),
                             }
                         }
@@ -1053,22 +1051,10 @@ impl RegionPosition {
     }
 }
 
-fn block_id_to_block_state(block: &BlockId) -> BlockState {
-    BlockState {
-        name: block.identifier().into(),
-        properties: {
-            let props = block.to_properties_map();
-            if props.is_empty() {
-                None
-            } else {
-                Some(LevelProperties {
-                    props: props
-                        .into_iter()
-                        .map(|(key, value)| (key.into(), value.into()))
-                        .collect(),
-                })
-            }
-        },
+fn serialize_block_state(block: &BlockState) -> SerializedBlockState {
+    SerializedBlockState {
+        name: block.kind().namespaced_id().into(),
+        properties: None,
     }
 }
 

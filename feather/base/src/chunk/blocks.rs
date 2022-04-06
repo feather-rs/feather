@@ -1,4 +1,4 @@
-use blocks::BlockId;
+use blocks::BlockState;
 
 use crate::ChunkSection;
 
@@ -68,7 +68,7 @@ impl BlockStore {
         blocks.iter().for_each(|x| {
             let block = match palette {
                 Some(p) => p.get(x as usize),
-                None => BlockId::from_vanilla_id(x as u16),
+                None => BlockState::from_vanilla_id(x as u16),
             };
             if block.is_air() {
                 count += 1;
@@ -85,17 +85,17 @@ impl BlockStore {
         self.air_block_count = new_value;
     }
 
-    pub fn block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockId> {
+    pub fn block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockState> {
         let index = ChunkSection::block_index(x, y, z)?;
         let block_index = self.blocks.get(index).expect("block_index out of bounds?");
 
         Some(match &self.palette {
             Some(palette) => palette.get(block_index as usize),
-            None => BlockId::from_vanilla_id(block_index as u16),
+            None => BlockState::from_vanilla_id(block_index as u16),
         })
     }
 
-    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> Option<()> {
+    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockState) -> Option<()> {
         let index = ChunkSection::block_index(x, y, z)?;
         self.update_air_block_count(x, y, z, block);
 
@@ -105,7 +105,7 @@ impl BlockStore {
         Some(())
     }
 
-    pub fn fill(&mut self, block: BlockId) {
+    pub fn fill(&mut self, block: BlockState) {
         let index = if let Some(ref mut palette) = self.palette {
             palette.clear();
             palette.index_or_insert(block)
@@ -123,7 +123,7 @@ impl BlockStore {
         }
     }
 
-    fn get_block_palette_index(&mut self, block: BlockId) -> usize {
+    fn get_block_palette_index(&mut self, block: BlockState) -> usize {
         match &mut self.palette {
             Some(p) => {
                 let index = p.index_or_insert(block);
@@ -161,7 +161,7 @@ impl BlockStore {
         self.palette = None;
     }
 
-    fn update_air_block_count(&mut self, x: usize, y: usize, z: usize, new: BlockId) {
+    fn update_air_block_count(&mut self, x: usize, y: usize, z: usize, new: BlockState) {
         let old = self.block_at(x, y, z).unwrap();
         if old.is_air() && !new.is_air() {
             self.air_block_count -= 1;

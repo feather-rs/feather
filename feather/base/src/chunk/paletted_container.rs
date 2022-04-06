@@ -7,7 +7,7 @@ use libcraft_blocks::HIGHEST_ID;
 
 use crate::biome::BiomeId;
 use crate::chunk::{PackedArray, BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME};
-use crate::{BlockId, ChunkSection};
+use crate::{BlockState, ChunkSection};
 
 /// Stores blocks or biomes of a chunk section.
 /// N = 4 for blocks, 2 for biomes
@@ -207,16 +207,16 @@ where
     }
 }
 
-impl PalettedContainer<BlockId> {
+impl PalettedContainer<BlockState> {
     /// Gets the block at this position
-    pub fn get_block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockId> {
+    pub fn get_block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockState> {
         let index = ChunkSection::block_index(x, y, z)?;
 
         self.get(index)
     }
 
     /// Sets the block at this position
-    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> Option<()> {
+    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockState) -> Option<()> {
         let index = ChunkSection::block_index(x, y, z)?;
         self.set(index, block);
         Some(())
@@ -260,21 +260,21 @@ pub trait Paletteable: Default + Copy + PartialEq + Debug {
     fn length() -> usize;
 }
 
-impl Paletteable for BlockId {
+impl Paletteable for BlockState {
     // SAFETY: 4 is non-zero
     const MIN_BITS_PER_ENTRY: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(4) };
     const ENTRIES_PER_CHUNK_SECTION: usize = SECTION_VOLUME;
 
     fn from_default_palette(index: u32) -> Option<Self> {
-        Self::from_vanilla_id(index as u16)
+        Self::from_id(index as u16)
     }
 
     fn default_palette_index(&self) -> u32 {
-        self.vanilla_id() as u32
+        self.id() as u32
     }
 
     fn length() -> usize {
-        HIGHEST_ID
+        HIGHEST_ID.into()
     }
 }
 
@@ -300,27 +300,32 @@ impl Paletteable for BiomeId {
 
 #[cfg(test)]
 mod tests {
-    use libcraft_blocks::BlockId;
+    use libcraft_blocks::BlockState;
 
     use crate::chunk::paletted_container::PalettedContainer;
 
     #[test]
     fn test() {
-        let mut container = PalettedContainer::<BlockId>::new();
+        let mut container = PalettedContainer::<BlockState>::new();
         assert_eq!(container, PalettedContainer::default());
-        container.set_block_at(10, 10, 5, BlockId::stone()).unwrap();
+        container
+            .set_block_at(10, 10, 5, BlockState::stone())
+            .unwrap();
         assert_eq!(
             container.palette().unwrap(),
-            &vec![BlockId::default(), BlockId::stone()]
+            &vec![BlockState::default(), BlockState::stone()]
         );
-        assert_eq!(container.get_block_at(10, 10, 5).unwrap(), BlockId::stone());
+        assert_eq!(
+            container.get_block_at(10, 10, 5).unwrap(),
+            BlockState::stone()
+        );
         for id in 0..256 {
             container
                 .set_block_at(
                     id / 16,
                     0,
                     id % 16,
-                    BlockId::from_vanilla_id(id as u16).unwrap(),
+                    BlockState::from_vanilla_id(id as u16).unwrap(),
                 )
                 .unwrap();
         }
@@ -328,7 +333,7 @@ mod tests {
         for id in 0..256 {
             assert_eq!(
                 container.get_block_at(id / 16, 0, id % 16).unwrap(),
-                BlockId::from_vanilla_id(id as u16).unwrap()
+                BlockState::from_vanilla_id(id as u16).unwrap()
             );
         }
     }

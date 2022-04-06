@@ -10,10 +10,9 @@ use serde::{Deserialize, Serialize};
 pub use block::{BlockPositionValidationError, ValidBlockPosition};
 pub use chunk::{Chunk, ChunkSection, CHUNK_WIDTH};
 pub use chunk_lock::*;
-pub use consts::*;
-pub use libcraft_blocks::{BlockId, BlockKind};
+pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{
-    position, vec3, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d, consts,
+    consts::*, position, vec3, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d,
 };
 pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackError};

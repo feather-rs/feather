@@ -3,7 +3,7 @@
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
-    anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, EntityMetadata,
+    anvil::entity::ItemNbt, metadata::MetaEntry, BlockPosition, BlockState, EntityMetadata,
     Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
@@ -23,7 +23,7 @@ use std::{
 };
 
 use base::chunk::paletted_container::{Paletteable, PalettedContainer};
-use base::{Direction};
+use base::Direction;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -658,7 +658,7 @@ fn read_meta_entry(
         } else {
             None
         }),
-        13 => MetaEntry::OptBlockId({
+        13 => MetaEntry::OptBlockState({
             let id = VarInt::read(buffer, version)?.0;
             if id == 0 {
                 None
@@ -746,7 +746,7 @@ fn write_meta_entry(
                 false.write(buffer, version)?;
             }
         }
-        MetaEntry::OptBlockId(ox) => {
+        MetaEntry::OptBlockState(ox) => {
             if let Some(x) = ox {
                 VarInt(*x).write(buffer, version)?;
             } else {
@@ -859,21 +859,21 @@ impl Writeable for Angle {
     }
 }
 
-impl Readable for BlockId {
+impl Readable for BlockState {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
         let id = VarInt::read(buffer, version)?.0;
 
-        let block = BlockId::from_vanilla_id(id.try_into()?);
+        let block = BlockState::from_id(id.try_into()?);
         Ok(block.unwrap_or_default())
     }
 }
 
-impl Writeable for BlockId {
+impl Writeable for BlockState {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        VarInt(self.vanilla_id().into()).write(buffer, version)?;
+        VarInt(self.id().into()).write(buffer, version)?;
         Ok(())
     }
 }

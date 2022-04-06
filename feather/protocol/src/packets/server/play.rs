@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ProtocolVersion, Readable, Slot, VarInt, Writeable};
 pub use chunk_data::ChunkData;
-use libcraft_blocks::BlockId;
+use libcraft_blocks::BlockState;
 use libcraft_core::Gamemode;
 pub use update_light::UpdateLight;
 
@@ -141,7 +141,7 @@ packets! {
 
     AcknowledgePlayerDigging {
         position ValidBlockPosition;
-        block BlockId;
+        block BlockState;
         status PlayerDiggingStatus;
         successful bool;
     }
@@ -177,7 +177,7 @@ packets! {
 
     BlockChange {
         position ValidBlockPosition;
-        block BlockId;
+        block BlockState;
     }
 
     BossBar {
@@ -713,11 +713,11 @@ impl Readable for Particle {
             }
             ParticleKind::Block(ref mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
-                *block_state = BlockId::from_vanilla_id(state.0 as u16).unwrap();
+                *block_state = BlockState::from_id(state.0 as u16).unwrap();
             }
             ParticleKind::FallingDust(ref mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
-                *block_state = BlockId::from_vanilla_id(state.0 as u16).unwrap();
+                *block_state = BlockState::from_id(state.0 as u16).unwrap();
             }
             ParticleKind::Item(ref mut item) => {
                 let _slot = Slot::read(buffer, version)?;
@@ -767,10 +767,10 @@ impl Writeable for Particle {
                 scale.write(buffer, version)?;
             }
             ParticleKind::Block(block_state) => {
-                VarInt(block_state.vanilla_id() as i32).write(buffer, version)?;
+                VarInt(block_state.id() as i32).write(buffer, version)?;
             }
             ParticleKind::FallingDust(block_state) => {
-                VarInt(block_state.vanilla_id() as i32).write(buffer, version)?;
+                VarInt(block_state.id() as i32).write(buffer, version)?;
             }
             ParticleKind::Item(_item) => {
                 todo![];

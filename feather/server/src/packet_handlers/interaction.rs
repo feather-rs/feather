@@ -1,6 +1,6 @@
 use anyhow::Context;
 use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use base::BlockId;
+use base::{BlockKind, BlockState};
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::world::Dimensions;
@@ -140,7 +140,7 @@ pub fn handle_player_digging(
             let dimension = dimensions
                 .get(&**player_dimension)
                 .context("missing dimension")?;
-            dimension.set_block_at(packet.position, BlockId::air());
+            dimension.set_block_at(packet.position, BlockState::new(BlockKind::Air));
             Ok(())
         }
         PlayerDiggingStatus::SwapItemInHand => {

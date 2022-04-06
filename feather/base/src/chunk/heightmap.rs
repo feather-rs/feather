@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 use std::marker::PhantomData;
 
-use libcraft_blocks::{BlockId, SimplifiedBlockKind};
+use libcraft_blocks::{BlockState, SimplifiedBlockKind};
 
 use super::PackedArray;
 use crate::chunk::{CHUNK_WIDTH, SECTION_WIDTH};
@@ -31,9 +31,9 @@ impl HeightmapStore {
         x: usize,
         y: usize,
         z: usize,
-        old_block: BlockId,
-        new_block: BlockId,
-        get_block: impl Fn(usize, usize, usize) -> BlockId,
+        old_block: BlockState,
+        new_block: BlockState,
+        get_block: impl Fn(usize, usize, usize) -> BlockState,
     ) {
         self.motion_blocking
             .update(x, y, z, old_block, new_block, &get_block);
@@ -45,7 +45,7 @@ impl HeightmapStore {
             .update(x, y, z, old_block, new_block, &get_block);
     }
 
-    pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockId) {
+    pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockState) {
         self.motion_blocking.recalculate(&get_block);
         self.motion_blocking_no_leaves.recalculate(&get_block);
         self.ocean_floor.recalculate(&get_block);
@@ -57,30 +57,30 @@ impl HeightmapStore {
 pub trait HeightmapFunction {
     /// Returns whether a block should be considered
     /// "solid" during the heightmap computation.
-    fn is_solid(block: BlockId) -> bool;
+    fn is_solid(block: BlockState) -> bool;
 }
 
 #[derive(Debug, Clone)]
 pub struct LightBlocking;
 impl HeightmapFunction for LightBlocking {
-    fn is_solid(block: BlockId) -> bool {
-        block.is_opaque()
+    fn is_solid(block: BlockState) -> bool {
+        block.kind().opaque()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct MotionBlocking;
 impl HeightmapFunction for MotionBlocking {
-    fn is_solid(block: BlockId) -> bool {
-        block.is_solid() || block.is_fluid()
+    fn is_solid(block: BlockState) -> bool {
+        block.kind().solid() || block.kind().fluid()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct MotionBlockingNoLeaves;
 impl HeightmapFunction for MotionBlockingNoLeaves {
-    fn is_solid(block: BlockId) -> bool {
-        (block.is_solid() || block.is_fluid())
+    fn is_solid(block: BlockState) -> bool {
+        (block.kind().solid() || block.kind().fluid())
             && block.simplified_kind() != SimplifiedBlockKind::Leaves
     }
 }
@@ -88,16 +88,16 @@ impl HeightmapFunction for MotionBlockingNoLeaves {
 #[derive(Debug, Clone)]
 pub struct OceanFloor;
 impl HeightmapFunction for OceanFloor {
-    fn is_solid(block: BlockId) -> bool {
-        block.is_solid()
+    fn is_solid(block: BlockState) -> bool {
+        block.kind().solid()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct WorldSurface;
 impl HeightmapFunction for WorldSurface {
-    fn is_solid(block: BlockId) -> bool {
-        !block.is_air()
+    fn is_solid(block: BlockState) -> bool {
+        !block.kind().is_air()
     }
 }
 
@@ -153,9 +153,9 @@ where
         x: usize,
         y: usize,
         z: usize,
-        old_block: BlockId,
-        new_block: BlockId,
-        get_block: impl Fn(usize, usize, usize) -> BlockId,
+        old_block: BlockState,
+        new_block: BlockState,
+        get_block: impl Fn(usize, usize, usize) -> BlockState,
     ) {
         if F::is_solid(old_block) && self.height(x, z) == Some(y) {
             // This was old the highest block
@@ -175,7 +175,7 @@ where
     }
 
     /// Recalculates this entire heightmap.
-    pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockId) {
+    pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockState) {
         for x in 0..CHUNK_WIDTH {
             for z in 0..CHUNK_WIDTH {
                 for y in (0..*self.height).rev() {

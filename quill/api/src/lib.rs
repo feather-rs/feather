@@ -13,7 +13,7 @@ pub use game::Game;
 pub use setup::Setup;
 
 #[doc(inline)]
-pub use libcraft_blocks::{BlockId, BlockKind};
+pub use libcraft_blocks::{BlockKind, BlockState};
 #[doc(inline)]
 pub use libcraft_core::{BlockPosition, ChunkPosition, EntityKind, Gamemode, Position};
 #[doc(inline)]
