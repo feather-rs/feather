@@ -16,5 +16,5 @@ num-derive = "0.3"
 num-traits = "0.2"
 once_cell = "1"
 serde = { version = "1", features = ["derive"] }
-smartstring = { version = "0.2", features = ["serde"] }
+smartstring = { version = "1", features = ["serde"] }
 thiserror = "1"

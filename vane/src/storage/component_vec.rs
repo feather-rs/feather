@@ -20,7 +20,7 @@ use super::blob_array::BlobArray;
 /// 2. Pushing is `O(1)` in the worst case. On the other hand,
 /// if we allowed for regrowth, the worst case would be `O(n)`.
 pub struct ComponentVec {
-    arrays: ArrayVec<[BlobArray; MAX_NUM_ARRAYS]>,
+    arrays: ArrayVec<BlobArray, MAX_NUM_ARRAYS>,
     component_meta: ComponentMeta,
     len: u32,
 }

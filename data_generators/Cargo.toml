@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bincode = "1"
-convert_case = "0.4"
+convert_case = "0.5"
 fs_extra = "1"
 indexmap = { version = "1", features = [ "serde" ] }
 libcraft-core = { path = "../libcraft/core" }

@@ -16,11 +16,11 @@ libcraft-core = { path = "../../libcraft/core" }
 libcraft-inventory = { path = "../../libcraft/inventory" }
 libcraft-items = { path = "../../libcraft/items" }
 log = "0.4"
-parking_lot = "0.11"
+parking_lot = "0.12"
 quill = { path = "../../quill" }
 rand = "0.8"
 rayon = "1.5"
-smartstring = "0.2"
+smartstring = "1"
 tokio = "1"
 utils = { path = "../utils", package = "feather-utils" }
 uuid = { version = "0.8", features = [ "v4" ] }

@@ -12,7 +12,7 @@ use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::{fs, io, iter};
 
-use bitvec::{bitvec, vec::BitVec};
+use bitvec::{ vec::BitVec};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use serde::{Deserialize, Serialize};
 
@@ -375,10 +375,7 @@ fn read_section_into_chunk(
         let block = match &entry.properties {
             Some(properties) => BlockState::from_namespaced_id_and_property_values(
                 &entry.name,
-                properties
-                    .props
-                    .iter()
-                    .map(|(k, v)| (&**k, &**v)),
+                properties.props.iter().map(|(k, v)| (&**k, &**v)),
             ),
             None => BlockKind::from_namespaced_id(&entry.name).map(BlockState::new),
         }
@@ -418,7 +415,7 @@ fn read_section_into_chunk(
         PalettedContainer::new()
     };
 
-    if let Some( blocks_data) = section
+    if let Some(blocks_data) = section
         .block_states
         .data
         .map(|data| PackedArray::from_i64_vec(data, SECTION_VOLUME))
@@ -686,7 +683,7 @@ impl SectorAllocator {
     /// Creates a `SectorAllocator` from the given file header
     /// and total file size __in sectors.__
     pub fn new(header: &RegionHeader, file_size: u32) -> Self {
-        let mut used_sectors = bitvec![0; file_size as usize];
+        let mut used_sectors: BitVec = (0..file_size as usize).map(|_| 0).collect();
 
         // Detect used sectors
         for chunk_location in &header.locations {

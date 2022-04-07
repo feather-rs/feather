@@ -10,7 +10,7 @@ anyhow = "1"
 base = { path = "../base", package = "feather-base" }
 bytemuck = "1"
 byteorder = "1"
-bytes = "0.5"
+bytes = "1"
 cfb8 = "0.7"
 either = "1"
 flate2 = "1"
@@ -19,7 +19,7 @@ libcraft-blocks = { path = "../../libcraft/blocks" }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
 num-traits = "0.2"
-parking_lot = "0.11" # Arc<RwLock<Chunk>> compat
+parking_lot = "0.12" # Arc<RwLock<Chunk>> compat
 quill = { path = "../../quill" }
 serde = "1"
 thiserror = "1"
