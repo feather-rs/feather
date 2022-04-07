@@ -2,11 +2,11 @@ use std::mem;
 
 use anyhow::{anyhow, bail};
 
-use base::{Area, Item};
+use libcraft::{Area, Item};
 
-pub use libcraft_inventory::Window as BackingWindow;
-use libcraft_inventory::WindowError;
-use libcraft_items::InventorySlot::{self, Empty};
+pub use libcraft::inventory::Window as BackingWindow;
+use libcraft::inventory::WindowError;
+use libcraft::items::InventorySlot::{self, Empty};
 use parking_lot::MutexGuard;
 use vane::SysResult;
 
@@ -561,7 +561,7 @@ enum Mouse {
 
 #[cfg(test)]
 mod tests {
-    use base::{Inventory, Item, ItemStack};
+    use libcraft::{Inventory, Item, ItemStack};
 
     use super::*;
 

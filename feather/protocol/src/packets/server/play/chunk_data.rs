@@ -4,8 +4,9 @@ use std::fmt::{self, Debug};
 use either::Either;
 use serde::{Deserialize, Serialize};
 
-use base::{Chunk, ChunkHandle, ChunkSection};
-use libcraft_core::ChunkPosition;
+use libcraft::ChunkPosition;
+use libcraft::{Chunk, ChunkSection};
+use quill::ChunkHandle;
 
 use crate::packets::server::play::update_light::LightData;
 use crate::{Nbt, ProtocolVersion, Readable, VarInt, Writeable};

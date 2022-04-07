@@ -1,5 +1,5 @@
 use ahash::AHashMap;
-use base::{ChunkPosition, Position};
+use libcraft::{ChunkPosition, Position};
 use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 use utils::vec_remove_item;
 use vane::{Entity, SysResult, SystemExecutor};

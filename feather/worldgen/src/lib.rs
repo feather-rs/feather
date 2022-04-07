@@ -5,12 +5,12 @@
 //! Generation is primarily based around the `ComposableGenerator`,
 //! which allows configuration of a world generator pipeline.
 
-use base::biome::BiomeList;
+use libcraft::biome::BiomeList;
 pub use superflat::SuperflatWorldGenerator;
 
-use base::chunk::Chunk;
-use base::world::{Sections, WorldHeight};
-use base::ChunkPosition;
+use libcraft::chunk::Chunk;
+use libcraft::{Sections, WorldHeight};
+use libcraft::ChunkPosition;
 mod superflat;
 
 pub trait WorldGenerator: Send + Sync {

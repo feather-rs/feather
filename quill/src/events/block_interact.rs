@@ -1,4 +1,4 @@
-use libcraft_core::{BlockFace, BlockPosition, Hand, Vec3f};
+use libcraft::{BlockFace, BlockPosition, Hand, Vec3f};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

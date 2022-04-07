@@ -20,4 +20,5 @@ pub const VERSION_STRING: &str = "1.18.1";
 /// World save version compatible with this version of the server
 pub const ANVIL_VERSION: i32 = 2865;
 
-pub const CHUNK_WIDTH: u32 = 16;
+pub const CHUNK_WIDTH: usize = 16;
+pub const CHUNK_SECTION_HEIGHT: usize = 16;

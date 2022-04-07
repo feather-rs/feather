@@ -4,12 +4,13 @@ use ahash::{AHashMap, AHashSet};
 use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use uuid::Uuid;
 
-use base::anvil::player::PlayerData;
-use base::biome::BiomeList;
-use base::world::{DimensionInfo, WorldHeight};
-use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition};
-use libcraft_blocks::BlockState;
+use libcraft::anvil::player::PlayerData;
+use libcraft::biome::BiomeList;
+use libcraft::BlockState;
+use libcraft::{BlockPosition, Chunk, ChunkPosition, ValidBlockPosition};
+use libcraft::{dimension::DimensionInfo, WorldHeight};
 use worldgen::WorldGenerator;
+use quill::{ChunkHandle, ChunkLock};
 
 use crate::{
     chunk::cache::ChunkCache,
@@ -25,11 +26,11 @@ pub struct WorldPath(PathBuf);
 
 impl WorldPath {
     pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
-        base::anvil::player::load_player_data(&self.0, uuid)
+        libcraft::anvil::player::load_player_data(&self.0, uuid)
     }
 
     pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
-        base::anvil::player::save_player_data(&self.0, uuid, data)
+        libcraft::anvil::player::save_player_data(&self.0, uuid, data)
     }
 }
 

@@ -1,5 +1,5 @@
 // This file is @generated. Please do not edit.
-use base::EntityKind;
+use libcraft::EntityKind;
 use quill::entities::SkeletonHorse;
 use vane::EntityBuilder;
 pub fn build_default(builder: &mut EntityBuilder) {

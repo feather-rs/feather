@@ -3,7 +3,7 @@ use crate::io::VarIntPrefixedVec;
 use crate::packets::server::Hand;
 use crate::Slot;
 use crate::VarInt;
-use base::ValidBlockPosition;
+use libcraft::ValidBlockPosition;
 use uuid::Uuid;
 
 packets! {

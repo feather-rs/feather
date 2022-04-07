@@ -1,8 +1,8 @@
 use crate::io::BitMask;
 use crate::{ProtocolVersion, Readable, VarInt, Writeable};
-use base::chunk::{LightStore, PackedArray, SECTION_VOLUME};
-use base::Chunk;
-use libcraft_core::ChunkPosition;
+use libcraft::chunk::{LightStore, PackedArray, SECTION_VOLUME};
+use libcraft::Chunk;
+use libcraft::ChunkPosition;
 use std::collections::VecDeque;
 use std::fmt::Debug;
 use std::io::{Cursor, Read};

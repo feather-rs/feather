@@ -1,3 +1,5 @@
+//! Implements an efficient chunk data structure for storing blocks.
+
 use once_cell::sync::Lazy;
 use std::usize;
 
@@ -5,11 +7,10 @@ pub use heightmap::{Heightmap, HeightmapFunction, HeightmapStore};
 pub use light::LightStore;
 pub use packed_array::PackedArray;
 
-use crate::biome::BiomeId;
-use crate::chunk::paletted_container::PalettedContainer;
-use crate::world::Sections;
+use biome::BiomeId;
+use paletted_container::PalettedContainer;
 use libcraft_blocks::{BlockState, HIGHEST_ID};
-use libcraft_core::ChunkPosition;
+use libcraft_core::{ChunkPosition, Sections};
 
 pub const BIOME_SAMPLE_RATE: usize = 4;
 /// The width in blocks of a chunk column.
@@ -32,6 +33,7 @@ mod heightmap;
 mod light;
 mod packed_array;
 pub mod paletted_container;
+pub mod biome;
 
 /// A 16 x height x 16 chunk of blocks plus associated
 /// light, biome, and heightmap data.

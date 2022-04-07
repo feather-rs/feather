@@ -15,7 +15,6 @@ path = "src/lib.rs"
 [dependencies]
 ahash = "0.7"
 anyhow = "1"
-base = { path = "../base", package = "feather-base" }
 base64 = "0.13"
 base64ct = "1"
 colored = "2"
@@ -31,8 +30,7 @@ futures-lite = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 itertools = "0.10.3"
 konst = "0.2.13"
-libcraft-core = { path = "../../libcraft/core" }
-libcraft-items = { path = "../../libcraft/items" }
+libcraft = { path = "../../libcraft" }
 log = "0.4"
 md-5 = "0.10"
 num-bigint = "0.4"

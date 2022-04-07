@@ -1,0 +1,13 @@
+[package]
+name = "libcraft-chunk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive_more = "0.99"
+libcraft-blocks = { path = "../blocks" }
+libcraft-core = { path = "../core" }
+indexmap = "1"
+itertools = "0.10"
+once_cell = "1"
+serde = "1"

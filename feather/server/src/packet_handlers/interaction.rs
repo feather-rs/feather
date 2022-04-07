@@ -1,20 +1,18 @@
 use anyhow::Context;
-use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use base::{BlockKind, BlockState};
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::world::Dimensions;
 use common::{Game, Window};
-use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
-use libcraft_core::{InteractionType, Vec3f};
+use libcraft::anvil::inventory_consts::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
+use libcraft::{BlockFace as LibcraftBlockFace, Hand};
+use libcraft::{BlockKind, BlockState};
+use libcraft::{InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
 use quill::components::{EntityDimension, EntityWorld};
-use quill::{
-    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
-};
+use quill::events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent};
 use vane::{Entity, EntityRef, SysResult};
 
 use crate::{ClientId, NetworkId, Server};

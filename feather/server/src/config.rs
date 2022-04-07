@@ -3,7 +3,7 @@
 use std::{fs, net::IpAddr, path::Path, str::FromStr};
 
 use anyhow::Context;
-use base::Gamemode;
+use libcraft::Gamemode;
 use serde::{Deserialize, Deserializer};
 
 use crate::{favicon::Favicon, Options};

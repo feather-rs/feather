@@ -5,7 +5,8 @@ use std::{
 };
 
 use ahash::AHashMap;
-use base::{ChunkHandle, ChunkPosition};
+use libcraft::{ ChunkPosition};
+use quill::ChunkHandle;
 
 #[cfg(not(test))]
 const CACHE_TIME: Duration = Duration::from_secs(30);
@@ -103,9 +104,9 @@ impl ChunkCache {
 
 #[cfg(test)]
 mod tests {
-    use base::world::Sections;
-    use base::{Chunk, ChunkHandle, ChunkLock};
-    use libcraft_core::ChunkPosition;
+    use libcraft::ChunkPosition;
+    use libcraft::Sections;
+    use libcraft::{Chunk, ChunkHandle, ChunkLock};
     use std::{sync::Arc, thread::sleep};
 
     use super::{ChunkCache, CACHE_TIME};

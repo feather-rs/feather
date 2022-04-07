@@ -1,4 +1,4 @@
-use base::Position;
+use libcraft::Position;
 use common::Game;
 use protocol::packets::client::{
     PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,

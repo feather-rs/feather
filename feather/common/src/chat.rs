@@ -1,4 +1,4 @@
-use base::{Text, Title};
+use libcraft::{Text, Title};
 
 /// An entity's "mailbox" for receiving chat messages.
 ///

@@ -1,6 +1,6 @@
 use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 
-use base::Text;
+use libcraft::Text;
 use flume::{Receiver, Sender};
 use futures_lite::FutureExt;
 use io::ErrorKind;

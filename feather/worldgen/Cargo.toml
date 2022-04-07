@@ -5,6 +5,6 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-base = { path = "../base", package = "feather-base" }
+libcraft = { path = "../../libcraft" }
 log = "0.4"
 rand = "0.8"

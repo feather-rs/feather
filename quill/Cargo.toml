@@ -5,15 +5,12 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+anyhow = "1"
 derive_more = "0.99"
-libcraft-blocks = { path = "../libcraft/blocks" }
-libcraft-core = { path = "../libcraft/core" }
-libcraft-inventory = { path = "../libcraft/inventory" }
-libcraft-items = { path = "../libcraft/items" }
-libcraft-particles = { path = "../libcraft/particles" }
-libcraft-text = { path = "../libcraft/text" }
+libcraft = { path = "../libcraft" }
+parking_lot = "0.12"
 serde = { version = "1", features = ["derive"] }
 smartstring = { version = "1", features = ["serde"] }
-tokio = "1"
+tokio = { version = "1", features = ["full"] }
 uuid = { version = "0.8", features = ["serde"] }
 vane = { path = "../vane" }

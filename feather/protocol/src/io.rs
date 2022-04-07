@@ -2,12 +2,12 @@
 
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
-use base::{
-    anvil::entity::ItemNbt, metadata::MetaEntry, BlockPosition, BlockState, EntityMetadata,
+use libcraft::{
+    anvil::entity::ItemNbt, entity_metadata::MetaEntry, BlockPosition, BlockState, EntityMetadata,
     Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use libcraft_items::InventorySlot::*;
+use libcraft::items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
 use quill::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};
@@ -22,8 +22,8 @@ use std::{
     num::TryFromIntError,
 };
 
-use base::chunk::paletted_container::{Paletteable, PalettedContainer};
-use base::Direction;
+use libcraft::chunk::paletted_container::{Paletteable, PalettedContainer};
+use libcraft::Direction;
 use thiserror::Error;
 use uuid::Uuid;
 

@@ -1,6 +1,6 @@
 use ahash::AHashSet;
 use anyhow::Context;
-use base::Position;
+use libcraft::Position;
 use common::{
     events::{ChunkCrossEvent, ViewUpdateEvent},
     Game,

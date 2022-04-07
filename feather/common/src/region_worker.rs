@@ -6,13 +6,13 @@ use std::{
 };
 
 use ahash::AHashMap;
-use base::anvil::{
+use flume::{Receiver, Sender};
+use libcraft::anvil::{
     self,
     region::{RegionHandle, RegionPosition},
 };
-use base::biome::BiomeList;
-use base::world::WorldHeight;
-use flume::{Receiver, Sender};
+use libcraft::biome::BiomeList;
+use libcraft::WorldHeight;
 
 use crate::chunk::worker::{ChunkLoadResult, LoadRequest, LoadedChunk, SaveRequest, WorkerRequest};
 
@@ -148,8 +148,11 @@ impl RegionWorker {
         match self.region_files.entry(region) {
             Entry::Occupied(e) => Some(e.into_mut()),
             Entry::Vacant(e) => {
-                let handle =
-                    base::anvil::region::load_region(&self.world_dir, region, self.world_height);
+                let handle = libcraft::anvil::region::load_region(
+                    &self.world_dir,
+                    region,
+                    self.world_height,
+                );
                 if let Ok(handle) = handle {
                     Some(e.insert(OpenRegionFile::new(handle)))
                 } else {

@@ -5,7 +5,7 @@
 
 use ahash::AHashMap;
 use anyhow::Context;
-use base::{ChunkPosition, Position};
+use libcraft::{ChunkPosition, Position};
 use common::world::Dimensions;
 use common::{
     events::{ChunkLoadEvent, ViewUpdateEvent},

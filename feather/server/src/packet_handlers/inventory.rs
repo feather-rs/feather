@@ -1,5 +1,5 @@
 use anyhow::bail;
-use base::Gamemode;
+use libcraft::Gamemode;
 use common::{window::BackingWindow, Window};
 use protocol::packets::client::{ClickWindow, CreativeInventoryAction};
 use vane::{EntityRef, SysResult};

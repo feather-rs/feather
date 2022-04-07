@@ -1,5 +1,5 @@
 // This file is @generated. Please do not edit.
-use base::EntityKind;
+use libcraft::EntityKind;
 use quill::components::OnGround;
 use uuid::Uuid;
 use vane::EntityBuilder;

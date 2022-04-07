@@ -6,7 +6,7 @@ use indexmap::IndexMap;
 use libcraft_blocks::BlockKind;
 use serde::{Deserialize, Serialize};
 
-use crate::chunk::paletted_container::BIOMES_COUNT;
+use crate::paletted_container::BIOMES_COUNT;
 use libcraft_core::EntityKind;
 
 #[derive(
@@ -204,7 +204,7 @@ pub struct BiomeMusic {
     pub sound: String,
     pub min_delay: i32,
     pub max_delay: i32,
-    #[serde(deserialize_with = "super::world::deserialize_bool")]
+    #[serde(deserialize_with = "libcraft_core::deserialize_bool")]
     pub replace_current_music: bool,
 }
 

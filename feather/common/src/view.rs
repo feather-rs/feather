@@ -1,5 +1,5 @@
 use ahash::AHashSet;
-use base::{ChunkPosition, Position};
+use libcraft::{ChunkPosition, Position};
 use itertools::Either;
 use quill::components::Name;
 use quill::components::{EntityDimension, EntityWorld};

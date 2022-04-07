@@ -12,20 +12,17 @@ use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::{fs, io, iter};
 
-use bitvec::{ vec::BitVec};
+use bitvec::vec::BitVec;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use serde::{Deserialize, Serialize};
-
-use crate::biome::{BiomeId, BiomeList};
-use crate::chunk::paletted_container::{Paletteable, PalettedContainer};
-use crate::chunk::{
-    Chunk, ChunkSection, Heightmap, HeightmapStore, BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
-};
-use crate::chunk::{LightStore, PackedArray};
-use crate::world::WorldHeight;
-use crate::ANVIL_VERSION;
 use libcraft_blocks::{BlockKind, BlockState};
-use libcraft_core::ChunkPosition;
+use libcraft_chunk::biome::{BiomeId, BiomeList};
+use libcraft_chunk::paletted_container::{Paletteable, PalettedContainer};
+use libcraft_chunk::{
+    Chunk, ChunkSection, Heightmap, HeightmapStore, LightStore, PackedArray,
+    BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
+};
+use libcraft_core::{ChunkPosition, WorldHeight, ANVIL_VERSION};
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
 

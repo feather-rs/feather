@@ -3,7 +3,7 @@ All events in this file are triggered when there is a change in a certain value.
 */
 
 use derive_more::Deref;
-use libcraft_core::Gamemode;
+use libcraft::Gamemode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

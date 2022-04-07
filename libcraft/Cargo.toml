@@ -1,0 +1,20 @@
+[package]
+name = "libcraft"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bitflags = "1"
+derive_more = "0.99"
+hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+libcraft-anvil = { path = "anvil" }
+libcraft-blocks = { path = "blocks" }
+libcraft-chunk = { path = "chunk" }
+libcraft-core = { path = "core" }
+libcraft-inventory = { path = "inventory" }
+libcraft-items = { path = "items" }
+libcraft-particles = { path = "particles" }
+libcraft-text = { path = "text" }
+serde = { version = "1", features = ["derive"] }
+uuid = "0.8"

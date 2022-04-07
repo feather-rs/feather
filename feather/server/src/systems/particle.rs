@@ -1,5 +1,5 @@
 use crate::Server;
-use base::{Particle, Position};
+use libcraft::{Particle, Position};
 use common::Game;
 use quill::components::{EntityDimension, EntityWorld};
 use vane::{SysResult, SystemExecutor};

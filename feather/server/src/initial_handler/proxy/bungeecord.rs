@@ -2,7 +2,7 @@
 use std::str::FromStr;
 
 use anyhow::bail;
-use base::ProfileProperty;
+use libcraft::ProfileProperty;
 use protocol::packets::client::Handshake;
 use uuid::Uuid;
 
@@ -40,7 +40,7 @@ pub fn extract(packet: &Handshake) -> anyhow::Result<ProxyData> {
 
 #[cfg(test)]
 mod tests {
-    use base::ProfileProperty;
+    use libcraft::ProfileProperty;
     use protocol::packets::client::HandshakeState;
 
     use crate::initial_handler::PROTOCOL_VERSION;

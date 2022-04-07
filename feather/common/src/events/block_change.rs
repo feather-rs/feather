@@ -1,6 +1,6 @@
 use std::{convert::TryInto, iter};
 
-use base::{
+use libcraft::{
     chunk::{SECTION_HEIGHT, SECTION_VOLUME},
     BlockPosition, ChunkPosition, ValidBlockPosition,
 };

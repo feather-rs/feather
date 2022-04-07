@@ -1,4 +1,4 @@
-use libcraft_core::{Hand, InteractionType, Vec3f};
+use libcraft::{Hand, InteractionType, Vec3f};
 use serde::{Deserialize, Serialize};
 use vane::Entity;
 

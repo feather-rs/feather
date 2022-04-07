@@ -1,4 +1,4 @@
-use base::Gamemode;
+use libcraft::Gamemode;
 
 use crate::favicon::Favicon;
 

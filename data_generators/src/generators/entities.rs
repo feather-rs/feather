@@ -139,7 +139,7 @@ pub fn generate() {
             output(
                 path,
                 quote! {
-                    use base::EntityKind;
+                    use libcraft::EntityKind;
                     use vane::EntityBuilder;
                     use quill::entities::#name;
 
@@ -164,7 +164,7 @@ pub fn generate() {
     output(
         "feather/common/src/entities.rs",
         quote! {
-            use base::EntityKind;
+            use libcraft::EntityKind;
             use vane::EntityBuilder;
             use quill::components::OnGround;
             use uuid::Uuid;

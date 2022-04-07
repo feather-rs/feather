@@ -1,4 +1,4 @@
-use crate::chunk::ChunkSection;
+use crate::ChunkSection;
 use std::convert::TryInto;
 
 use super::{PackedArray, SECTION_VOLUME};

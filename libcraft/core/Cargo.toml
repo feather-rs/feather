@@ -6,9 +6,11 @@ edition = "2018"
 
 [dependencies]
 bytemuck = { version = "1", features = ["derive"] }
+derive_more = "0.99"
 num-derive = "0.3"
 num-traits = "0.2"
 serde = { version = "1", features = ["derive"] }
 strum = "0.24"
 strum_macros = "0.24"
+thiserror = "1"
 vek = "0.15"

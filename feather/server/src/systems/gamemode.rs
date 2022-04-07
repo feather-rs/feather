@@ -1,5 +1,5 @@
-use base::anvil::player::PlayerAbilities;
-use base::Gamemode;
+use libcraft::anvil::player::PlayerAbilities;
+use libcraft::Gamemode;
 use common::Game;
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
@@ -156,13 +156,13 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
             .get(*client_id)
             .unwrap()
             .send_abilities(&PlayerAbilities {
-                walk_speed: *walk_speed,
-                fly_speed: *fly_speed,
-                may_fly: *may_fly,
-                is_flying: *is_flying,
-                may_build: *may_build,
-                instabreak: *instabreak,
-                invulnerable: *invulnerable,
+                walk_speed: walk_speed.0,
+                fly_speed: fly_speed.0,
+                may_fly: may_fly.0,
+                is_flying: is_flying.0,
+                may_build: may_build.0,
+                instabreak: instabreak.0,
+                invulnerable: invulnerable.0,
             });
     }
     for (entity, flying) in fly_changes {

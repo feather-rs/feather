@@ -573,60 +573,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather-base"
-version = "0.1.0"
-dependencies = [
- "ahash 0.7.6",
- "anyhow",
- "arrayvec 0.7.2",
- "bitflags",
- "bitvec",
- "bytemuck",
- "byteorder",
- "derive_more",
- "hematite-nbt",
- "indexmap",
- "itertools",
- "konst",
- "libcraft-blocks",
- "libcraft-core",
- "libcraft-inventory",
- "libcraft-items",
- "libcraft-particles",
- "libcraft-text",
- "num-derive",
- "num-traits",
- "once_cell",
- "parking_lot",
- "quill",
- "rand",
- "rand_pcg",
- "serde",
- "serde_json",
- "serde_test",
- "serde_with",
- "smallvec",
- "thiserror",
- "uuid",
- "vek",
-]
-
-[[package]]
 name = "feather-common"
 version = "0.1.0"
 dependencies = [
  "ahash 0.7.6",
  "anyhow",
  "derive_more",
- "feather-base",
  "feather-utils",
  "feather-worldgen",
  "flume",
  "itertools",
- "libcraft-blocks",
- "libcraft-core",
- "libcraft-inventory",
- "libcraft-items",
+ "libcraft",
  "log",
  "parking_lot",
  "quill",
@@ -664,12 +621,9 @@ dependencies = [
  "bytes",
  "cfb8",
  "either",
- "feather-base",
  "flate2",
  "hematite-nbt",
- "libcraft-blocks",
- "libcraft-core",
- "libcraft-items",
+ "libcraft",
  "num-traits",
  "parking_lot",
  "quill",
@@ -691,7 +645,6 @@ dependencies = [
  "crossbeam-utils",
  "data-generators",
  "either",
- "feather-base",
  "feather-common",
  "feather-protocol",
  "feather-utils",
@@ -703,8 +656,7 @@ dependencies = [
  "hematite-nbt",
  "itertools",
  "konst",
- "libcraft-core",
- "libcraft-items",
+ "libcraft",
  "log",
  "md-5",
  "num-bigint",
@@ -736,7 +688,7 @@ version = "0.1.0"
 name = "feather-worldgen"
 version = "0.6.0"
 dependencies = [
- "feather-base",
+ "libcraft",
  "log",
  "rand",
 ]
@@ -1004,6 +956,46 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec647867e2bf0772e28c8bcde4f0d19a9216916e890543b5a03ed8ef27b8f259"
 
 [[package]]
+name = "libcraft"
+version = "0.1.0"
+dependencies = [
+ "bitflags",
+ "derive_more",
+ "hematite-nbt",
+ "libcraft-anvil",
+ "libcraft-blocks",
+ "libcraft-chunk",
+ "libcraft-core",
+ "libcraft-inventory",
+ "libcraft-items",
+ "libcraft-particles",
+ "libcraft-text",
+ "serde",
+ "uuid",
+]
+
+[[package]]
+name = "libcraft-anvil"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arrayvec 0.7.2",
+ "bitvec",
+ "bytemuck",
+ "byteorder",
+ "flate2",
+ "hematite-nbt",
+ "libcraft-blocks",
+ "libcraft-chunk",
+ "libcraft-core",
+ "libcraft-inventory",
+ "libcraft-items",
+ "serde",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
 name = "libcraft-blocks"
 version = "0.1.0"
 dependencies = [
@@ -1023,15 +1015,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "libcraft-chunk"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "indexmap",
+ "itertools",
+ "libcraft-blocks",
+ "libcraft-core",
+ "once_cell",
+ "serde",
+]
+
+[[package]]
 name = "libcraft-core"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
+ "derive_more",
  "num-derive",
  "num-traits",
  "serde",
  "strum",
  "strum_macros",
+ "thiserror",
  "vek",
 ]
 
@@ -1540,13 +1547,10 @@ dependencies = [
 name = "quill"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "derive_more",
- "libcraft-blocks",
- "libcraft-core",
- "libcraft-inventory",
- "libcraft-items",
- "libcraft-particles",
- "libcraft-text",
+ "libcraft",
+ "parking_lot",
  "serde",
  "smartstring",
  "tokio",
@@ -1597,15 +1601,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 dependencies = [
  "getrandom",
-]
-
-[[package]]
-name = "rand_pcg"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
-dependencies = [
- "rand_core",
 ]
 
 [[package]]
@@ -1786,15 +1781,6 @@ checksum = "8e8d9fa5c3b304765ce1fd9c4c8a3de2c8db365a5b91be52f186efc675681d95"
 dependencies = [
  "itoa",
  "ryu",
- "serde",
-]
-
-[[package]]
-name = "serde_test"
-version = "1.0.136"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21675ba6f9d97711cc00eee79d8dd7d0a31e571c350fb4d8a7c78f70c0e7b0e9"
-dependencies = [
  "serde",
 ]
 

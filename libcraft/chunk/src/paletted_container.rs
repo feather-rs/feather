@@ -3,11 +3,10 @@ use std::fmt::Debug;
 use std::num::NonZeroUsize;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use libcraft_blocks::HIGHEST_ID;
+use libcraft_blocks::{BlockState, HIGHEST_ID};
 
 use crate::biome::BiomeId;
-use crate::chunk::{PackedArray, BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME};
-use crate::{BlockState, ChunkSection};
+use crate::{ChunkSection, PackedArray, BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME};
 
 /// Stores blocks or biomes of a chunk section.
 /// N = 4 for blocks, 2 for biomes
@@ -89,7 +88,12 @@ where
                     palette
                         .get(palette_index as usize)
                         .copied()
-                        .unwrap_or_else(|| panic!("palette does not contain entry {} (see: {:?})", palette_index, palette)),
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "palette does not contain entry {} (see: {:?})",
+                                palette_index, palette
+                            )
+                        }),
                 )
             }
             PalettedContainer::GlobalPalette { data } => {
@@ -195,7 +199,7 @@ where
         }
     }
 
-    pub(crate) fn map_to_global_palette(len: usize, palette: &[T], data: &mut PackedArray) {
+    pub fn map_to_global_palette(len: usize, palette: &[T], data: &mut PackedArray) {
         for i in 0..len {
             let palette_index = data.get(i).unwrap() as usize;
             let item = palette.get(palette_index).copied().unwrap();
@@ -203,7 +207,7 @@ where
         }
     }
 
-    pub(crate) fn map_from_global_palette(len: usize, palette: &[T], data: &mut PackedArray) {
+    pub fn map_from_global_palette(len: usize, palette: &[T], data: &mut PackedArray) {
         for i in 0..len {
             let palette_index = data.get(i).unwrap();
             let item = T::from_default_palette(palette_index as u32).unwrap();

@@ -1,11 +1,11 @@
 use num_traits::cast::ToPrimitive;
 
-use base::anvil::entity::{AnimalData, BaseEntityData};
-use base::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
-use base::{Gamemode, Inventory, Position, Text};
 use common::entities::player::HotbarSlot;
 use common::world::WorldPath;
 use common::{chat::ChatKind, Game};
+use libcraft::anvil::entity::{AnimalData, BaseEntityData};
+use libcraft::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
+use libcraft::{Gamemode, Inventory, Position, Text};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
     Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
@@ -82,13 +82,13 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
                         *previous_gamemode,
                         *health,
                         PlayerAbilities {
-                            walk_speed: *walk_speed,
-                            fly_speed: *fly_speed,
-                            may_fly: *can_fly,
-                            is_flying: *is_flying,
-                            may_build: *can_build,
-                            instabreak: *instabreak,
-                            invulnerable: *invulnerable,
+                            walk_speed: walk_speed.0,
+                            fly_speed: fly_speed.0,
+                            may_fly: can_fly.0,
+                            is_flying: is_flying.0,
+                            may_build: can_build.0,
+                            instabreak: instabreak.0,
+                            invulnerable: invulnerable.0,
                         },
                         *hotbar_slot,
                         &inventory,
@@ -142,7 +142,7 @@ fn create_player_data(
             // Here we filter out all empty slots.
             .filter_map(|(slot, item)| {
                 match item {
-                    libcraft_items::InventorySlot::Filled(item) => {
+                    libcraft::items::InventorySlot::Filled(item) => {
                         let res = InventorySlot::from_network_index(slot, item);
                         match res {
                             Some(i) => Some(i),
@@ -152,7 +152,7 @@ fn create_player_data(
                             }
                         }
                     }
-                    libcraft_items::InventorySlot::Empty => {
+                    libcraft::items::InventorySlot::Empty => {
                         // Empty items are filtered out.
                         None
                     }

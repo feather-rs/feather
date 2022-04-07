@@ -2,10 +2,9 @@ use std::convert::TryInto;
 use std::marker::PhantomData;
 
 use libcraft_blocks::{BlockState, SimplifiedBlockKind};
+use libcraft_core::{CHUNK_WIDTH, WorldHeight};
 
 use super::PackedArray;
-use crate::chunk::{CHUNK_WIDTH, SECTION_WIDTH};
-use crate::world::WorldHeight;
 
 /// Stores heightmaps for a chunk.
 #[derive(Debug, Clone)]
@@ -115,7 +114,7 @@ where
     pub fn new(height: WorldHeight) -> Self {
         Self {
             heights: PackedArray::new(
-                SECTION_WIDTH * SECTION_WIDTH,
+                (CHUNK_WIDTH * CHUNK_WIDTH) as usize,
                 ((*height as f64 + 1.0).log2().ceil() as usize)
                     .try_into()
                     .unwrap(),
@@ -190,7 +189,7 @@ where
 
     pub fn from_u64_vec(vec: Vec<u64>, height: WorldHeight) -> Heightmap<F> {
         Heightmap {
-            heights: PackedArray::from_u64_vec(vec, SECTION_WIDTH * SECTION_WIDTH),
+            heights: PackedArray::from_u64_vec(vec, CHUNK_WIDTH * CHUNK_WIDTH),
             height,
             _marker: PhantomData,
         }

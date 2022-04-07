@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use anyhow::anyhow;
 use anyhow::bail;
-use base::ProfileProperty;
+use libcraft::ProfileProperty;
 use protocol::{
     io::VarIntPrefixedVec, packets::server::LoginPluginRequest, ClientLoginPacket, ProtocolVersion,
     Readable, ServerLoginPacket, VarInt,

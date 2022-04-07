@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use base::TICK_DURATION;
+use libcraft::TICK_DURATION;
 
 /// Utility to invoke a function in a tick loop, once
 /// every 50ms.

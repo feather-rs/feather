@@ -1,6 +1,6 @@
 //! Proxy support for BungeeCord and Velocity.
 
-use base::ProfileProperty;
+use libcraft::ProfileProperty;
 use protocol::packets::client::Handshake;
 use uuid::Uuid;
 

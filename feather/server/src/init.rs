@@ -5,9 +5,9 @@ use anyhow::{bail, Context};
 use tokio::runtime::Runtime;
 
 use crate::{config::Config, logging, Server};
-use base::anvil::level::SuperflatGeneratorOptions;
-use base::biome::{BiomeGeneratorInfo, BiomeList};
-use base::world::DimensionInfo;
+use libcraft::anvil::level::SuperflatGeneratorOptions;
+use libcraft::biome::{BiomeGeneratorInfo, BiomeList};
+use libcraft::dimension::DimensionInfo;
 use common::world::{Dimensions, WorldName, WorldPath};
 use common::{Dimension, Game, TickLoop};
 use data_generators::extract_vanilla_data;

@@ -1,4 +1,4 @@
-use base::{Position, Text};
+use libcraft::{Position, Text};
 use common::{chat::ChatKind, Game};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,

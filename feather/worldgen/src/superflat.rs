@@ -1,7 +1,7 @@
-use base::anvil::level::SuperflatGeneratorOptions;
-use base::chunk::Chunk;
-use base::world::Sections;
-use base::{BlockKind, BlockState, ChunkPosition, CHUNK_WIDTH};
+use libcraft::anvil::level::SuperflatGeneratorOptions;
+use libcraft::chunk::Chunk;
+use libcraft::Sections;
+use libcraft::{BlockKind, BlockState, ChunkPosition, CHUNK_WIDTH};
 
 use crate::BiomeList;
 use crate::WorldGenerator;
@@ -73,10 +73,10 @@ impl WorldGenerator for SuperflatWorldGenerator {
 
 #[cfg(test)]
 mod tests {
-    use base::biome::{
+    use libcraft::biome::{
         BiomeCategory, BiomeColor, BiomeEffects, BiomeGeneratorInfo, BiomeInfo, BiomeSpawners,
     };
-    use base::chunk::SECTION_HEIGHT;
+    use libcraft::chunk::SECTION_HEIGHT;
 
     use super::*;
 

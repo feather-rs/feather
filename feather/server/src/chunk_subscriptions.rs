@@ -1,5 +1,5 @@
 use ahash::AHashMap;
-use base::ChunkPosition;
+use libcraft::ChunkPosition;
 use common::{events::ViewUpdateEvent, view::View, Game};
 use quill::components::{EntityDimension, EntityWorld};
 use quill::events::EntityRemoveEvent;

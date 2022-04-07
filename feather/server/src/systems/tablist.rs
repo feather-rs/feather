@@ -2,7 +2,7 @@
 
 use uuid::Uuid;
 
-use base::{Gamemode, ProfileProperty};
+use libcraft::{Gamemode, ProfileProperty};
 use common::Game;
 use quill::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
 use quill::{components::Name, entities::Player};

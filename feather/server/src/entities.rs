@@ -1,4 +1,4 @@
-use base::{EntityKind, Position};
+use libcraft::{EntityKind, Position};
 use quill::components::OnGround;
 use uuid::Uuid;
 use vane::{EntityBuilder, EntityRef, SysResult};

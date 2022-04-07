@@ -1,0 +1,21 @@
+[package]
+name = "libcraft-anvil"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+arrayvec = { version = "0.7", features = ["serde"] }
+bitvec = "1"
+bytemuck = "1"
+byteorder = "1"
+flate2 = "1"
+hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+libcraft-blocks = { path = "../blocks" }
+libcraft-chunk = { path = "../chunk" }
+libcraft-core = { path = "../core" }
+libcraft-inventory = { path = "../inventory" }
+libcraft-items = { path = "../items" }
+serde = "1"
+thiserror = "1"
+uuid = "0.8"

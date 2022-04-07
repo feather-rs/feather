@@ -1,7 +1,7 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{Position, Text, Title};
-use libcraft_core::EntityKind;
+use libcraft::EntityKind;
+use libcraft::{Position, Text, Title};
 use quill::entities::Player;
 use quill::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
 use tokio::runtime::{self, Runtime};

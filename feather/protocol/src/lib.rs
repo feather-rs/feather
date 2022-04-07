@@ -9,7 +9,7 @@ use crate::codec::CompressionThreshold;
 pub use codec::MinecraftCodec;
 pub use io::Nbt;
 pub use io::{Readable, VarInt, VarLong, Writeable};
-use libcraft_items::InventorySlot;
+use libcraft::items::InventorySlot;
 #[doc(inline)]
 pub use packets::{
     client::{ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket},

@@ -3,9 +3,6 @@ use std::sync::Arc;
 
 use log::debug;
 
-use base::anvil::player::PlayerAbilities;
-use base::biome::BiomeList;
-use base::{Gamemode, Inventory, ItemStack, Position, Text};
 use common::events::PlayerRespawnEvent;
 use common::world::{Dimensions, WorldName, WorldPath};
 use common::{
@@ -15,8 +12,11 @@ use common::{
     window::BackingWindow,
     ChatBox, Game, Window,
 };
-use libcraft_core::EntityKind;
-use libcraft_items::InventorySlot;
+use libcraft::anvil::player::PlayerAbilities;
+use libcraft::biome::BiomeList;
+use libcraft::EntityKind;
+use libcraft::{Gamemode, Inventory, ItemStack, Position, Text};
+use libcraft::items::InventorySlot;
 use quill::components;
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
@@ -213,13 +213,13 @@ fn player_abilities_or_default(
     gamemode: Gamemode,
 ) -> PlayerAbilities {
     data.unwrap_or(PlayerAbilities {
-        walk_speed: WalkSpeed::default(),
-        fly_speed: CreativeFlyingSpeed::default(),
-        may_fly: CanCreativeFly(matches!(gamemode, Gamemode::Creative | Gamemode::Spectator)),
-        is_flying: CreativeFlying(matches!(gamemode, Gamemode::Spectator)),
-        may_build: CanBuild(!matches!(gamemode, Gamemode::Adventure)),
-        instabreak: Instabreak(matches!(gamemode, Gamemode::Creative)),
-        invulnerable: Invulnerable(matches!(gamemode, Gamemode::Creative | Gamemode::Spectator)),
+        walk_speed: WalkSpeed::default().0,
+        fly_speed: CreativeFlyingSpeed::default().0,
+        may_fly: matches!(gamemode, Gamemode::Creative | Gamemode::Spectator),
+        is_flying: matches!(gamemode, Gamemode::Spectator),
+        may_build: !matches!(gamemode, Gamemode::Adventure),
+        instabreak: matches!(gamemode, Gamemode::Creative),
+        invulnerable: matches!(gamemode, Gamemode::Creative | Gamemode::Spectator),
     })
 }
 
@@ -258,13 +258,13 @@ fn send_respawn_packets(game: &mut Game, server: &mut Server) -> SysResult {
     {
         let client = server.clients.get(*client_id).unwrap();
         client.send_abilities(&PlayerAbilities {
-            walk_speed: *walk_speed,
-            fly_speed: *fly_speed,
-            may_fly: *may_fly,
-            is_flying: *is_flying,
-            may_build: *may_build,
-            instabreak: *instabreak,
-            invulnerable: *invulnerable,
+            walk_speed: walk_speed.0,
+            fly_speed: fly_speed.0,
+            may_fly: may_fly.0,
+            is_flying: is_flying.0,
+            may_build: may_build.0,
+            instabreak: instabreak.0,
+            invulnerable: invulnerable.0,
         });
         client.send_hotbar_slot(hotbar_slot.get() as u8);
         client.send_window_items(&window);

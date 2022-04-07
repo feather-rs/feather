@@ -10,12 +10,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use libcraft_items::{Item, ItemStack};
-use quill::components::{
-    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
-    WalkSpeed,
-};
 
-use crate::inventory::*;
+use crate::inventory_consts::*;
 
 use super::entity::{AnimalData, ItemNbt};
 
@@ -43,18 +39,18 @@ pub struct PlayerData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerAbilities {
     #[serde(rename = "walkSpeed")]
-    pub walk_speed: WalkSpeed,
+    pub walk_speed: f32,
     #[serde(rename = "flySpeed")]
-    pub fly_speed: CreativeFlyingSpeed,
+    pub fly_speed: f32,
     #[serde(rename = "mayfly")]
-    pub may_fly: CanCreativeFly,
+    pub may_fly: bool,
     #[serde(rename = "flying")]
-    pub is_flying: CreativeFlying,
+    pub is_flying: bool,
     #[serde(rename = "mayBuild")]
-    pub may_build: CanBuild,
+    pub may_build: bool,
     #[serde(rename = "instabuild")]
-    pub instabreak: Instabreak,
-    pub invulnerable: Invulnerable,
+    pub instabreak: bool,
+    pub invulnerable: bool,
 }
 
 /// Represents a single inventory slot (including position index).

@@ -3,12 +3,13 @@ use std::{path::PathBuf, sync::Arc};
 use anyhow::bail;
 use flume::{Receiver, Sender};
 
-use base::biome::BiomeList;
-use base::world::{Sections, WorldHeight};
-use base::{
+use libcraft::biome::BiomeList;
+use libcraft::{
     anvil::{block_entity::BlockEntityData, entity::EntityData},
-    Chunk, ChunkHandle, ChunkPosition,
+    Chunk, ChunkPosition,
 };
+use libcraft::{Sections, WorldHeight};
+use quill::ChunkHandle;
 use worldgen::WorldGenerator;
 
 use crate::region_worker::RegionWorker;

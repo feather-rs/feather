@@ -7,14 +7,10 @@ edition = "2018"
 [dependencies]
 ahash = "0.7"
 anyhow = "1"
-base = { path = "../base", package = "feather-base" }
 derive_more = "0.99"
 flume = "0.10"
 itertools = "0.10"
-libcraft-blocks = { path = "../../libcraft/blocks" }
-libcraft-core = { path = "../../libcraft/core" }
-libcraft-inventory = { path = "../../libcraft/inventory" }
-libcraft-items = { path = "../../libcraft/items" }
+libcraft = { path = "../../libcraft" }
 log = "0.4"
 parking_lot = "0.12"
 quill = { path = "../../quill" }

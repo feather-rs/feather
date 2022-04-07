@@ -8,14 +8,16 @@ members = [
     "libcraft/particles",
     "libcraft/text",
     "libcraft/inventory",
+    "libcraft/chunk",
+    "libcraft/anvil",
     "libcraft/generators",
+    "libcraft",
 
     # Quill
     "quill",
 
     # Feather (common and server)
     "feather/utils",
-    "feather/base",
     "feather/datapacks",
     "feather/worldgen",
     "feather/common",

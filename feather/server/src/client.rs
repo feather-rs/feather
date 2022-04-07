@@ -9,17 +9,18 @@ use flume::{Receiver, Sender};
 use slab::Slab;
 use uuid::Uuid;
 
-use base::biome::BiomeList;
-use base::{
-    BlockState, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle,
+use libcraft::biome::BiomeList;
+use libcraft::{
+    BlockState, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle,
     Position, ProfileProperty, Text, Title, ValidBlockPosition,
 };
+use quill::ChunkHandle;
 use common::world::Dimensions;
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
-use libcraft_items::InventorySlot;
+use libcraft::items::InventorySlot;
 use packets::server::{SetSlot, SpawnLivingEntity};
 use protocol::packets::server::{
     ChangeGameState, ClearTitles, DimensionCodec, DimensionCodecEntry, DimensionCodecRegistry,
@@ -703,24 +704,24 @@ impl Client {
         });
     }
 
-    pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
+    pub fn send_abilities(&self, abilities: &libcraft::anvil::player::PlayerAbilities) {
         let mut bitfield = 0;
-        if *abilities.invulnerable {
+        if abilities.invulnerable {
             bitfield |= 1 << 0;
         }
-        if *abilities.is_flying {
+        if abilities.is_flying {
             bitfield |= 1 << 1;
         }
-        if *abilities.may_fly {
+        if abilities.may_fly {
             bitfield |= 1 << 2;
         }
-        if *abilities.instabreak {
+        if abilities.instabreak {
             bitfield |= 1 << 3;
         }
         self.send_packet(PlayerAbilities {
             flags: bitfield,
-            flying_speed: *abilities.fly_speed,
-            fov_modifier: *abilities.walk_speed,
+            flying_speed: abilities.fly_speed,
+            fov_modifier: abilities.walk_speed,
         });
     }
 

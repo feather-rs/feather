@@ -3,11 +3,12 @@ use std::sync::{
     Arc,
 };
 
-use crate::chunk::Chunk;
+use crate::Chunk;
 use anyhow::bail;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub type ChunkHandle = Arc<ChunkLock>;
+
 /// A wrapper around a RwLock. Cannot be locked for writing when unloaded.
 /// This structure exists so that a chunk can be read from even after being unloaded without accidentaly writing to it.
 #[derive(Debug)]
@@ -15,6 +16,7 @@ pub struct ChunkLock {
     loaded: AtomicBool,
     lock: RwLock<Chunk>,
 }
+
 impl ChunkLock {
     pub fn new(chunk: Chunk, loaded: bool) -> Self {
         Self {
@@ -22,10 +24,12 @@ impl ChunkLock {
             lock: RwLock::new(chunk),
         }
     }
+
     /// Returns whether the chunk is loaded.
     pub fn is_loaded(&self) -> bool {
         self.loaded.load(Ordering::SeqCst)
     }
+
     /// Attempts to set the chunk as unloaded. Returns an error if the chunk is locked as writable.
     pub fn set_unloaded(&self) -> anyhow::Result<()> {
         if self.loaded.swap(false, Ordering::SeqCst) {
@@ -37,6 +41,7 @@ impl ChunkLock {
         }
         Ok(())
     }
+
     /// Sets the chunk as loaded and returns the previous state.
     pub fn set_loaded(&self) -> bool {
         self.loaded.swap(true, Ordering::SeqCst)
@@ -62,6 +67,7 @@ impl ChunkLock {
             None
         }
     }
+
     /// Locks this chunk with exclusive write acccess, blocking the current thread until it can be acquired.
     /// Returns None if the chunk is unloaded, Some otherwise.
     pub fn write(&self) -> Option<RwLockWriteGuard<Chunk>> {

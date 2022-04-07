@@ -1,5 +1,5 @@
 use anyhow::bail;
-use base::EntityKind;
+use libcraft::EntityKind;
 use quill::{
     components::{CreativeFlying, Sneaking, Sprinting},
     entities::Player,

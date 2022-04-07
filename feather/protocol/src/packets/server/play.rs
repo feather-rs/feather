@@ -3,23 +3,23 @@ use crate::io::LengthInferredVecU8;
 use crate::io::VarIntPrefixedVec;
 use crate::Nbt;
 use crate::VarLong;
-use base::EntityMetadata;
-use base::ValidBlockPosition;
+use crate::{ProtocolVersion, Readable, Slot, VarInt, Writeable};
+
+use anyhow::{anyhow, bail};
+use libcraft::biome::BiomeInfo;
+use libcraft::dimension::DimensionTypeInfo;
+use libcraft::BlockState;
+use libcraft::EntityMetadata;
+use libcraft::Gamemode;
+use libcraft::ValidBlockPosition;
+use libcraft::{ParticleKind, ProfileProperty};
 use quill::components::PreviousGamemode;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Cursor;
 use uuid::Uuid;
 
-use anyhow::{anyhow, bail};
-use base::biome::BiomeInfo;
-use base::world::DimensionTypeInfo;
-use base::{ParticleKind, ProfileProperty};
-use serde::{Deserialize, Serialize};
-
-use crate::{ProtocolVersion, Readable, Slot, VarInt, Writeable};
 pub use chunk_data::ChunkData;
-use libcraft_blocks::BlockState;
-use libcraft_core::Gamemode;
 pub use update_light::UpdateLight;
 
 mod chunk_data;

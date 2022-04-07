@@ -1,13 +1,13 @@
 //! Sends entity-related packets to clients.
 //! Spawn packets, position updates, equipment, animations, etc.
 
-use base::{
-    metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
-    EntityMetadata, Position,
-};
 use common::world::Dimensions;
 use common::Game;
-use libcraft_core::Gamemode;
+use libcraft::Gamemode;
+use libcraft::{
+    entity_metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
+    EntityMetadata, Position,
+};
 use quill::components::{EntityDimension, EntityWorld, PreviousGamemode};
 use quill::{
     components::{OnGround, Sprinting},

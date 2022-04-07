@@ -1,5 +1,6 @@
 //! Quill, Feather's plugin API.
 
+mod chunk_lock;
 pub mod components;
 /// Marker components for each specific entity.
 pub mod entities;
@@ -14,15 +15,16 @@ pub use game::Game;
 pub use plugin::{Plugin, Setup};
 
 #[doc(inline)]
-pub use libcraft_blocks::{block_data, BlockData, BlockKind, BlockState};
+pub use chunk_lock::{ChunkHandle, ChunkLock};
 #[doc(inline)]
-pub use libcraft_core::{BlockPosition, ChunkPosition, Position};
-#[doc(inline)]
-pub use libcraft_inventory::Inventory;
-#[doc(inline)]
-pub use libcraft_items::{
-    Enchantment, EnchantmentKind, InventorySlot, Item, ItemStack, ItemStackBuilder, ItemStackError,
-    ItemStackMeta,
+pub use libcraft::{
+    blocks::{block_data, BlockData, BlockKind, BlockState},
+    chunk::{Chunk, ChunkSection},
+    inventory::Inventory,
+    items::{
+        Enchantment, EnchantmentKind, InventorySlot, Item, ItemStack, ItemStackBuilder,
+        ItemStackError, ItemStackMeta,
+    },
+    text::{Text, TextComponentBuilder},
+    BlockPosition, ChunkPosition, Position, CHUNK_WIDTH,
 };
-#[doc(inline)]
-pub use libcraft_text::{Text, TextComponentBuilder};

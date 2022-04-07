@@ -1,13 +1,13 @@
-use base::{ChunkHandle, ChunkPosition};
-
 use crate::view::View;
 
-mod block_change;
-mod plugin_message;
+use quill::{ChunkHandle, ChunkPosition};
+use quill::components::{EntityDimension, EntityWorld};
 
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
-use quill::components::{EntityDimension, EntityWorld};
+
+mod block_change;
+mod plugin_message;
 
 /// Event triggered when a player changes their `View`,
 /// meaning they crossed into a new chunk.

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
 
 #[doc(inline)]
-pub use libcraft_core::{ChunkPosition, Gamemode, Position};
+pub use libcraft::{ChunkPosition, Gamemode, Position};
 
 /// Whether an entity is touching the ground.
 #[derive(

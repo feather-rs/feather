@@ -2,8 +2,7 @@
 //! metadata format. See <https://wiki.vg/Entity_metadata>
 //! for the specification.
 
-use crate::block::ValidBlockPosition;
-use crate::Direction;
+use crate::{ValidBlockPosition, Direction};
 use bitflags::bitflags;
 use libcraft_items::InventorySlot;
 use std::collections::BTreeMap;
