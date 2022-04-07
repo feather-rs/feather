@@ -1,28 +1,28 @@
 [package]
 name = "feather-common"
 version = "0.1.0"
-authors = [ "caelunshun <caelunshun@gmail.com>" ]
+authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 ahash = "0.7"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
+derive_more = "0.99"
 flume = "0.10"
 itertools = "0.10"
-log = "0.4"
-parking_lot = "0.11"
-quill = { path = "../../quill" }
-smartstring = "0.2"
-utils = { path = "../utils", package = "feather-utils" }
-uuid = { version = "0.8", features = [ "v4" ] }
+libcraft-blocks = { path = "../../libcraft/blocks" }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-inventory = { path = "../../libcraft/inventory" }
 libcraft-items = { path = "../../libcraft/items" }
-libcraft-blocks = { path = "../../libcraft/blocks" }
-rayon = "1.5"
-worldgen = { path = "../worldgen", package = "feather-worldgen" }
+log = "0.4"
+parking_lot = "0.11"
+quill = { path = "../../quill" }
 rand = "0.8"
+rayon = "1.5"
+smartstring = "0.2"
 tokio = "1"
-derive_more = "0.99"
+utils = { path = "../utils", package = "feather-utils" }
+uuid = { version = "0.8", features = [ "v4" ] }
 vane = { path = "../../vane" }
+worldgen = { path = "../worldgen", package = "feather-worldgen" }

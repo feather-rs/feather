@@ -5,17 +5,16 @@ authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-libcraft-core = { path = "../core" }
-libcraft-items = { path = "../items" }
-libcraft-macros = { path = "../macros" }
-
 ahash = "0.7"
 bincode = "1"
 bytemuck = { version = "1", features = ["derive"] }
 flate2 = "1"
+libcraft-core = { path = "../core" }
+libcraft-items = { path = "../items" }
+libcraft-macros = { path = "../macros" }
+num-derive = "0.3"
+num-traits = "0.2"
 once_cell = "1"
 serde = { version = "1", features = ["derive"] }
 smartstring = { version = "0.2", features = ["serde"] }
 thiserror = "1"
-num-traits = "0.2"
-num-derive = "0.3"

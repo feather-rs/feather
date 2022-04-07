@@ -1,7 +1,7 @@
 [package]
 name = "feather-protocol"
 version = "0.1.0"
-authors = [ "caelunshun <caelunshun@gmail.com>" ]
+authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
@@ -12,16 +12,15 @@ bytemuck = "1"
 byteorder = "1"
 bytes = "0.5"
 cfb8 = "0.7"
+either = "1"
 flate2 = "1"
-
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+libcraft-blocks = { path = "../../libcraft/blocks" }
+libcraft-core = { path = "../../libcraft/core" }
+libcraft-items = { path = "../../libcraft/items" }
 num-traits = "0.2"
 parking_lot = "0.11" # Arc<RwLock<Chunk>> compat
 quill = { path = "../../quill" }
 serde = "1"
 thiserror = "1"
 uuid = "0.8"
-libcraft-core = { path = "../../libcraft/core" }
-libcraft-items = { path = "../../libcraft/items" }
-libcraft-blocks = { path = "../../libcraft/blocks" }
-either = "1"

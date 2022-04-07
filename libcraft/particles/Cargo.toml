@@ -5,11 +5,10 @@ authors = ["Gijs de Jong <berichtaangijs@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-
-libcraft-blocks = { path = "../blocks"}
-libcraft-items = { path = "../items" }
-ordinalizer = "0.1"
 bytemuck = { version = "1", features = ["derive"] }
+libcraft-blocks = { path = "../blocks" }
+libcraft-items = { path = "../items" }
 num-derive = "0.3"
 num-traits = "0.2"
+ordinalizer = "0.1"
 serde = { version = "1", features = ["derive"] }
