@@ -1,3 +1,4 @@
+use tokio::runtime;
 use vane::{Entities, Entity, EntityBuilder, Resources};
 
 /// A plugin's primary interface to interacting with the game state.
@@ -28,10 +29,7 @@ pub trait Game: 'static {
     /// to the entity spawn. Avoid spawning entities
     /// directly on the ECS, as those events will not trigger
     /// and thus the entities won't show on clients.
-    ///
-    /// The provided `builder` can be reused to spawn further entities.
-    /// (Note that all components stored in the builder are flushed.)
-    fn spawn_entity(&mut self, builder: &mut EntityBuilder) -> Entity;
+    fn spawn_entity(&mut self, builder: EntityBuilder) -> Entity;
 
     /// Queues an entity to be removed on the next tick.
     ///
@@ -39,4 +37,7 @@ pub trait Game: 'static {
     /// directly on the ECS, as it allows other plugins and the server
     /// code to react to the `EntityRemoveEvent`.
     fn queue_remove_entity(&mut self, entity: Entity);
+
+    /// Gets a handle to the multithreaded Tokio runtime shared by the server and all plugins.
+    fn runtime(&self) -> runtime::Handle;
 }

@@ -5,7 +5,7 @@ use crate::Game;
 /// Context passed to `Plugin::initialize`.
 pub trait Setup {
     /// Registers a system.
-    fn register_system(&mut self, system: fn(&mut dyn Game) -> SysResult);
+    fn register_system(&mut self, system: fn(&mut dyn Game) -> SysResult, name: &str);
 
     /// Gets the `Game`.
     fn game(&self) -> &dyn Game;
@@ -26,13 +26,13 @@ pub trait Setup {
 
 /// Represents a plugin loaded at startup.
 ///
-/// Every plugin should have a struct implementing this trait.
+/// Every plugin should have a unit struct implementing this trait.
 pub trait Plugin: 'static {
     /// Gets the plugin's name.
-    fn name(&self) -> &'static str;
+    fn name() -> &'static str;
 
     /// Called at plugin load time.
     ///
     /// You should register systems and insert resources in this method.
-    fn initialize(&mut self, setup: &mut dyn Setup) -> SysResult;
+    fn initialize(setup: &mut dyn Setup) -> SysResult;
 }

@@ -4,6 +4,7 @@ use base::{Position, Text, Title};
 use libcraft_core::EntityKind;
 use quill::entities::Player;
 use quill::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
+use tokio::runtime::{self, Runtime};
 use vane::{
     Entities, Entity, EntityBuilder, EntityDead, HasEntities, HasResources, Resources, SysResult,
     SystemExecutor,
@@ -49,17 +50,14 @@ pub struct Game {
     entity_spawn_callbacks: Vec<EntitySpawnCallback>,
 
     entity_builder: EntityBuilder,
-}
 
-impl Default for Game {
-    fn default() -> Self {
-        Self::new()
-    }
+    /// The Tokio runtime shared by the server and all plugins.
+    runtime: Runtime,
 }
 
 impl Game {
     /// Creates a new, empty `Game`.
-    pub fn new() -> Self {
+    pub fn new(runtime: Runtime) -> Self {
         Self {
             ecs: Entities::new(),
             system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
@@ -68,6 +66,7 @@ impl Game {
             tick_count: 0,
             entity_spawn_callbacks: Vec::new(),
             entity_builder: EntityBuilder::new(),
+            runtime,
         }
     }
 
@@ -175,6 +174,37 @@ impl Game {
         let mut mailbox = self.ecs.get_mut::<ChatBox>(entity)?;
         mailbox.send_title(title);
         Ok(())
+    }
+}
+
+impl quill::Game for Game {
+    fn ecs(&self) -> &Entities {
+        &self.ecs
+    }
+
+    fn ecs_mut(&mut self) -> &mut Entities {
+        &mut self.ecs
+    }
+
+    fn resources(&self) -> &Resources {
+        &self.resources
+    }
+
+    fn resources_mut(&mut self) -> &mut Resources {
+        Arc::get_mut(&mut self.resources)
+            .expect("attempted to mutate Resources while a resource is borrowed")
+    }
+
+    fn spawn_entity(&mut self, builder: EntityBuilder) -> Entity {
+        Game::spawn_entity(self, builder)
+    }
+
+    fn queue_remove_entity(&mut self, entity: Entity) {
+        self.remove_entity(entity).ok();
+    }
+
+    fn runtime(&self) -> runtime::Handle {
+        self.runtime.handle().clone()
     }
 }
 

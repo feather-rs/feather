@@ -9,7 +9,7 @@ use crate::{ClientId, Server};
 pub fn handle_creative_inventory_action(
     player: EntityRef,
     packet: CreativeInventoryAction,
-    server: &mut Server,
+    _server: &mut Server,
 ) -> SysResult {
     if *player.get::<Gamemode>()? != Gamemode::Creative {
         bail!("cannot use Creative Inventory Action outside of creative mode");
