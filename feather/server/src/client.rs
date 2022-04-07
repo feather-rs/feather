@@ -38,7 +38,7 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
-use quill_common::components::{EntityDimension, EntityWorld, OnGround, PreviousGamemode};
+use quill::components::{EntityDimension, EntityWorld, OnGround, PreviousGamemode};
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},

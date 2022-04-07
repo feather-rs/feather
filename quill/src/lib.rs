@@ -17,3 +17,12 @@ pub use plugin::{Plugin, Setup};
 pub use libcraft_blocks::{block_data, BlockData, BlockKind, BlockState};
 #[doc(inline)]
 pub use libcraft_core::{BlockPosition, ChunkPosition, Position};
+#[doc(inline)]
+pub use libcraft_inventory::Inventory;
+#[doc(inline)]
+pub use libcraft_items::{
+    Enchantment, EnchantmentKind, InventorySlot, Item, ItemStack, ItemStackBuilder, ItemStackError,
+    ItemStackMeta,
+};
+#[doc(inline)]
+pub use libcraft_text::{Text, TextComponentBuilder};

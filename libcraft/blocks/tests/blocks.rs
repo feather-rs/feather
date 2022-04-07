@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use libcraft_blocks::block_data::{Ageable, BlockState};
+use libcraft_blocks::{block_data::Ageable, BlockKind, BlockState};
 
 #[test]
 fn update_block_data() {
@@ -50,4 +50,11 @@ fn block_state_valid_properties() {
     );
     assert_eq!(block.get_valid_properties().up, vec![true, false]);
     assert_eq!(block.get_valid_properties().waterlogged, Vec::new())
+}
+
+#[test]
+fn default_state() {
+    let block = BlockState::new(BlockKind::PointedDripstone);
+    assert_eq!(block.id(), 18_549);
+    dbg!(block);
 }

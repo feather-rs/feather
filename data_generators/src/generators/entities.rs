@@ -125,9 +125,9 @@ pub fn generate() {
         let name = format_ident!("{}", entity.name.to_case(Case::UpperCamel));
         let doc = format!("A marker component for {} entities.", entity.name);
         markers.extend(quote! {
-            #[derive(Debug, Copy, Clone)]
-            #[doc = #doc]
-            pub struct #name;        });
+        #[derive(Debug, Copy, Clone)]
+        #[doc = #doc]
+        pub struct #name;        });
     }
     output("quill/src/entities.rs", markers.to_string().as_str());
 
@@ -141,7 +141,7 @@ pub fn generate() {
                 quote! {
                     use base::EntityKind;
                     use vane::EntityBuilder;
-                    use quill_common::entities::#name;
+                    use quill::entities::#name;
 
                     pub fn build_default(builder: &mut EntityBuilder) {
                         super::build_default(builder);
@@ -166,7 +166,7 @@ pub fn generate() {
         quote! {
             use base::EntityKind;
             use vane::EntityBuilder;
-            use quill_common::components::OnGround;
+            use quill::components::OnGround;
             use uuid::Uuid;
 
             #[doc = "Adds default components shared between all entities."]

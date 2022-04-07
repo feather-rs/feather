@@ -1,10 +1,10 @@
 use ahash::AHashSet;
 use base::{ChunkPosition, Position};
-use vane::{SysResult, SystemExecutor};
 use itertools::Either;
-use quill_common::components::Name;
-use quill_common::events::PlayerJoinEvent;
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::Name;
+use quill::components::{EntityDimension, EntityWorld};
+use quill::events::PlayerJoinEvent;
+use vane::{SysResult, SystemExecutor};
 
 use crate::{events::ViewUpdateEvent, Game};
 

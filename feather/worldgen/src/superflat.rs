@@ -39,7 +39,8 @@ impl WorldGenerator for SuperflatWorldGenerator {
                 continue;
             }
             // FIXME: get rid of this hack by having a consistent naming convention - Item::name() returns `stone` but BlockState::from_namespaced_id requires `minecraft:stone`
-            let layer_block = BlockKind::from_namespaced_id(&format!("minecraft:{}", layer.block)).map(BlockState::new);
+            let layer_block = BlockKind::from_namespaced_id(&format!("minecraft:{}", layer.block))
+                .map(BlockState::new);
             if let Some(layer_block) = layer_block {
                 for y in y_counter..(y_counter + layer.height as i32) {
                     for x in 0..CHUNK_WIDTH {

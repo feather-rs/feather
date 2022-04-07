@@ -1,7 +1,7 @@
 use crate::Server;
 use base::{Particle, Position};
 use common::Game;
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld};
 use vane::{SysResult, SystemExecutor};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {

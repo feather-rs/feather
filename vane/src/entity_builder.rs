@@ -5,7 +5,7 @@ use std::{
     ptr::{self, NonNull},
 };
 
-use crate::{component::ComponentMeta, Component, Entity, Entities};
+use crate::{component::ComponentMeta, Component, Entities, Entity};
 
 /// A utility to build an entity's components.
 ///

@@ -4,11 +4,11 @@ use anyhow::{anyhow, bail};
 
 use base::{Area, Item};
 
-use vane::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
 use libcraft_inventory::WindowError;
 use libcraft_items::InventorySlot::{self, Empty};
 use parking_lot::MutexGuard;
+use vane::SysResult;
 
 /// A player's window. Wraps one or more inventories and handles
 /// conversion between protocol and slot indices.

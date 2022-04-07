@@ -5,7 +5,7 @@ use base::{
     BlockPosition, ChunkPosition, ValidBlockPosition,
 };
 use itertools::Either;
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld};
 
 /// Event triggered when one or more blocks are changed.
 ///

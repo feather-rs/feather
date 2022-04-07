@@ -32,4 +32,3 @@ pub fn block_index(x: usize, y: i32, z: usize, world_height: WorldHeight, min_y:
     assert!(x < 16 && y >= min_y && y < min_y + *world_height as i32 && z < 16);
     (((y - min_y) as usize) << 8) | (x << 4) | z
 }
- 

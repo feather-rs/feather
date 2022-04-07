@@ -13,7 +13,7 @@ use listener::Listener;
 pub use network_id_registry::NetworkId;
 pub use options::Options;
 use player_count::PlayerCount;
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld};
 use systems::view::WaitingChunks;
 use vane::SystemExecutor;
 

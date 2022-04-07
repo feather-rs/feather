@@ -9,7 +9,7 @@ use base::{
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use libcraft_items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
-use quill_common::components::PreviousGamemode;
+use quill::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};
 use std::io::ErrorKind;
 use std::{
@@ -605,14 +605,14 @@ impl Readable for EntityMetadata {
         let mut values = BTreeMap::new();
 
         loop {
-            let index = i8::read(buffer, version)?;
+            let index = u8::read(buffer, version)?;
 
-            if index == -1 {
+            if index == 0xFF {
                 break;
             }
 
             let entry = read_meta_entry(buffer, version)?;
-            values.insert(index, entry);
+            values.insert(index as i8, entry);
         }
 
         Ok(EntityMetadata { values })

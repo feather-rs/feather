@@ -1,11 +1,11 @@
 use base::anvil::player::PlayerAbilities;
 use base::Gamemode;
 use common::Game;
-use quill_common::components::{
+use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
     PreviousGamemode, WalkSpeed,
 };
-use quill_common::events::{
+use quill::events::{
     BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,
     InvulnerabilityEvent,
 };

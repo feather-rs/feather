@@ -5,7 +5,9 @@ use ahash::AHashMap;
 use bytemuck::{Pod, Zeroable};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use smartstring::{LazyCompact, SmartString};
 
+use std::fmt::Debug;
 use std::io::Cursor;
 
 /// A block state.
@@ -18,7 +20,6 @@ use std::io::Cursor;
 /// trait. For example, a chest has a "type" property in its block data
 /// that determines whether the chest is single or double.
 #[derive(
-    Debug,
     Copy,
     Clone,
     PartialEq,
@@ -104,6 +105,37 @@ impl BlockState {
         REGISTRY.raw_state(self.id).is_some()
     }
 
+    /// Gets the stable namespaced ID of the block kind.
+    ///
+    /// Combined with [`property_values`], this method can be used
+    /// for the persistent serialization of block states.
+    pub fn namespaced_id(&self) -> &str {
+        self.kind().namespaced_id()
+    }
+
+    /// Returns an iterator over (key, value) pairs representing
+    /// the properties of this block.
+    ///
+    /// This method can be used to serialize block states.
+    pub fn property_values(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
+        self.raw()
+            .untyped_properties
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+    }
+
+    /// Creates a `BlockState` from its namespaced ID and property values.
+    ///
+    /// This method can be used to deserialize block states.
+    pub fn from_namespaced_id_and_property_values<'a>(
+        namespaced_id: &str,
+        property_values: impl IntoIterator<Item = (&'a str, &'a str)>,
+    ) -> Option<Self> {
+        REGISTRY
+            .id_for_untyped_repr(namespaced_id, property_values)
+            .map(|id| Self { id })
+    }
+
     pub fn get_valid_properties(&self) -> &'static ValidProperties {
         REGISTRY.valid_properties.get(&self.raw().kind).unwrap()
     }
@@ -120,13 +152,28 @@ impl BlockState {
     }
 }
 
+impl Debug for BlockState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = f.debug_struct("BlockState");
+        s.field("kind", &self.kind());
+        for (property, value) in self.property_values() {
+            s.field(property, &value);
+        }
+        s.finish()
+    }
+}
+
 static REGISTRY: Lazy<BlockRegistry> = Lazy::new(BlockRegistry::new);
+
+type SmartStr = SmartString<LazyCompact>;
+type PropertyValues = Vec<(SmartStr, SmartStr)>;
 
 struct BlockRegistry {
     states: Vec<RawBlockState>,
     id_mapping: AHashMap<RawBlockStateProperties, u16>,
     valid_properties: AHashMap<BlockKind, ValidProperties>,
     default_states: AHashMap<BlockKind, BlockState>,
+    by_untyped_repr: AHashMap<(SmartStr, PropertyValues), u16>,
 }
 
 impl BlockRegistry {
@@ -165,11 +212,22 @@ impl BlockRegistry {
             .map(|s| (s.kind, BlockState { id: s.id }))
             .collect();
 
+        let by_untyped_repr = states
+            .iter()
+            .map(|s| {
+                (
+                    (s.kind.namespaced_id().into(), s.untyped_properties.clone()),
+                    s.id,
+                )
+            })
+            .collect();
+
         Self {
             states,
             id_mapping,
             valid_properties,
             default_states,
+            by_untyped_repr,
         }
     }
 
@@ -183,6 +241,22 @@ impl BlockRegistry {
 
     fn default_state(&self, kind: BlockKind) -> BlockState {
         self.default_states[&kind]
+    }
+
+    fn id_for_untyped_repr<'a>(
+        &self,
+        namespaced_id: impl Into<SmartStr>,
+        property_values: impl IntoIterator<Item = (&'a str, &'a str)>,
+    ) -> Option<u16> {
+        self.by_untyped_repr
+            .get(&(
+                namespaced_id.into(),
+                property_values
+                    .into_iter()
+                    .map(|(k, v)| (k.into(), v.into()))
+                    .collect::<Vec<_>>(),
+            ))
+            .copied()
     }
 }
 

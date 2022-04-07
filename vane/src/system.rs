@@ -2,7 +2,7 @@
 
 use std::{any::type_name, marker::PhantomData, sync::Arc};
 
-use crate::{Resources, Entities};
+use crate::{Entities, Resources};
 
 /// The result type returned by a system function.
 ///

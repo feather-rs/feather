@@ -1,6 +1,6 @@
 use anyhow::bail;
 use base::EntityKind;
-use quill_common::{
+use quill::{
     components::{CreativeFlying, Sneaking, Sprinting},
     entities::Player,
 };

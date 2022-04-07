@@ -11,7 +11,7 @@ use common::{
     events::{ChunkLoadEvent, ViewUpdateEvent},
     Game,
 };
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld};
 use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
@@ -73,9 +73,11 @@ fn update_chunks(
     for &pos in &event.new_chunks {
         let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
         let (_, (world, dimension)) = query.iter().find(|(e, _)| *e == player).unwrap();
-        
+
         let mut dimensions = game.ecs.get_mut::<Dimensions>(world.0)?;
-        let dimension = dimensions.get_mut(&**dimension).context("missing dimension")?;
+        let dimension = dimensions
+            .get_mut(&**dimension)
+            .context("missing dimension")?;
         if let Some(chunk) = dimension.chunk_map().chunk_handle_at(pos) {
             client.send_chunk(&chunk);
         } else {

@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::io::{Read, Write};
 use std::net::SocketAddr;
 use std::net::{TcpListener, TcpStream};
@@ -18,6 +18,8 @@ use feather_protocol::{
     ClientHandshakePacket, ClientPacket, ClientPacketCodec, ProtocolState, ServerLoginPacket,
     ServerPacket, ServerPacketCodec, VarInt,
 };
+
+const MAX_PACKET_DISPLAY_LENGTH: usize = 1000;
 
 /// A simple proxy server that logs transmitted packets
 #[derive(Parser)]
@@ -252,39 +254,41 @@ fn handle_client(
         }
 
         let mut connection = connection.lock().unwrap();
-        if let Some(packet) = connection
-            .client_codec
-            .decode(&vec)
-            .context("failed to decode client packet")?
-        {
-            if log && !hide(packet.id(), blacklist.as_ref(), whitelist.as_ref()) {
-                log::info!(
-                    "{} -> #{:02X}",
-                    connection.username.clone().unwrap_or_default(),
-                    packet.id()
-                );
-                log::debug!(
-                    "{} -> {:?}",
-                    connection.username.clone().unwrap_or_default(),
-                    packet
-                );
-                log::trace!("{}", pretty_hex::pretty_hex(&&vec));
-            }
+        let res = connection.client_codec.decode(&vec);
 
-            // Detect state switches.
-            if let ClientPacket::Handshake(packet) = packet {
-                let state = match packet {
-                    ClientHandshakePacket::Handshake(packet) => match packet.next_state {
-                        HandshakeState::Login => ProtocolState::Login,
-                        HandshakeState::Status => ProtocolState::Status,
-                    },
-                };
-                connection.set_state(state)
-            }
+        match res {
+            Ok(Some(packet)) => {
+                if log && !hide(packet.id(), blacklist.as_ref(), whitelist.as_ref()) {
+                    log::info!(
+                        "{} -> #{:02X}",
+                        connection.username.clone().unwrap_or_default(),
+                        packet.id()
+                    );
+                    log::debug!(
+                        "{} -> {}",
+                        connection.username.clone().unwrap_or_default(),
+                        fmt_max_length(&packet)
+                    );
+                    log::trace!("{}", pretty_hex::pretty_hex(&&vec));
+                }
 
-            drop(connection);
-            // Forward the packet to the server.
-            server_write.write_all(&vec)?;
+                // Detect state switches.
+                if let ClientPacket::Handshake(packet) = packet {
+                    let state = match packet {
+                        ClientHandshakePacket::Handshake(packet) => match packet.next_state {
+                            HandshakeState::Login => ProtocolState::Login,
+                            HandshakeState::Status => ProtocolState::Status,
+                        },
+                    };
+                    connection.set_state(state)
+                }
+
+                drop(connection);
+                // Forward the packet to the server.
+                server_write.write_all(&vec)?;
+            }
+            Ok(None) => {}
+            Err(e) => log::error!("Failed to decode client packet: {:?}", e),
         }
     }
     Ok(())
@@ -315,43 +319,46 @@ fn handle_server(
         }
 
         let mut connection = connection.lock().unwrap();
-        if let Some(packet) = connection
-            .server_codec
-            .decode(&vec)
-            .context("failed to decode client packet")?
-        {
-            if log && !hide(packet.id(), blacklist.as_ref(), whitelist.as_ref()) {
-                log::info!(
-                    "{} <- #{:02X}",
-                    connection.username.clone().unwrap_or_default(),
-                    packet.id()
-                );
-                log::debug!(
-                    "{} <- {:?}",
-                    connection.username.clone().unwrap_or_default(),
-                    packet
-                );
-                log::trace!("{}", pretty_hex::pretty_hex(&&vec));
+        let res = connection.server_codec.decode(&vec);
+        match res {
+            Ok(Some(packet)) => {
+                if log && !hide(packet.id(), blacklist.as_ref(), whitelist.as_ref()) {
+                    log::info!(
+                        "{} <- #{:02X}",
+                        connection.username.clone().unwrap_or_default(),
+                        packet.id()
+                    );
+                    log::debug!(
+                        "{} <- {}",
+                        connection.username.clone().unwrap_or_default(),
+                        fmt_max_length(&packet)
+                    );
+                    log::trace!("{}", pretty_hex::pretty_hex(&&vec));
+                }
+
+                match packet {
+                    // Detect state switches
+                    ServerPacket::Login(ServerLoginPacket::LoginSuccess(packet)) => {
+                        connection.username = Some(PlayerName(packet.username));
+                        connection.set_state(ProtocolState::Play);
+                    }
+                    // Detect SetCompression
+                    ServerPacket::Login(ServerLoginPacket::SetCompression(packet)) => {
+                        connection.set_compression(packet.threshold as CompressionThreshold)
+                    }
+                    _ => (),
+                }
+
+                drop(connection);
+                // Forward the packet to the server.
+                client_write.write_all(&vec)?;
             }
 
-            match packet {
-                // Detect state switches
-                ServerPacket::Login(ServerLoginPacket::LoginSuccess(packet)) => {
-                    connection.username = Some(PlayerName(packet.username));
-                    connection.set_state(ProtocolState::Play);
-                }
-                // Detect SetCompression
-                ServerPacket::Login(ServerLoginPacket::SetCompression(packet)) => {
-                    connection.set_compression(packet.threshold as CompressionThreshold)
-                }
-                _ => (),
-            }
-
-            drop(connection);
-            // Forward the packet to the server.
-            client_write.write_all(&vec)?;
+            Ok(None) => {}
+            Err(e) => log::error!("Failed to decode server packet: {:?}", e),
         }
     }
+    
     Ok(())
 }
 
@@ -363,4 +370,9 @@ fn hide(packet_id: u32, blacklist: Option<&Vec<u32>>, whitelist: Option<&Vec<u32
     } else {
         false
     }
+}
+
+fn fmt_max_length(packet: &impl Debug) -> String {
+    let s = format!("{:?}", packet);
+    s.chars().take(MAX_PACKET_DISPLAY_LENGTH).collect()
 }

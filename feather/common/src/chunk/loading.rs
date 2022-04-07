@@ -10,12 +10,12 @@ use ahash::AHashMap;
 
 use anyhow::Context;
 use base::ChunkPosition;
-use quill_common::events::EntityRemoveEvent;
+use quill::events::EntityRemoveEvent;
 use utils::vec_remove_item;
 use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{chunk::worker::LoadRequest, events::ViewUpdateEvent, Game};
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld};
 
 use crate::world::Dimensions;
 

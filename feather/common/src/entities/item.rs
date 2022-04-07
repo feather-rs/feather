@@ -1,6 +1,6 @@
 // This file is @generated. Please do not edit.
 use base::EntityKind;
-use quill_common::entities::Item;
+use quill::entities::Item;
 use vane::EntityBuilder;
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

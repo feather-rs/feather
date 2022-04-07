@@ -1,4 +1,4 @@
-use crate::{Component, Entity, Entities};
+use crate::{Component, Entities, Entity};
 
 /// Function to remove an event from the ECS.
 type EventRemoveFn = fn(&mut Entities, Entity);

@@ -1,8 +1,8 @@
 use anyhow::bail;
 use base::Gamemode;
 use common::{window::BackingWindow, Window};
-use vane::{EntityRef, SysResult};
 use protocol::packets::client::{ClickWindow, CreativeInventoryAction};
+use vane::{EntityRef, SysResult};
 
 use crate::{ClientId, Server};
 
@@ -24,12 +24,6 @@ pub fn handle_creative_inventory_action(
         window
             .inner()
             .set_item(packet.slot as usize, packet.clicked_item)?;
-
-        // Sends the client updates about window changes.
-        // Is required to make delete inventory button reflect in-game.
-        let client_id = *player.get::<ClientId>()?;
-        let client = server.clients.get(client_id).unwrap();
-        client.send_window_items(&window);
     }
 
     Ok(())

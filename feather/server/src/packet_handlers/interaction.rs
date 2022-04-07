@@ -11,10 +11,9 @@ use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
-use quill_common::components::{EntityDimension, EntityWorld};
-use quill_common::{
+use quill::components::{EntityDimension, EntityWorld};
+use quill::{
     events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
-    EntityId,
 };
 use vane::{Entity, EntityRef, SysResult};
 
@@ -200,14 +199,14 @@ pub fn handle_interact_entity(
 
     let event = match packet.kind {
         InteractEntityKind::Attack => InteractEntityEvent {
-            target: EntityId(target.index() as u64),
+            target,
             ty: InteractionType::Attack,
             target_pos: None,
             hand: None,
             sneaking: packet.sneaking,
         },
         InteractEntityKind::Interact => InteractEntityEvent {
-            target: EntityId(target.index() as u64),
+            target,
             ty: InteractionType::Interact,
             target_pos: None,
             hand: None,
@@ -226,7 +225,7 @@ pub fn handle_interact_entity(
             };
 
             InteractEntityEvent {
-                target: EntityId(target.index() as u64),
+                target,
                 ty: InteractionType::Attack,
                 target_pos: Some(Vec3f::new(
                     target_x as f32,

@@ -6,7 +6,7 @@ use base::{Gamemode, Inventory, Position, Text};
 use common::entities::player::HotbarSlot;
 use common::world::WorldPath;
 use common::{chat::ChatKind, Game};
-use quill_common::components::{
+use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
     Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
 };

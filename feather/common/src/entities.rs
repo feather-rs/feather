@@ -1,6 +1,6 @@
 // This file is @generated. Please do not edit.
 use base::EntityKind;
-use quill_common::components::OnGround;
+use quill::components::OnGround;
 use uuid::Uuid;
 use vane::EntityBuilder;
 #[doc = "Adds default components shared between all entities."]

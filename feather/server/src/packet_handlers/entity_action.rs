@@ -1,10 +1,10 @@
 use common::Game;
-use vane::{Entity, SysResult};
 use protocol::packets::client::{EntityAction, EntityActionKind};
-use quill_common::{
+use quill::{
     components::{Sneaking, Sprinting},
     events::{SneakEvent, SprintEvent},
 };
+use vane::{Entity, SysResult};
 
 ///  From [wiki](https://wiki.vg/Protocol#Entity_Action)
 ///  Sent by the client to indicate that it has performed certain actions:

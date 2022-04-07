@@ -5,7 +5,7 @@ use crate::Game;
 /// Context passed to `Plugin::initialize`.
 pub trait Setup {
     /// Registers a system.
-    fn register_system(&mut self, system: fn(&mut dyn Game) -> SysResult) -> &mut Self;
+    fn register_system(&mut self, system: fn(&mut dyn Game) -> SysResult);
 
     /// Gets the `Game`.
     fn game(&self) -> &dyn Game;

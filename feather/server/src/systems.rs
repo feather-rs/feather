@@ -14,8 +14,8 @@ pub mod view;
 use std::time::{Duration, Instant};
 
 use common::Game;
+use quill::components::Name;
 use vane::{SysResult, SystemExecutor};
-use quill_common::components::Name;
 
 use crate::{client::ClientId, Server};
 

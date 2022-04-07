@@ -1,5 +1,5 @@
 use base::{EntityKind, Position};
-use quill_common::components::OnGround;
+use quill::components::OnGround;
 use uuid::Uuid;
 use vane::{EntityBuilder, EntityRef, SysResult};
 

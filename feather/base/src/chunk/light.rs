@@ -98,5 +98,5 @@ impl LightStore {
 }
 
 fn fill_with_default_light(arr: &mut PackedArray) {
-   arr.fill(15);
+    arr.fill(15);
 }

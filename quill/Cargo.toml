@@ -8,6 +8,8 @@ edition = "2018"
 derive_more = "0.99"
 libcraft-blocks = { path = "../libcraft/blocks" }
 libcraft-core = { path = "../libcraft/core" }
+libcraft-items = { path = "../libcraft/items" }
+libcraft-inventory = { path = "../libcraft/inventory" }
 libcraft-particles = { path = "../libcraft/particles" }
 libcraft-text = { path = "../libcraft/text" }
 serde = { version = "1", features = ["derive"] }

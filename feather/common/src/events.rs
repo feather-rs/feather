@@ -7,7 +7,7 @@ mod plugin_message;
 
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
-use quill_common::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld};
 
 /// Event triggered when a player changes their `View`,
 /// meaning they crossed into a new chunk.

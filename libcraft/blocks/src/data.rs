@@ -1,4 +1,7 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+};
 
 use crate::BlockKind;
 use libcraft_core::block::{
@@ -7,6 +10,7 @@ use libcraft_core::block::{
     SlabType, StairHalf, StairShape, StructureBlockMode, WallConnection,
 };
 use serde::{Deserialize, Serialize};
+use smartstring::{LazyCompact, SmartString};
 
 /// Defines all possible data associated with a block state.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -17,6 +21,7 @@ pub struct RawBlockState {
     /// Whether this is the default state for this block kind
     pub default: bool,
     pub properties: RawBlockStateProperties,
+    pub untyped_properties: Vec<(SmartString<LazyCompact>, SmartString<LazyCompact>)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -215,7 +220,7 @@ impl BlockReportEntry {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BlockReportState {
     #[serde(default)]
-    pub properties: HashMap<String, String>,
+    pub properties: BTreeMap<String, String>,
     pub id: u16,
     #[serde(default)]
     pub default: bool,
@@ -311,6 +316,11 @@ impl BlockReportState {
                 wall_up: self.property("up"),
                 wall_west: self.property("west"),
             },
+            untyped_properties: self
+                .properties
+                .iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
         }
     }
 }

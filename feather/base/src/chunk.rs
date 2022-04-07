@@ -369,9 +369,7 @@ impl ChunkSection {
             PalettedContainer::GlobalPalette { data } => {
                 static AIR_BLOCKS: Lazy<Vec<u32>> = Lazy::new(|| {
                     (0..HIGHEST_ID)
-                        .filter(|index| {
-                            BlockState::from_id(*index as u16).unwrap().kind().is_air()
-                        })
+                        .filter(|index| BlockState::from_id(*index as u16).unwrap().kind().is_air())
                         .map(|i| i as u32)
                         .collect::<Vec<_>>()
                 });

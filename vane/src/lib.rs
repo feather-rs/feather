@@ -23,5 +23,5 @@ pub use entity_ref::EntityRef;
 pub use query::{QueryDriver, QueryItem};
 pub use resources::{ResourceError, Resources};
 pub use storage::{SparseSetRef, SparseSetStorage};
-pub use system::{HasResources, HasEntities, SysResult, SystemExecutor};
-pub use world::{ComponentError, Components, EntityDead, Entities};
+pub use system::{HasEntities, HasResources, SysResult, SystemExecutor};
+pub use world::{ComponentError, Components, Entities, EntityDead};

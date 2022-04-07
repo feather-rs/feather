@@ -719,6 +719,7 @@ version = "0.6.0"
 dependencies = [
  "feather-base",
  "log",
+ "rand",
 ]
 
 [[package]]
@@ -1007,6 +1008,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "serde",
+ "smartstring",
  "thiserror",
 ]
 
@@ -1558,6 +1560,8 @@ dependencies = [
  "derive_more",
  "libcraft-blocks",
  "libcraft-core",
+ "libcraft-inventory",
+ "libcraft-items",
  "libcraft-particles",
  "libcraft-text",
  "serde",

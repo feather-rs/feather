@@ -5,7 +5,7 @@ use crate::Nbt;
 use crate::VarLong;
 use base::EntityMetadata;
 use base::ValidBlockPosition;
-use quill_common::components::PreviousGamemode;
+use quill::components::PreviousGamemode;
 use std::collections::HashMap;
 use std::io::Cursor;
 use uuid::Uuid;
@@ -24,6 +24,7 @@ pub use update_light::UpdateLight;
 
 mod chunk_data;
 mod update_light;
+
 packets! {
     SpawnEntity {
         entity_id VarInt;

@@ -1,8 +1,8 @@
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};
-use vane::{Entity, SysResult, SystemExecutor};
-use quill_common::events::{EntityCreateEvent, EntityRemoveEvent};
+use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 use utils::vec_remove_item;
+use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{events::ChunkCrossEvent, Game};
 
@@ -74,8 +74,7 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
 
     // Entities that have been created
     let mut insertions = Vec::new();
-    for (entity, (_event, position)) in game.ecs.query::<(&EntityCreateEvent, &Position)>().iter()
-    {
+    for (entity, (_event, position)) in game.ecs.query::<(&EntityCreateEvent, &Position)>().iter() {
         let chunk = position.chunk();
         game.chunk_entities.update(entity, None, chunk);
         insertions.push((entity, chunk));

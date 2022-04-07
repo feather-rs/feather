@@ -1,4 +1,4 @@
-use crate::{Component, Entity, Entities};
+use crate::{Component, Entities, Entity};
 
 /// A bundle of components that can be added to an entity.
 pub trait ComponentBundle: Sized {

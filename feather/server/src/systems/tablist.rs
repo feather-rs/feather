@@ -4,8 +4,8 @@ use uuid::Uuid;
 
 use base::{Gamemode, ProfileProperty};
 use common::Game;
-use quill_common::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
-use quill_common::{components::Name, entities::Player};
+use quill::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
+use quill::{components::Name, entities::Player};
 use vane::{SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};

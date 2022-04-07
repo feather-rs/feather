@@ -85,7 +85,12 @@ where
             PalettedContainer::SingleValue(item) => Some(*item),
             PalettedContainer::MultipleValues { data, palette } => {
                 let palette_index = data.get(index)?;
-                palette.get(palette_index as usize).copied()
+                Some(
+                    palette
+                        .get(palette_index as usize)
+                        .copied()
+                        .unwrap_or_else(|| panic!("palette does not contain entry {} (see: {:?})", palette_index, palette)),
+                )
             }
             PalettedContainer::GlobalPalette { data } => {
                 let palette_index = data.get(index)? as u32;

@@ -5,11 +5,11 @@
 
 use std::fmt::Display;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
 
 #[doc(inline)]
-pub use libcraft_core::{Gamemode, Position, ChunkPosition};
+pub use libcraft_core::{ChunkPosition, Gamemode, Position};
 
 /// Whether an entity is touching the ground.
 #[derive(

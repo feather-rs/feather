@@ -3,7 +3,8 @@
 use std::{any::TypeId, borrow::Cow, cell::Cell, ops::Deref};
 
 use crate::{
-    storage::sparse_set, Component, Components, Ref, RefMut, SparseSetRef, SparseSetStorage, Entities,
+    storage::sparse_set, Component, Components, Entities, Ref, RefMut, SparseSetRef,
+    SparseSetStorage,
 };
 
 /// Drives a query by yielding the entities

@@ -3,7 +3,7 @@ use common::Game;
 use protocol::packets::client::{
     PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
 };
-use quill_common::{
+use quill::{
     components::{CreativeFlying, OnGround},
     events::CreativeFlyingEvent,
 };
@@ -44,12 +44,12 @@ pub fn handle_player_position(
         return Ok(());
     }
     let pos = {
-    let mut pos = player.get_mut::<Position>()?;
-    pos.x = packet.x;
-    pos.y = packet.feet_y;
-    pos.z = packet.z;
-    player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    *pos
+        let mut pos = player.get_mut::<Position>()?;
+        pos.x = packet.x;
+        pos.y = packet.feet_y;
+        pos.z = packet.z;
+        player.get_mut::<OnGround>()?.0 = packet.on_ground;
+        *pos
     };
     update_client_position(server, player, pos)?;
     Ok(())

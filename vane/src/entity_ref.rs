@@ -1,4 +1,4 @@
-use crate::{Component, ComponentError, Entity, Ref, RefMut, Entities};
+use crate::{Component, ComponentError, Entities, Entity, Ref, RefMut};
 
 /// Convenient wrapper over an `EntityId` that
 /// gives access to components.

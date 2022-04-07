@@ -5,8 +5,8 @@ use common::{
     events::{ChunkCrossEvent, ViewUpdateEvent},
     Game,
 };
-use quill_common::components::{EntityDimension, EntityWorld};
-use quill_common::events::{EntityCreateEvent, EntityRemoveEvent};
+use quill::components::{EntityDimension, EntityWorld};
+use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 use vane::{SysResult, SystemExecutor};
 
 use crate::chunk_subscriptions::DimensionChunkPosition;

@@ -8,8 +8,8 @@ use base::{
 use common::world::Dimensions;
 use common::Game;
 use libcraft_core::Gamemode;
-use quill_common::components::{EntityDimension, EntityWorld, PreviousGamemode};
-use quill_common::{
+use quill::components::{EntityDimension, EntityWorld, PreviousGamemode};
+use quill::{
     components::{OnGround, Sprinting},
     events::{SneakEvent, SprintEvent},
 };

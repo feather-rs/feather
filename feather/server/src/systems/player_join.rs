@@ -17,12 +17,12 @@ use common::{
 };
 use libcraft_core::EntityKind;
 use libcraft_items::InventorySlot;
-use quill_common::components;
-use quill_common::components::{
+use quill::components;
+use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
     Health, Instabreak, Invulnerable, PreviousGamemode, WalkSpeed,
 };
-use quill_common::events::GamemodeEvent;
+use quill::events::GamemodeEvent;
 use vane::{SysResult, SystemExecutor};
 
 use crate::config::Config;
@@ -232,7 +232,7 @@ fn send_respawn_packets(game: &mut Game, server: &mut Server) -> SysResult {
             walk_speed,
             fly_speed,
             may_fly,
-        is_flying,
+            is_flying,
             may_build,
             instabreak,
             invulnerable,

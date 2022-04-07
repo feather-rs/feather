@@ -1,8 +1,8 @@
 //! Provides access to block properties.
-//! 
+//!
 //! Some `BlockData` structs, such as [`Waterlogged`], are general to multiple blocks.
 //! Others are specific to one type of block.
-//! 
+//!
 //! This API is inspired by [Bukkit's BlockData API](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html).
 
 use crate::data::{RawBlockStateProperties, ValidProperties};
