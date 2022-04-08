@@ -369,6 +369,21 @@ impl BlockPosition {
     }
 }
 
+impl Add<BlockFace> for BlockPosition {
+    type Output = Self;
+
+    fn add(self, rhs: BlockFace) -> Self::Output {
+        match rhs {
+            BlockFace::Bottom => self.down(),
+            BlockFace::Top => self.up(),
+            BlockFace::North => self.north(),
+            BlockFace::South => self.south(),
+            BlockFace::West => self.west(),
+            BlockFace::East => self.east(),
+        }
+    }
+}
+
 impl Add<BlockPosition> for BlockPosition {
     type Output = BlockPosition;
 
@@ -438,7 +453,7 @@ impl From<BlockPosition> for ChunkPosition {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum BlockFace {
     Bottom,
     Top,

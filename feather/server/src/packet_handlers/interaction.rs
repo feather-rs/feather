@@ -4,14 +4,14 @@ use common::interactable::InteractableRegistry;
 use common::world::Dimensions;
 use common::{Game, Window};
 use libcraft::anvil::inventory_consts::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use libcraft::{BlockFace as LibcraftBlockFace, Hand};
+use libcraft::{BlockFace as LibcraftBlockFace, Hand, BlockPosition};
 use libcraft::{BlockKind, BlockState};
 use libcraft::{InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
-use quill::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld, Sneaking};
 use quill::events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent};
 use vane::{Entity, EntityRef, SysResult};
 
@@ -87,7 +87,7 @@ pub fn handle_player_block_placement(
         .get::<InteractableRegistry>()
         .expect("Failed to get the interactable registry");
 
-    if interactable_registry.is_registered(block_kind) {
+    if interactable_registry.is_registered(block_kind) && !game.ecs.get::<Sneaking>(player)?.0 {
         // Handle this as a block interaction
         let event = BlockInteractEvent {
             hand,
@@ -99,6 +99,15 @@ pub fn handle_player_block_placement(
 
         game.ecs.insert_entity_event(player, event)?;
     } else {
+        server
+            .clients
+            .get(*game.ecs.get::<ClientId>(player)?)
+            .unwrap()
+            .send_block_change(
+                (BlockPosition::from(packet.position) + face).try_into()?,
+                BlockState::new(BlockKind::Air),
+            );
+
         // Handle this as a block placement
         let event = BlockPlacementEvent {
             hand,
