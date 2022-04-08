@@ -2,7 +2,7 @@
 name = "libcraft-blocks"
 version = "0.1.0"
 authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 ahash = "0.7"

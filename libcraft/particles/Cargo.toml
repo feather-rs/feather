@@ -2,7 +2,7 @@
 name = "libcraft-particles"
 version = "0.1.0"
 authors = ["Gijs de Jong <berichtaangijs@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 bytemuck = { version = "1", features = ["derive"] }

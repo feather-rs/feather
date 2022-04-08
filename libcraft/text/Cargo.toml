@@ -2,7 +2,7 @@
 name = "libcraft-text"
 version = "0.1.0"
 authors = ["Gijs de Jong <berichtaangijs@gmail.com>", "caelunshun <caelunshun@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
