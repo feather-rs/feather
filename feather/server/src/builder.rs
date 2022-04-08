@@ -3,8 +3,11 @@ use quill::Plugin;
 use tokio::runtime::Runtime;
 use vane::SystemExecutor;
 
+use crate::plugin::PluginLoader;
+
 pub struct ServerBuilder {
     game: Game,
+    plugin_loader: PluginLoader,
 }
 
 impl ServerBuilder {
@@ -12,18 +15,24 @@ impl ServerBuilder {
         let runtime = build_tokio_runtime();
         let handle = runtime.handle().clone();
         let game = handle.block_on(async move { crate::init::create_game(runtime).await })?;
+        let plugin_loader = PluginLoader::new("plugins.toml")?;
 
-        Ok(Self { game })
+        Ok(Self {
+            game,
+            plugin_loader,
+        })
     }
 
-    pub fn register_plugin<P: Plugin>(mut self) -> anyhow::Result<Self> {
-        crate::plugin::initialize_plugin::<P>(&mut self.game)?;
-        Ok(self)
+    pub fn register_plugin<P: Plugin>(mut self, plugin: P) -> Self {
+        self.plugin_loader.register_plugin(plugin);
+        self
     }
 
-    pub fn run(self) {
+    pub fn run(mut self) -> anyhow::Result<()> {
+        self.plugin_loader.initialize(&mut self.game)?;
         print_systems(&self.game.system_executor.borrow());
         crate::init::run(self.game);
+        Ok(())
     }
 }
 

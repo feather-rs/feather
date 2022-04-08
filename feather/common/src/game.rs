@@ -55,6 +55,16 @@ pub struct Game {
     runtime: Runtime,
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Self::new(
+            runtime::Builder::new_current_thread()
+                .build()
+                .expect("failed to initialize default Tokio runtime"),
+        )
+    }
+}
+
 impl Game {
     /// Creates a new, empty `Game`.
     pub fn new(runtime: Runtime) -> Self {

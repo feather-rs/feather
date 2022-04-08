@@ -28,6 +28,7 @@ flate2 = "1"
 flume = "0.10"
 futures-lite = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+indexmap = { version = "1", features = ["serde"] }
 itertools = "0.10.3"
 konst = "0.2.13"
 libcraft = { path = "../../libcraft" }

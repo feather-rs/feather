@@ -10,7 +10,7 @@
 /generated/
 /worldgen/
 /config.toml
-plugins/
+/plugins.toml
 
 # macOS desktop files
 **/.DS_STORE

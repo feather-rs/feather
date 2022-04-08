@@ -260,7 +260,7 @@ mod tests {
 
     #[test]
     fn held_item_change() {
-        let mut game = Game::new();
+        let mut game = Game::default();
         let entity = game.ecs.spawn((HotbarSlot::new(0),));
         let player = game.ecs.entity(entity).unwrap();
 

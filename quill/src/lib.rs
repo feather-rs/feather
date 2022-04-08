@@ -12,7 +12,7 @@ mod plugin;
 pub use vane::{Entities, Entity, EntityBuilder, EntityRef, Resources, SysResult};
 
 pub use game::Game;
-pub use plugin::{Plugin, Setup};
+pub use plugin::{Plugin, PluginInfo, Setup};
 
 #[doc(inline)]
 pub use chunk_lock::{ChunkHandle, ChunkLock};
