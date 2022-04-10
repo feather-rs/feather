@@ -66,6 +66,7 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
         let (world, dimension) = query.iter().find(|(e, _)| *e == player).unwrap().1;
         let client = server.clients.get(*client_id).unwrap();
         if client.is_disconnected() {
+            dbg!();
             entities_to_remove.push(player);
             broadcast_player_leave(game, &name);
             game.ecs

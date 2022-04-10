@@ -14,9 +14,9 @@ use common::{
 };
 use libcraft::anvil::player::PlayerAbilities;
 use libcraft::biome::BiomeList;
+use libcraft::items::InventorySlot;
 use libcraft::EntityKind;
 use libcraft::{Gamemode, Inventory, ItemStack, Position, Text};
-use libcraft::items::InventorySlot;
 use quill::components;
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
@@ -186,13 +186,13 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                 .map(|data| data.animal.health)
                 .unwrap_or(20.0),
         ))
-        .add(abilities.walk_speed)
-        .add(abilities.fly_speed)
-        .add(abilities.is_flying)
-        .add(abilities.may_fly)
-        .add(abilities.may_build)
-        .add(abilities.instabreak)
-        .add(abilities.invulnerable);
+        .add(WalkSpeed(abilities.walk_speed))
+        .add(CreativeFlyingSpeed(abilities.fly_speed))
+        .add(CreativeFlying(abilities.is_flying))
+        .add(CanCreativeFly(abilities.may_fly))
+        .add(CanBuild(abilities.may_build))
+        .add(Instabreak(abilities.instabreak))
+        .add(Invulnerable(abilities.invulnerable));
 
     builder.add(GamemodeEvent(gamemode));
 
