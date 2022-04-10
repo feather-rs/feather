@@ -48,7 +48,7 @@ impl EventTracker {
     }
 
     /// Adds a custom function to run
-    /// before the current systems executes again.
+    /// before the current system executes again.
     #[allow(unused)]
     pub fn insert_custom(&mut self, entity: Entity, callback: fn(&mut Entities, Entity)) {
         let events_vec = self.current_events_vec();

@@ -135,3 +135,8 @@ fn send_entity_sprint_metadata(game: &mut Game, server: &mut Server) -> SysResul
     }
     Ok(())
 }
+
+/// Sends `EntityEquipment` to update an entity's equipment.
+fn update_entity_equipment(game:&mut Game, server: &mut Server) -> SysResult {
+    
+}

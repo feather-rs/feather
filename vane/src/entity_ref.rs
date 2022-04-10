@@ -19,4 +19,8 @@ impl<'a> EntityRef<'a> {
     pub fn get_mut<T: Component>(&self) -> Result<RefMut<T>, ComponentError> {
         self.world.get_mut(self.entity)
     }
+
+    pub fn has<T: Component>(&self) -> bool {
+        self.world.has::<T>(self.entity)
+    }
 }
