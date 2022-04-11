@@ -61,13 +61,15 @@ impl SparseSetStorage {
     /// # Safety
     /// `component` must point to a valid (but not necessarily aligned) instance of the component
     /// stored in this sparse set.
-    pub unsafe fn insert_raw(&mut self, index: u32, component: *const u8) {
+    pub unsafe fn insert_raw(&mut self, index: u32, component: *const u8) -> *mut u8 {
         self.grow_sparse_for(index);
 
         self.sparse[index as usize] = self.dense.len() as u32;
-        self.components.push(component);
+        let ptr = self.components.push(component);
         self.dense.push(index);
         self.borrow_flags.push(BorrowFlag::default());
+
+        ptr
     }
 
     pub fn get<T: 'static>(&self, index: u32) -> Result<Option<Ref<T>>, BorrowError> {

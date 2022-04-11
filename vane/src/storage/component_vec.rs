@@ -42,7 +42,7 @@ impl ComponentVec {
     /// # Safety
     /// `ptr` must be a valid pointer to an instance of
     /// the component type stored in this vector.
-    pub unsafe fn push(&mut self, value: *const u8) {
+    pub unsafe fn push(&mut self, value: *const u8) -> *mut u8 {
         let new_len = self
             .len
             .checked_add(1)
@@ -50,11 +50,13 @@ impl ComponentVec {
 
         self.len = new_len;
 
-        self.array_for_item_or_grow(new_len - 1)
-            .push_raw(value)
-            .expect("array cannot be full");
+        let array = self.array_for_item_or_grow(new_len - 1);
+
+        let ptr = array.push_raw(value).expect("array cannot be full");
 
         self.check_invariants();
+
+        ptr
     }
 
     /// Gets the value at the given index.

@@ -1,7 +1,7 @@
 use anyhow::bail;
 use libcraft::{EntityKind, ProfileProperty};
 use quill::{
-    components::{CreativeFlying, Sneaking, Sprinting, EntityKindComponent},
+    components::{CreativeFlying, EntityKindComponent, Sneaking, Sprinting},
     entities::Player,
 };
 use vane::{Component, EntityBuilder, SysResult};

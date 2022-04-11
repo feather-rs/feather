@@ -83,3 +83,7 @@ pub struct InventorySlotUpdateEvent {
     pub slot: usize,
 }
 impl Component for InventorySlotUpdateEvent {}
+
+#[derive(Debug)]
+pub struct HeldItemChangeEvent;
+impl Component for HeldItemChangeEvent {}

@@ -42,7 +42,7 @@ pub struct Entities {
     components: Components,
     entity_ids: EntityIds,
     event_tracker: EventTracker,
-    bus_receiver: BusReceiver,
+    pub(crate) bus_receiver: BusReceiver,
 }
 
 impl Entities {
@@ -54,6 +54,11 @@ impl Entities {
     /// Gets a [`Bus`](crate::Bus) to execute actions on the `Entities`.
     pub fn bus(&self) -> Bus {
         self.bus_receiver.bus()
+    }
+
+    /// Returns whether an entity still exists.
+    pub fn contains(&self, entity: Entity) -> bool {
+        self.check_entity(entity).is_ok()
     }
 
     /// Gets a component for an entity.
@@ -136,8 +141,10 @@ impl Entities {
 
         for (component_meta, component) in builder.drain() {
             unsafe {
-                self.components
-                    .insert_raw(entity.index(), component_meta, component.as_ptr());
+                let ptr =
+                    self.components
+                        .insert_raw(entity.index(), component_meta.clone(), component.as_ptr());
+                (component_meta.on_inserted_fn)(ptr, self, entity);
             }
         }
 

@@ -1,10 +1,11 @@
 use ahash::AHashSet;
 use anyhow::Context;
 use common::{
+    entities::player::HotbarSlot,
     events::{ChunkCrossEvent, ViewUpdateEvent},
     Game,
 };
-use quill::components::{EntityDimension, EntityWorld, EntityPosition};
+use quill::components::{EntityDimension, EntityInventory, EntityPosition, EntityWorld};
 use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 use vane::{SysResult, SystemExecutor};
 
@@ -34,10 +35,16 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
             for &entity_id in game.chunk_entities.entities_in_chunk(new_chunk) {
                 if entity_id != player {
                     let entity_ref = game.ecs.entity(entity_id)?;
+                    let network_id = entity_ref.get::<NetworkId>()?;
                     if let Ok(spawn_packet) = entity_ref.get::<SpawnPacketSender>() {
                         spawn_packet
                             .send(&entity_ref, client)
                             .context("failed to send spawn packet")?;
+                    };
+                    if let Ok(inventory) = entity_ref.get::<EntityInventory>() {
+                        if let Ok(hotbar_slot) = entity_ref.get::<HotbarSlot>() {
+                            client.send_entity_equipment(*network_id, &inventory, &hotbar_slot);
+                        }
                     };
                 }
             }
@@ -60,10 +67,11 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
 
 /// System to send an entity to clients when it is created.
 fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult {
-    for (entity, (_event, position, spawn_packet, world, dimension)) in game
+    for (entity, (_event, network_id, position, spawn_packet, world, dimension)) in game
         .ecs
         .query::<(
             &EntityCreateEvent,
+            &NetworkId,
             &EntityPosition,
             &SpawnPacketSender,
             &EntityWorld,
@@ -75,7 +83,12 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
         server.broadcast_nearby_with_mut(*world, &dimension, position.0, |client| {
             spawn_packet
                 .send(&entity_ref, client)
-                .expect("failed to create spawn packet")
+                .expect("failed to create spawn packet");
+            if let Ok(inventory) = entity_ref.get::<EntityInventory>() {
+                if let Ok(hotbar_slot) = entity_ref.get::<HotbarSlot>() {
+                    client.send_entity_equipment(*network_id, &inventory, &hotbar_slot);
+                }
+            }
         });
     }
 

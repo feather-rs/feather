@@ -25,6 +25,7 @@ impl Bus {
 
 type Action = Box<dyn FnOnce(&mut Entities)>;
 
+#[derive(Clone)]
 pub(crate) struct BusReceiver {
     receiver: Receiver<Action>,
     bus: Bus,

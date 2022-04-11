@@ -3,7 +3,7 @@ use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
 };
-use libcraft::{ Text};
+use libcraft::Text;
 use protocol::{
     packets::{
         client,
@@ -11,7 +11,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill::components::{EntityDimension, EntityWorld, Name, EntityPosition};
+use quill::components::{EntityDimension, EntityPosition, EntityWorld, Name};
 use vane::{Entity, EntityRef, SysResult};
 
 use crate::{NetworkId, Server};
@@ -62,7 +62,7 @@ pub fn handle_packet(
             handle_player_block_placement(game, server, packet, player_id)
         }
 
-        ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(player, packet),
+        ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(game, player_id, packet),
         ClientPlayPacket::InteractEntity(packet) => {
             handle_interact_entity(game, server, packet, player_id)
         }

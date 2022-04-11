@@ -1,8 +1,10 @@
+use common::entities::player::HotbarSlot;
 use itertools::Itertools;
-use vane::Component;
+use std::any::type_name;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::{collections::VecDeque, sync::Arc};
+use vane::Component;
 
 use ahash::AHashSet;
 use either::Either;
@@ -18,14 +20,15 @@ use common::{
 use libcraft::biome::BiomeList;
 use libcraft::items::InventorySlot;
 use libcraft::{
-    BlockState, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle, Position,
-    ProfileProperty, Text, Title, ValidBlockPosition,
+    Area, BlockState, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Inventory, Particle,
+    Position, ProfileProperty, Text, Title, ValidBlockPosition,
 };
 use packets::server::{SetSlot, SpawnLivingEntity};
 use protocol::packets::server::{
     ChangeGameState, ClearTitles, DimensionCodec, DimensionCodecEntry, DimensionCodecRegistry,
-    EntityPosition, EntityPositionAndRotation, EntityTeleport, GameStateChange, HeldItemChange,
-    PlayerAbilities, Respawn, SetTitleSubtitle, SetTitleText, SetTitleTimes,
+    EntityEquipment, EntityPosition, EntityPositionAndRotation, EntityTeleport, EquipmentEntry,
+    EquipmentSlot, GameStateChange, HeldItemChange, PlayerAbilities, Respawn, SetTitleSubtitle,
+    SetTitleText, SetTitleTimes,
 };
 use protocol::{
     packets::{
@@ -487,6 +490,35 @@ impl Client {
         });
     }
 
+    pub fn send_entity_equipment(
+        &mut self,
+        network_id: NetworkId,
+        inventory: &Inventory,
+        hotbar_slot: &HotbarSlot,
+    ) {
+        if Some(network_id) == self.network_id {
+            return;
+        }
+
+        let entries = vec![
+            equipment_entry(EquipmentSlot::Boots, inventory, Area::Boots, 0),
+            equipment_entry(EquipmentSlot::Leggings, inventory, Area::Leggings, 0),
+            equipment_entry(EquipmentSlot::Chestplate, inventory, Area::Chestplate, 0),
+            equipment_entry(EquipmentSlot::Helmet, inventory, Area::Helmet, 0),
+            equipment_entry(
+                EquipmentSlot::MainHand,
+                inventory,
+                Area::Hotbar,
+                hotbar_slot.get(),
+            ),
+            equipment_entry(EquipmentSlot::OffHand, inventory, Area::Offhand, 0),
+        ];
+        self.send_packet(EntityEquipment {
+            entity_id: network_id.0,
+            entries,
+        });
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn update_entity_position(
         &mut self,
@@ -741,9 +773,9 @@ impl Client {
         self.sent_entities.insert(network_id);
     }
 
-    fn send_packet(&self, packet: impl Into<ServerPlayPacket>) {
+    fn send_packet<P: Into<ServerPlayPacket>>(&self, packet: P) {
         let packet = packet.into();
-        log::trace!("Sending packet #{:02X} to {}", packet.id(), self.username);
+        log::trace!("Sending packet {} to {}", type_name::<P>(), self.username);
         let _ = self.packets_to_send.try_send(packet);
     }
 
@@ -760,6 +792,23 @@ impl Client {
 
     pub fn world(&self) -> &Option<EntityWorld> {
         &self.world
+    }
+}
+
+fn equipment_entry(
+    slot: EquipmentSlot,
+    inventory: &Inventory,
+    area: Area,
+    index: usize,
+) -> EquipmentEntry {
+    EquipmentEntry {
+        slot,
+        item: InventorySlot::from(
+            inventory
+                .item(area, index)
+                .map(|item| item.clone().into_option())
+                .flatten(),
+        ),
     }
 }
 

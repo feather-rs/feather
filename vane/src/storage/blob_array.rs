@@ -59,7 +59,7 @@ impl BlobArray {
         }
     }
 
-    pub fn push<T>(&mut self, value: T) -> Result<(), Full> {
+    pub fn push<T>(&mut self, value: T) -> Result<*mut u8, Full> {
         self.assert_layout_matches::<T>();
 
         // Put the value in a MaybeUninit so that
@@ -69,7 +69,7 @@ impl BlobArray {
         unsafe { self.push_raw(value.as_ptr().cast()) }
     }
 
-    pub unsafe fn push_raw(&mut self, value: *const u8) -> Result<(), Full> {
+    pub unsafe fn push_raw(&mut self, value: *const u8) -> Result<*mut u8, Full> {
         let new_len = self.len + 1;
         if new_len > self.capacity {
             return Err(Full);
@@ -77,13 +77,14 @@ impl BlobArray {
 
         self.len = new_len;
 
+        let ptr = self.item_ptr(self.len - 1);
         unsafe {
-            ptr::copy_nonoverlapping(value, self.item_ptr(self.len - 1), self.item_layout.size());
+            ptr::copy_nonoverlapping(value, ptr, self.item_layout.size());
         }
 
         self.check_invariants();
 
-        Ok(())
+        Ok(ptr)
     }
 
     pub unsafe fn set_len(&mut self, len: usize) {

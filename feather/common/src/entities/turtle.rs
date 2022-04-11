@@ -1,7 +1,11 @@
 // This file is @generated. Please do not edit.
+use libcraft::EntityKind;
+use quill::components::EntityKindComponent;
 use quill::entities::Turtle;
 use vane::EntityBuilder;
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
-    builder.add(Turtle);
+    builder
+        .add(Turtle)
+        .add(EntityKindComponent(EntityKind::Turtle));
 }

@@ -18,7 +18,7 @@ use libcraft::biome::BiomeList;
 use libcraft::items::InventorySlot;
 use libcraft::EntityKind;
 use libcraft::{Gamemode, Inventory, ItemStack, Position, Text};
-use quill::components::{self, PlayerGamemode, EntityInventory, EntityPosition, EntityUuid};
+use quill::components::{self, EntityInventory, EntityPosition, EntityUuid, PlayerGamemode};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
     Health, Instabreak, Invulnerable, PreviousGamemode, WalkSpeed,
@@ -195,9 +195,10 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(Instabreak(abilities.instabreak))
         .add(Invulnerable(abilities.invulnerable));
 
-    builder.add(GamemodeEvent(gamemode));
+    let entity = game.spawn_entity(builder);
 
-    game.spawn_entity(builder);
+    game.ecs
+        .insert_entity_event(entity, GamemodeEvent(gamemode))?;
 
     broadcast_player_join(game, client.username());
 

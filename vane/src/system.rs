@@ -141,6 +141,9 @@ impl<Input> SystemExecutor<Input> {
                 input.entities_mut().remove_old_events();
             }
 
+            let entities = input.entities_mut();
+            entities.bus_receiver.clone().drain(entities);
+
             let result = (system.function)(input);
             if let Err(e) = result {
                 log::error!(

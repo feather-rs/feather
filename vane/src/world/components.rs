@@ -31,7 +31,7 @@ impl Components {
         index: u32,
         component_meta: ComponentMeta,
         component: *const u8,
-    ) {
+    ) -> *mut u8 {
         self.storage_or_insert_for_untyped(component_meta)
             .insert_raw(index, component)
     }

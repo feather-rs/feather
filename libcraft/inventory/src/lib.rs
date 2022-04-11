@@ -15,6 +15,11 @@ use libcraft_items::InventorySlot;
 
 type Slot = RefCell<InventorySlot>;
 
+struct Inner {
+    backing: InventoryBacking<Slot>,
+    slot_mutated_callback: RefCell<Option<Box<dyn Fn(Area, usize)>>>,
+}
+
 /// A handle to an inventory.
 ///
 /// An inventory is composed of one or more _areas_, each
@@ -27,14 +32,13 @@ type Slot = RefCell<InventorySlot>;
 /// is used to make this safe.
 #[derive(Clone)]
 pub struct Inventory {
-    backing: Rc<InventoryBacking<Slot>>,
-    slot_mutated_callback: Option<Rc<dyn Fn(Area, usize)>>,
+    inner: Rc<Inner>,
 }
 
 impl Debug for Inventory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Inventory")
-            .field("backing", &self.backing)
+            .field("backing", &self.inner.backing)
             .finish()
     }
 }
@@ -43,7 +47,7 @@ impl Inventory {
     /// Returns whether two `Inventory` handles point to the same
     /// backing inventory.
     pub fn ptr_eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.backing, &other.backing)
+        Rc::ptr_eq(&self.inner, &other.inner)
     }
 
     /// Gets the item at the given index within an area in this inventory.
@@ -53,21 +57,21 @@ impl Inventory {
 
     /// Mutably gets the item at the given index within an area in this inventory.
     pub fn item_mut(&self, area: Area, slot: usize) -> Option<RefMut<InventorySlot>> {
-        if let Some(callback) = &self.slot_mutated_callback {
+        if let Some(callback) = &*self.inner.slot_mutated_callback.borrow() {
             (&**callback)(area, slot);
         }
         self.item_cell(area, slot).map(RefCell::borrow_mut)
     }
 
     fn item_cell(&self, area: Area, slot: usize) -> Option<&RefCell<InventorySlot>> {
-        let slice = self.backing.area_slice(area)?;
+        let slice = self.inner.backing.area_slice(area)?;
         slice.get(slot)
     }
 
     pub fn to_vec(&self) -> Vec<InventorySlot> {
         let mut vec = Vec::new();
-        for area in self.backing.areas() {
-            if let Some(items) = self.backing.area_slice(*area) {
+        for area in self.inner.backing.areas() {
+            if let Some(items) = self.inner.backing.area_slice(*area) {
                 for item in items {
                     let i = item.borrow();
                     vec.push(i.clone());
@@ -87,12 +91,8 @@ impl Inventory {
 
     /// Sets a callback that will be invoked whenever
     /// a slot in the inventory may have changed.
-    ///
-    /// # Panics
-    /// Panics if there is more than one handle to this `Inventory`.
     pub fn set_slot_mutated_callback(&mut self, callback: impl Fn(Area, usize) + 'static) {
-        assert_eq!(Rc::strong_count(&self.backing), 1, "called Inventory::set_slot_mutated_callback when more than one Inventory handle is active");
-        self.slot_mutated_callback = Some(Rc::new(callback));
+        *self.inner.slot_mutated_callback.borrow_mut() = Some(Box::new(callback));
     }
 }
 

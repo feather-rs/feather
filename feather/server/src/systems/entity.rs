@@ -1,13 +1,21 @@
 //! Sends entity-related packets to clients.
 //! Spawn packets, position updates, equipment, animations, etc.
 
-use common::world::Dimensions;
+use common::events::EntityCreateEvent;
 use common::Game;
+use common::{entities::player::HotbarSlot, world::Dimensions};
 use libcraft::{
     entity_metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
-    EntityMetadata,
+    Area, EntityMetadata,
 };
-use quill::components::{EntityDimension, EntityWorld, PreviousGamemode, EntityPosition, PlayerGamemode};
+use quill::events::HeldItemChangeEvent;
+use quill::{
+    components::{
+        EntityDimension, EntityInventory, EntityPosition, EntityWorld, PlayerGamemode,
+        PreviousGamemode,
+    },
+    events::InventorySlotUpdateEvent,
+};
 use quill::{
     components::{OnGround, Sprinting},
     events::{SneakEvent, SprintEvent},
@@ -27,7 +35,8 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         .group::<Server>()
         .add_system(send_entity_movement)
         .add_system(send_entity_sneak_metadata)
-        .add_system(send_entity_sprint_metadata);
+        .add_system(send_entity_sprint_metadata)
+        .add_system(send_entity_equipment);
 }
 
 /// Sends entity movement packets.
@@ -135,3 +144,54 @@ fn send_entity_sprint_metadata(game: &mut Game, server: &mut Server) -> SysResul
     Ok(())
 }
 
+/// Resends entity equipment when inventory slots change.
+fn send_entity_equipment(game: &mut Game, server: &mut Server) -> SysResult {
+    let mut updated_entities = Vec::new();
+    for (_, event) in game.ecs.query::<&InventorySlotUpdateEvent>().iter() {
+        if !game.ecs.contains(event.entity) {
+            continue;
+        }
+
+        if is_equipment_area(event.area) {
+            updated_entities.push(event.entity);
+        }
+    }
+
+    for (entity, _event) in game.ecs.query::<&HeldItemChangeEvent>().iter() {
+        updated_entities.push(entity);
+    }
+
+    for (entity, _event) in game.ecs.query::<&EntityCreateEvent>().iter() {
+        updated_entities.push(entity);
+    }
+
+    for entity in updated_entities {
+        let network_id = *game.ecs.get::<NetworkId>(entity)?;
+        let inventory = game.ecs.get::<EntityInventory>(entity)?;
+        let hotbar_slot = game
+            .ecs
+            .get::<HotbarSlot>(entity)
+            .map(|r| *r)
+            .unwrap_or_else(|_| HotbarSlot::new(0));
+        server.broadcast_nearby_with_mut(
+            *game.ecs.get::<EntityWorld>(entity)?,
+            &*game.ecs.get::<EntityDimension>(entity)?,
+            game.ecs.get::<EntityPosition>(entity)?.0,
+            |client| client.send_entity_equipment(network_id, &inventory, &hotbar_slot),
+        );
+    }
+
+    Ok(())
+}
+
+fn is_equipment_area(area: Area) -> bool {
+    matches!(
+        area,
+        Area::Boots
+            | Area::Leggings
+            | Area::Chestplate
+            | Area::Helmet
+            | Area::Offhand
+            | Area::Hotbar
+    )
+}

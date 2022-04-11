@@ -129,8 +129,10 @@ pub fn generate() {
         new_inventory.extend(quote! {
             pub fn #inventory_name() -> Self {
                 Self {
-                    backing: std::rc::Rc::new(InventoryBacking::#inventory_name()),
-                    slot_mutated_callback: None,
+                    inner: std::rc::Rc::new(crate::Inner {
+                        backing: InventoryBacking::#inventory_name(),
+                        slot_mutated_callback: std::cell::RefCell::new(None),
+                    }),
                 }
             }
         });

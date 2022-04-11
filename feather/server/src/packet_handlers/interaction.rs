@@ -12,8 +12,10 @@ use protocol::packets::client::{
     PlayerDigging, PlayerDiggingStatus,
 };
 use quill::components::{EntityDimension, EntityWorld, Sneaking};
-use quill::events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent};
-use vane::{Entity, EntityRef, SysResult};
+use quill::events::{
+    BlockInteractEvent, BlockPlacementEvent, HeldItemChangeEvent, InteractEntityEvent,
+};
+use vane::{Entity, SysResult};
 
 use crate::{ClientId, NetworkId, Server};
 
@@ -250,13 +252,21 @@ pub fn handle_interact_entity(
     Ok(())
 }
 
-pub fn handle_held_item_change(player: EntityRef, packet: HeldItemChange) -> SysResult {
+pub fn handle_held_item_change(
+    game: &mut Game,
+    player_id: Entity,
+    packet: HeldItemChange,
+) -> SysResult {
     let new_id = packet.slot as usize;
-    let mut slot = player.get_mut::<HotbarSlot>()?;
+    let mut slot = game.ecs.get_mut::<HotbarSlot>(player_id)?;
 
     log::trace!("Got player slot change from {} to {}", slot.get(), new_id);
 
     slot.set(new_id)?;
+
+    drop(slot);
+    game.ecs.insert_entity_event(player_id, HeldItemChangeEvent)?;
+
     Ok(())
 }
 
@@ -271,11 +281,10 @@ mod tests {
     fn held_item_change() {
         let mut game = Game::default();
         let entity = game.ecs.spawn((HotbarSlot::new(0),));
-        let player = game.ecs.entity(entity).unwrap();
 
         let packet = HeldItemChange { slot: 8 };
 
-        handle_held_item_change(player, packet).unwrap();
+        handle_held_item_change(&mut game, entity, packet).unwrap();
 
         assert_eq!(
             *game.ecs.get::<HotbarSlot>(entity).unwrap(),
