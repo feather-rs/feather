@@ -1,11 +1,21 @@
 use std::{alloc::Layout, any::TypeId, ptr, sync::Arc};
 
+use crate::{Entities, Entity};
+
 /// A type that can be used as a component.
 ///
 /// Components must implement this trait.
-pub trait Component: Send + 'static {}
-
-impl<T> Component for T where T: Send + 'static {}
+pub trait Component:  'static {
+    /// Called when the component is inserted into the ECS.
+    ///
+    /// This method can be used to implement custom change detection
+    /// by obtaining a `Bus`.
+    ///
+    /// The default implementation does nothing.
+    fn on_inserted(&mut self, ecs: &Entities, owner: Entity) {
+        let _ = (ecs, owner);
+    }
+}
 
 /// Metadata for a component type.
 #[derive(Clone)]

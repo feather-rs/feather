@@ -358,7 +358,7 @@ fn handle_server(
             Err(e) => log::error!("Failed to decode server packet: {:?}", e),
         }
     }
-    
+
     Ok(())
 }
 

@@ -5,6 +5,7 @@ use itertools::Either;
 
 use crate::{
     bundle::ComponentBundle,
+    bus::{Bus, BusReceiver},
     component::{Component, ComponentMeta},
     entity::{Entity, EntityIds},
     entity_builder::EntityBuilder,
@@ -41,12 +42,18 @@ pub struct Entities {
     components: Components,
     entity_ids: EntityIds,
     event_tracker: EventTracker,
+    bus_receiver: BusReceiver,
 }
 
 impl Entities {
     /// Creates a new, empty ECS.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Gets a [`Bus`](crate::Bus) to execute actions on the `Entities`.
+    pub fn bus(&self) -> Bus {
+        self.bus_receiver.bus()
     }
 
     /// Gets a component for an entity.
@@ -94,6 +101,9 @@ impl Entities {
     pub fn insert<T: Component>(&mut self, entity: Entity, component: T) -> Result<(), EntityDead> {
         self.check_entity(entity)?;
         self.components.insert(entity.index(), component);
+        self.get_mut::<T>(entity)
+            .expect("component not inserted")
+            .on_inserted(self, entity);
         Ok(())
     }
 

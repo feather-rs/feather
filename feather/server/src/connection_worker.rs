@@ -1,9 +1,9 @@
 use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 
-use libcraft::Text;
 use flume::{Receiver, Sender};
 use futures_lite::FutureExt;
 use io::ErrorKind;
+use libcraft::Text;
 use protocol::{
     codec::CryptKey, packets::server::Disconnect, ClientPlayPacket, MinecraftCodec, Readable,
     ServerPlayPacket, Writeable,

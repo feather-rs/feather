@@ -1,5 +1,6 @@
 use libcraft::{BlockFace, BlockPosition, Hand, Vec3f};
 use serde::{Deserialize, Serialize};
+use vane::Component;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BlockInteractEvent {
@@ -10,6 +11,7 @@ pub struct BlockInteractEvent {
     /// If the client thinks its inside a block when the interaction is fired.
     pub inside_block: bool,
 }
+impl Component for BlockInteractEvent {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BlockPlacementEvent {
@@ -20,3 +22,4 @@ pub struct BlockPlacementEvent {
     /// If the client thinks its inside a block when the interaction is fired.
     pub inside_block: bool,
 }
+impl Component for BlockPlacementEvent {}

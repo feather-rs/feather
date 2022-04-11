@@ -129,7 +129,8 @@ pub fn generate() {
         new_inventory.extend(quote! {
             pub fn #inventory_name() -> Self {
                 Self {
-                    backing: std::sync::Arc::new(InventoryBacking::#inventory_name())
+                    backing: std::rc::Rc::new(InventoryBacking::#inventory_name()),
+                    slot_mutated_callback: None,
                 }
             }
         });

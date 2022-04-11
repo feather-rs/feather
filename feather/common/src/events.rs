@@ -1,13 +1,16 @@
 use crate::view::View;
 
-use quill::{ChunkHandle, ChunkPosition};
 use quill::components::{EntityDimension, EntityWorld};
+use quill::{ChunkHandle, ChunkPosition};
 
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
+use vane::Component;
 
 mod block_change;
 mod plugin_message;
+
+pub use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 
 /// Event triggered when a player changes their `View`,
 /// meaning they crossed into a new chunk.
@@ -27,6 +30,8 @@ pub struct ViewUpdateEvent {
     pub new_dimension: EntityDimension,
     pub old_dimension: EntityDimension,
 }
+
+impl Component for ViewUpdateEvent {}
 
 impl ViewUpdateEvent {
     pub fn new(old_view: &View, new_view: &View) -> Self {
@@ -57,6 +62,8 @@ pub struct ChunkCrossEvent {
     pub new_chunk: ChunkPosition,
 }
 
+impl Component for ChunkCrossEvent {}
+
 /// Triggered when a chunk is loaded.
 #[derive(Debug)]
 pub struct ChunkLoadEvent {
@@ -65,23 +72,18 @@ pub struct ChunkLoadEvent {
     pub dimension: String,
 }
 
+impl Component for ChunkLoadEvent {}
+
 /// Triggered when an error occurs while loading a chunk.
 #[derive(Debug)]
 pub struct ChunkLoadFailEvent {
     pub position: ChunkPosition,
 }
 
-/// Triggered when an entity is removed from the world.
-///
-/// The entity will remain alive for one tick after it is
-/// destroyed to allow systems to observe this event.
-#[derive(Debug)]
-pub struct EntityRemoveEvent;
-
-/// Triggered when an entity is added into the world.
-#[derive(Debug)]
-pub struct EntityCreateEvent;
+impl Component for ChunkLoadFailEvent {}
 
 /// Triggered when a player joins, changes dimension and respawns after death
 #[derive(Debug)]
 pub struct PlayerRespawnEvent;
+
+impl Component for PlayerRespawnEvent {}

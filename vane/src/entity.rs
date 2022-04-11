@@ -106,6 +106,8 @@ impl EntityIds {
 
 #[cfg(test)]
 mod tests {
+    use crate::Entities;
+
     use super::*;
 
     #[test]
@@ -119,7 +121,7 @@ mod tests {
 
     #[test]
     fn entities_linear_allocation() {
-        let mut entities = Entities::default();
+        let mut entities = EntityIds::default();
 
         for i in 0..100 {
             let entity = entities.allocate();

@@ -2,12 +2,12 @@
 
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use libcraft::items::InventorySlot::*;
 use libcraft::{
     anvil::entity::ItemNbt, entity_metadata::MetaEntry, BlockPosition, BlockState, EntityMetadata,
     Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use libcraft::items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
 use quill::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};

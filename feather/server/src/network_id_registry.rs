@@ -1,9 +1,13 @@
 use std::sync::atomic::{AtomicI32, Ordering};
 
+use vane::Component;
+
 /// An entity's ID used by the protocol
 /// in `entity_id` fields.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct NetworkId(pub i32);
+
+impl Component for NetworkId {}
 
 impl NetworkId {
     /// Creates a new, unique network ID.

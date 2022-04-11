@@ -22,17 +22,17 @@ pub mod entity_metadata;
 pub use entity_metadata::{EntityMetadata, MetaEntry};
 
 #[doc(inline)]
+pub use libcraft_blocks::{BlockKind, BlockState};
+#[doc(inline)]
 pub use libcraft_chunk::{
     biome::{self, BiomeId},
     Chunk, ChunkSection,
 };
 #[doc(inline)]
-pub use libcraft_blocks::{BlockState, BlockKind};
+pub use libcraft_inventory::{Area, Inventory, Window};
+#[doc(inline)]
+pub use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackMeta};
+#[doc(inline)]
+pub use libcraft_particles::{particle, Particle, ParticleKind};
 #[doc(inline)]
 pub use libcraft_text::{Text, TextComponentBuilder, Title};
-#[doc(inline)]
-pub use libcraft_items::{Item, ItemStack, ItemStackMeta, ItemStackBuilder};
-#[doc(inline)]
-pub use libcraft_inventory::{Inventory, Area, Window};
-#[doc(inline)]
-pub use libcraft_particles::{Particle, ParticleKind, particle};

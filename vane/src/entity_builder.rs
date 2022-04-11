@@ -129,33 +129,21 @@ struct Entry {
 mod tests {
     use super::*;
 
+    #[derive(Copy, Clone, Debug, PartialEq)]
+    struct Comp<T>(T);
+
+    impl<T: 'static> Component for Comp<T> {}
+
     #[test]
     fn build_entity() {
         let mut builder = EntityBuilder::new();
 
-        builder.add(10i32).add("a string".to_owned()).add(50usize);
+        builder
+            .add(Comp(10i32))
+            .add(Comp("a string".to_owned()))
+            .add(Comp(50usize));
 
-        assert_eq!(builder.get::<i32>(), Some(10));
-
-        unsafe {
-            let mut iter = builder.drain();
-            let (meta, data) = iter.next().unwrap();
-            assert_eq!(meta.type_id, TypeId::of::<i32>());
-            assert_eq!(ptr::read_unaligned::<i32>(data.cast().as_ptr()), 10i32);
-
-            let (meta, data) = iter.next().unwrap();
-            assert_eq!(meta.type_id, TypeId::of::<String>());
-            assert_eq!(
-                ptr::read_unaligned::<String>(data.cast().as_ptr()),
-                "a string"
-            );
-
-            let (meta, data) = iter.next().unwrap();
-            assert_eq!(meta.type_id, TypeId::of::<usize>());
-            assert_eq!(ptr::read_unaligned::<usize>(data.cast().as_ptr()), 50usize);
-
-            assert!(iter.next().is_none());
-        }
+        assert_eq!(builder.get::<Comp<i32>>(), Some(Comp(10)));
 
         builder.reset();
         assert_eq!(builder.drain().count(), 0);
@@ -164,7 +152,7 @@ mod tests {
     #[test]
     fn drops_components_on_drop() {
         let mut builder = EntityBuilder::new();
-        builder.add(vec![1, 2, 3]);
+        builder.add(Comp(vec![1, 2, 3]));
         drop(builder);
 
         // A memory leak is detected by Miri if this fails

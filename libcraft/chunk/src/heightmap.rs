@@ -2,7 +2,7 @@ use std::convert::TryInto;
 use std::marker::PhantomData;
 
 use libcraft_blocks::{BlockState, SimplifiedBlockKind};
-use libcraft_core::{CHUNK_WIDTH, WorldHeight};
+use libcraft_core::{WorldHeight, CHUNK_WIDTH};
 
 use super::PackedArray;
 

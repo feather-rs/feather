@@ -2,14 +2,18 @@
 #![allow(clippy::identity_op)]
 mod inventory;
 
-use parking_lot::{Mutex, MutexGuard};
-use std::{error::Error, sync::Arc};
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    error::Error,
+    fmt::Debug,
+    rc::Rc,
+};
 
 pub use inventory::{Area, InventoryBacking, Window};
 
 use libcraft_items::InventorySlot;
 
-type Slot = Mutex<InventorySlot>;
+type Slot = RefCell<InventorySlot>;
 
 /// A handle to an inventory.
 ///
@@ -18,31 +22,46 @@ type Slot = Mutex<InventorySlot>;
 /// by the `Area` enum; examples include `Storage`, `Hotbar`, `Helmet`, `Offhand`,
 /// and `CraftingInput`.
 ///
-/// Note that an `Inventory` is a _handle_; it's backed by an `Arc`. As such, cloning
+/// Note that an `Inventory` is a _handle_; it's backed by an `Rc`. As such, cloning
 /// it is cheap and creates a new handle to the same inventory. Interior mutability
 /// is used to make this safe.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Inventory {
-    backing: Arc<InventoryBacking<Slot>>,
+    backing: Rc<InventoryBacking<Slot>>,
+    slot_mutated_callback: Option<Rc<dyn Fn(Area, usize)>>,
+}
+
+impl Debug for Inventory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Inventory")
+            .field("backing", &self.backing)
+            .finish()
+    }
 }
 
 impl Inventory {
     /// Returns whether two `Inventory` handles point to the same
     /// backing inventory.
     pub fn ptr_eq(&self, other: &Self) -> bool {
-        Arc::ptr_eq(&self.backing, &other.backing)
+        Rc::ptr_eq(&self.backing, &other.backing)
     }
 
     /// Gets the item at the given index within an area in this inventory.
-    ///
-    /// The returned value is a `MutexGuard` and can be mutated.
-    ///
-    /// # Note
-    /// _Never_ keep two returned `MutexGuard`s for the same inventory alive
-    /// at once. Deadlocks are not fun.
-    pub fn item(&self, area: Area, slot: usize) -> Option<MutexGuard<InventorySlot>> {
+    pub fn item(&self, area: Area, slot: usize) -> Option<Ref<InventorySlot>> {
+        self.item_cell(area, slot).map(RefCell::borrow)
+    }
+
+    /// Mutably gets the item at the given index within an area in this inventory.
+    pub fn item_mut(&self, area: Area, slot: usize) -> Option<RefMut<InventorySlot>> {
+        if let Some(callback) = &self.slot_mutated_callback {
+            (&**callback)(area, slot);
+        }
+        self.item_cell(area, slot).map(RefCell::borrow_mut)
+    }
+
+    fn item_cell(&self, area: Area, slot: usize) -> Option<&RefCell<InventorySlot>> {
         let slice = self.backing.area_slice(area)?;
-        slice.get(slot).map(Mutex::lock)
+        slice.get(slot)
     }
 
     pub fn to_vec(&self) -> Vec<InventorySlot> {
@@ -50,7 +69,7 @@ impl Inventory {
         for area in self.backing.areas() {
             if let Some(items) = self.backing.area_slice(*area) {
                 for item in items {
-                    let i = item.lock();
+                    let i = item.borrow();
                     vec.push(i.clone());
                 }
             }
@@ -64,6 +83,16 @@ impl Inventory {
     /// in its intent.
     pub fn new_handle(&self) -> Inventory {
         self.clone()
+    }
+
+    /// Sets a callback that will be invoked whenever
+    /// a slot in the inventory may have changed.
+    ///
+    /// # Panics
+    /// Panics if there is more than one handle to this `Inventory`.
+    pub fn set_slot_mutated_callback(&mut self, callback: impl Fn(Area, usize) + 'static) {
+        assert_eq!(Rc::strong_count(&self.backing), 1, "called Inventory::set_slot_mutated_callback when more than one Inventory handle is active");
+        self.slot_mutated_callback = Some(Rc::new(callback));
     }
 }
 
@@ -87,7 +116,7 @@ impl Error for WindowError {}
 impl Window {
     /// Gets the item at the provided protocol index.
     /// Returns an error if index is invalid.
-    pub fn item(&self, index: usize) -> Result<MutexGuard<InventorySlot>, WindowError> {
+    pub fn item(&self, index: usize) -> Result<Ref<InventorySlot>, WindowError> {
         let (inventory, area, slot) = self
             .index_to_slot(index)
             .ok_or(WindowError::OutOfBounds(index))?;
@@ -96,10 +125,21 @@ impl Window {
             .ok_or(WindowError::OutOfBounds(index))
     }
 
+    /// Mutably gets the item at the provided protocol index.
+    /// Returns an error if the index is invalid.
+    pub fn item_mut(&self, index: usize) -> Result<RefMut<InventorySlot>, WindowError> {
+        let (inventory, area, slot) = self
+            .index_to_slot(index)
+            .ok_or(WindowError::OutOfBounds(index))?;
+        inventory
+            .item_mut(area, slot)
+            .ok_or(WindowError::OutOfBounds(index))
+    }
+
     /// Sets the item at the provided protocol index.
     /// Returns an error if the index is invalid.
     pub fn set_item(&self, index: usize, item: InventorySlot) -> Result<(), WindowError> {
-        *self.item(index)? = item;
+        *self.item_mut(index)? = item;
         Ok(())
     }
 

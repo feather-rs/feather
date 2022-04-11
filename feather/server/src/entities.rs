@@ -1,13 +1,14 @@
 use libcraft::{EntityKind, Position};
-use quill::components::OnGround;
-use uuid::Uuid;
-use vane::{EntityBuilder, EntityRef, SysResult};
+use quill::components::{OnGround, EntityPosition, EntityUuid, EntityKindComponent};
+use vane::{EntityBuilder, EntityRef, SysResult, Component};
 
 use crate::{Client, NetworkId};
 
 /// Component that sends the spawn packet for an entity
 /// using its components.
 pub struct SpawnPacketSender(fn(&EntityRef, &mut Client) -> SysResult);
+
+impl Component for SpawnPacketSender {}
 
 impl SpawnPacketSender {
     pub fn send(&self, entity: &EntityRef, client: &mut Client) -> SysResult {
@@ -20,11 +21,16 @@ impl SpawnPacketSender {
 /// when to send movement updates.
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousPosition(pub Position);
+
+impl Component for PreviousPosition {}
+
 /// Stores the [`OnGround`] status of an entity on
 /// the previous tick. Used to determine
 /// what movement packet to send.
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousOnGround(pub OnGround);
+
+impl Component for PreviousOnGround {}
 
 pub fn add_entity_components(builder: &mut EntityBuilder, kind: EntityKind) {
     if !builder.has::<NetworkId>() {
@@ -34,11 +40,11 @@ pub fn add_entity_components(builder: &mut EntityBuilder, kind: EntityKind) {
     // can't panic because this is only called after both position and onground is added to all entities.
     // Position is added in the caller of this function and on_ground is added in the
     // build default function. All entity builder functions call the build default function.
-    let prev_position = builder.get::<Position>().unwrap();
+    let prev_position = builder.get::<EntityPosition>().unwrap();
     let on_ground = builder.get::<OnGround>().unwrap();
 
     builder
-        .add(PreviousPosition(prev_position))
+        .add(PreviousPosition(prev_position.0))
         .add(PreviousOnGround(on_ground));
     add_spawn_packet(builder, kind);
 }
@@ -55,19 +61,19 @@ fn add_spawn_packet(builder: &mut EntityBuilder, kind: EntityKind) {
 
 fn spawn_player(entity: &EntityRef, client: &mut Client) -> SysResult {
     let network_id = *entity.get::<NetworkId>()?;
-    let uuid = *entity.get::<Uuid>()?;
-    let pos = *entity.get::<Position>()?;
+    let uuid = entity.get::<EntityUuid>()?.0;
+    let pos = entity.get::<EntityPosition>()?;
 
-    client.send_player(network_id, uuid, pos);
+    client.send_player(network_id, uuid, pos.0);
     Ok(())
 }
 
 fn spawn_living_entity(entity: &EntityRef, client: &mut Client) -> SysResult {
     let network_id = *entity.get::<NetworkId>()?;
-    let uuid = *entity.get::<Uuid>()?;
-    let pos = *entity.get::<Position>()?;
-    let kind = *entity.get::<EntityKind>()?;
+    let uuid = entity.get::<EntityUuid>()?.0;
+    let pos = entity.get::<EntityPosition>()?;
+    let kind = *entity.get::<EntityKindComponent>()?;
 
-    client.send_living_entity(network_id, uuid, pos, kind);
+    client.send_living_entity(network_id, uuid, pos.0, kind.0);
     Ok(())
 }

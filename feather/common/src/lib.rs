@@ -15,7 +15,7 @@ pub use tick_loop::TickLoop;
 pub mod view;
 
 pub mod window;
-pub use window::Window;
+pub use window::PlayerWindow;
 
 pub mod events;
 

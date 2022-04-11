@@ -1060,7 +1060,6 @@ name = "libcraft-inventory"
 version = "0.1.0"
 dependencies = [
  "libcraft-items",
- "parking_lot",
 ]
 
 [[package]]
@@ -2172,6 +2171,7 @@ dependencies = [
  "ahash 0.7.6",
  "anyhow",
  "arrayvec 0.7.2",
+ "flume",
  "itertools",
  "log",
  "once_cell",

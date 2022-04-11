@@ -1,11 +1,11 @@
 // This file is @generated. Please do not edit.
 use libcraft::EntityKind;
-use quill::components::OnGround;
+use quill::components::{EntityUuid, OnGround};
 use uuid::Uuid;
 use vane::EntityBuilder;
 #[doc = "Adds default components shared between all entities."]
 fn build_default(builder: &mut EntityBuilder) {
-    builder.add(Uuid::new_v4()).add(OnGround(true));
+    builder.add(EntityUuid(Uuid::new_v4())).add(OnGround(true));
 }
 pub mod area_effect_cloud;
 pub mod armor_stand;

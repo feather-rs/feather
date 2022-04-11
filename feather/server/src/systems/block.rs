@@ -13,9 +13,9 @@
 //! like WorldEdit. This module chooses the optimal packet from
 //! the above three options to achieve ideal performance.
 
-use libcraft::{chunk::SECTION_VOLUME, position, CHUNK_WIDTH};
 use common::world::Dimensions;
 use common::{events::BlockChangeEvent, Game};
+use libcraft::{chunk::SECTION_VOLUME, position, CHUNK_WIDTH};
 use vane::{SysResult, SystemExecutor};
 
 use crate::Server;

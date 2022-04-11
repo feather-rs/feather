@@ -3,6 +3,7 @@
 
 mod borrow;
 mod bundle;
+mod bus;
 mod component;
 mod entity;
 mod entity_builder;
@@ -16,6 +17,7 @@ mod system;
 mod world;
 
 pub use borrow::{BorrowError, BorrowFlag, Ref, RefMut};
+pub use bus::Bus;
 pub use component::Component;
 pub use entity::Entity;
 pub use entity_builder::EntityBuilder;

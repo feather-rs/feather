@@ -1,9 +1,9 @@
+use common::Game;
 use libcraft::anvil::player::PlayerAbilities;
 use libcraft::Gamemode;
-use common::Game;
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
-    PreviousGamemode, WalkSpeed,
+    PreviousGamemode, WalkSpeed, PlayerGamemode,
 };
 use quill::events::{
     BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,
@@ -50,17 +50,17 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
             &mut Instabreak,
             &mut CanBuild,
             &mut Invulnerable,
-            &mut Gamemode,
+            &mut PlayerGamemode,
             &mut PreviousGamemode,
         )>()
         .iter()
     {
-        if **event == *gamemode {
+        if **event == **gamemode {
             continue;
         }
-        *prev_gamemode = PreviousGamemode(Some(*gamemode));
-        *gamemode = **event;
-        match *gamemode {
+        *prev_gamemode = PreviousGamemode(Some(**gamemode));
+        **gamemode = **event;
+        match **gamemode {
             Gamemode::Creative => {
                 if !**instabreak {
                     instabreak_changes.push((entity, true));

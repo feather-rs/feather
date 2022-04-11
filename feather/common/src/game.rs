@@ -2,6 +2,7 @@ use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
 use libcraft::EntityKind;
 use libcraft::{Position, Text, Title};
+use quill::components::EntityPosition;
 use quill::entities::Player;
 use quill::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
 use tokio::runtime::{self, Runtime};
@@ -117,7 +118,7 @@ impl Game {
     /// for an entity of type `init`.
     pub fn create_entity_builder(&mut self, position: Position, kind: EntityKind) -> EntityBuilder {
         let mut builder = mem::take(&mut self.entity_builder);
-        builder.add(position);
+        builder.add(EntityPosition(position));
         self.invoke_entity_spawn_callbacks(&mut builder, kind);
         builder
     }

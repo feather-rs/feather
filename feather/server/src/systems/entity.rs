@@ -3,12 +3,11 @@
 
 use common::world::Dimensions;
 use common::Game;
-use libcraft::Gamemode;
 use libcraft::{
     entity_metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
-    EntityMetadata, Position,
+    EntityMetadata,
 };
-use quill::components::{EntityDimension, EntityWorld, PreviousGamemode};
+use quill::components::{EntityDimension, EntityWorld, PreviousGamemode, EntityPosition, PlayerGamemode};
 use quill::{
     components::{OnGround, Sprinting},
     events::{SneakEvent, SprintEvent},
@@ -39,7 +38,7 @@ fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
     ) in game
         .ecs
         .query::<(
-            &Position,
+            &EntityPosition,
             &mut PreviousPosition,
             &OnGround,
             &NetworkId,
@@ -49,24 +48,24 @@ fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
         )>()
         .iter()
     {
-        if *position != prev_position.0 {
+        if position.0 != prev_position.0 {
             let mut query = game.ecs.query::<&Dimensions>();
             let dimensions = query.iter().find(|(e, _)| *e == world.0).unwrap().1;
-            server.broadcast_nearby_with_mut(*world, &dimension, *position, |client| {
+            server.broadcast_nearby_with_mut(*world, &dimension, position.0, |client| {
                 client.update_entity_position(
                     *network_id,
-                    *position,
+                    position.0,
                     *prev_position,
                     *on_ground,
                     *prev_on_ground,
                     &dimension,
                     *world,
                     &dimensions,
-                    game.ecs.get::<Gamemode>(entity).ok().map(|g| *g),
+                    game.ecs.get::<PlayerGamemode>(entity).ok().map(|g| g.0),
                     game.ecs.get::<PreviousGamemode>(entity).ok().map(|g| *g),
                 );
             });
-            prev_position.0 = *position;
+            prev_position.0 = position.0;
         }
         if *on_ground != prev_on_ground.0 {
             prev_on_ground.0 = *on_ground;
@@ -80,7 +79,7 @@ fn send_entity_sneak_metadata(game: &mut Game, server: &mut Server) -> SysResult
     for (_, (position, sneak_event, is_sprinting, network_id, world, dimension)) in game
         .ecs
         .query::<(
-            &Position,
+            &EntityPosition,
             &SneakEvent,
             &Sprinting,
             &NetworkId,
@@ -103,7 +102,7 @@ fn send_entity_sneak_metadata(game: &mut Game, server: &mut Server) -> SysResult
             metadata.set(META_INDEX_POSE, Pose::Standing);
         }
 
-        server.broadcast_nearby_with(*world, &dimension, *position, |client| {
+        server.broadcast_nearby_with(*world, &dimension, position.0, |client| {
             client.send_entity_metadata(*network_id, metadata.clone());
         });
     }
@@ -115,7 +114,7 @@ fn send_entity_sprint_metadata(game: &mut Game, server: &mut Server) -> SysResul
     for (_, (position, sprint_event, network_id, world, dimension)) in game
         .ecs
         .query::<(
-            &Position,
+            &EntityPosition,
             &SprintEvent,
             &NetworkId,
             &EntityWorld,
@@ -129,14 +128,10 @@ fn send_entity_sprint_metadata(game: &mut Game, server: &mut Server) -> SysResul
         bit_mask.set(EntityBitMask::SPRINTING, sprint_event.is_sprinting);
         metadata.set(META_INDEX_ENTITY_BITMASK, bit_mask.bits());
 
-        server.broadcast_nearby_with(*world, &dimension, *position, |client| {
+        server.broadcast_nearby_with(*world, &dimension, position.0, |client| {
             client.send_entity_metadata(*network_id, metadata.clone());
         });
     }
     Ok(())
 }
 
-/// Sends `EntityEquipment` to update an entity's equipment.
-fn update_entity_equipment(game:&mut Game, server: &mut Server) -> SysResult {
-    
-}

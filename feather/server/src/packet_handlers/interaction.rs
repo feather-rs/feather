@@ -2,9 +2,9 @@ use anyhow::Context;
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::world::Dimensions;
-use common::{Game, Window};
+use common::{Game, PlayerWindow};
 use libcraft::anvil::inventory_consts::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use libcraft::{BlockFace as LibcraftBlockFace, Hand, BlockPosition};
+use libcraft::{BlockFace as LibcraftBlockFace, BlockPosition, Hand};
 use libcraft::{BlockKind, BlockState};
 use libcraft::{InteractionType, Vec3f};
 use protocol::packets::client::{
@@ -150,7 +150,7 @@ pub fn handle_player_digging(
             Ok(())
         }
         PlayerDiggingStatus::SwapItemInHand => {
-            let window = game.ecs.get::<Window>(player)?;
+            let window = game.ecs.get::<PlayerWindow>(player)?;
 
             let hotbar_slot = game.ecs.get::<HotbarSlot>(player)?.get();
 
@@ -158,8 +158,8 @@ pub fn handle_player_digging(
             let offhand_index = SLOT_OFFHAND;
 
             {
-                let mut hotbar_item = window.item(hotbar_index)?;
-                let mut offhand_item = window.item(offhand_index)?;
+                let mut hotbar_item = window.item_mut(hotbar_index)?;
+                let mut offhand_item = window.item_mut(offhand_index)?;
 
                 std::mem::swap(&mut *hotbar_item, &mut *offhand_item);
             }

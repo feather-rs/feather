@@ -1,10 +1,10 @@
 use ahash::AHashSet;
-use libcraft::{ChunkPosition, Position};
 use itertools::Either;
-use quill::components::Name;
+use libcraft::{ChunkPosition};
+use quill::components::{Name, EntityPosition};
 use quill::components::{EntityDimension, EntityWorld};
 use quill::events::PlayerJoinEvent;
-use vane::{SysResult, SystemExecutor};
+use vane::{SysResult, SystemExecutor, Component};
 
 use crate::{events::ViewUpdateEvent, Game};
 
@@ -20,7 +20,7 @@ fn update_player_views(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
     for (player, (mut view, position, name, world, dimension)) in game
         .ecs
-        .query::<(&mut View, &Position, &Name, &EntityWorld, &EntityDimension)>()
+        .query::<(&mut View, &EntityPosition, &Name, &EntityWorld, &EntityDimension)>()
         .iter()
     {
         if position.chunk() != view.center() {
@@ -79,6 +79,8 @@ pub struct View {
     world: EntityWorld,
     dimension: EntityDimension,
 }
+
+impl Component for View {}
 
 impl View {
     /// Creates a `View` from a center chunk (the position of the player)

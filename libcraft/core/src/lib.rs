@@ -23,7 +23,10 @@ pub use positions::{
 };
 
 use num_derive::{FromPrimitive, ToPrimitive};
-use serde::{Deserialize, Serialize, Deserializer, de::{Visitor, Error}};
+use serde::{
+    de::{Error, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, FromPrimitive, ToPrimitive)]
 pub enum Direction {

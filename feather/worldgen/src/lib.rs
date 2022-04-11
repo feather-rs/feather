@@ -9,8 +9,8 @@ use libcraft::biome::BiomeList;
 pub use superflat::SuperflatWorldGenerator;
 
 use libcraft::chunk::Chunk;
-use libcraft::{Sections, WorldHeight};
 use libcraft::ChunkPosition;
+use libcraft::{Sections, WorldHeight};
 mod superflat;
 
 pub trait WorldGenerator: Send + Sync {

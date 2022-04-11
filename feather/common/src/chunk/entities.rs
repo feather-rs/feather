@@ -1,6 +1,6 @@
 use ahash::AHashMap;
-use libcraft::{ChunkPosition, Position};
-use quill::events::{EntityCreateEvent, EntityRemoveEvent};
+use libcraft::{ChunkPosition};
+use quill::{events::{EntityCreateEvent, EntityRemoveEvent}, components::{EntityChunk, EntityPosition}};
 use utils::vec_remove_item;
 use vane::{Entity, SysResult, SystemExecutor};
 
@@ -51,21 +51,21 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
     // Entities that have crossed chunks
     let mut events = Vec::new();
     for (entity, (mut old_chunk, position)) in
-        game.ecs.query::<(&mut ChunkPosition, &Position)>().iter()
+        game.ecs.query::<(&mut EntityChunk, &EntityPosition)>().iter()
     {
         let new_chunk = position.chunk();
-        if position.chunk() != *old_chunk {
+        if position.chunk() != **old_chunk {
             game.chunk_entities
-                .update(entity, Some(*old_chunk), new_chunk);
+                .update(entity, Some(**old_chunk), new_chunk);
             events.push((
                 entity,
                 ChunkCrossEvent {
-                    old_chunk: *old_chunk,
+                    old_chunk: **old_chunk,
                     new_chunk,
                 },
             ));
 
-            *old_chunk = new_chunk;
+            old_chunk.0 = new_chunk;
         }
     }
     for (entity, event) in events {
@@ -74,23 +74,23 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
 
     // Entities that have been created
     let mut insertions = Vec::new();
-    for (entity, (_event, position)) in game.ecs.query::<(&EntityCreateEvent, &Position)>().iter() {
+    for (entity, (_event, position)) in game.ecs.query::<(&EntityCreateEvent, &EntityPosition)>().iter() {
         let chunk = position.chunk();
         game.chunk_entities.update(entity, None, chunk);
         insertions.push((entity, chunk));
     }
     // Add ChunkPosition component to new entities
     for (entity, chunk) in insertions {
-        game.ecs.insert(entity, chunk)?;
+        game.ecs.insert(entity, EntityChunk(chunk))?;
     }
 
     // Entities that have been destroyed
     for (entity, (_event, chunk)) in game
         .ecs
-        .query::<(&EntityRemoveEvent, &ChunkPosition)>()
+        .query::<(&EntityRemoveEvent, &EntityChunk)>()
         .iter()
     {
-        game.chunk_entities.remove_entity(entity, *chunk);
+        game.chunk_entities.remove_entity(entity, **chunk);
     }
 
     Ok(())

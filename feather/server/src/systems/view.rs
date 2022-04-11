@@ -5,13 +5,13 @@
 
 use ahash::AHashMap;
 use anyhow::Context;
-use libcraft::{ChunkPosition, Position};
 use common::world::Dimensions;
 use common::{
     events::{ChunkLoadEvent, ViewUpdateEvent},
     Game,
 };
-use quill::components::{EntityDimension, EntityWorld};
+use libcraft::{ChunkPosition, Position};
+use quill::components::{EntityDimension, EntityWorld, EntityPosition};
 use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
@@ -40,7 +40,7 @@ impl WaitingChunks {
 fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
     for (player, (client_id, event, position)) in game
         .ecs
-        .query::<(&ClientId, &ViewUpdateEvent, &Position)>()
+        .query::<(&ClientId, &ViewUpdateEvent, &EntityPosition)>()
         .iter()
     {
         // As ecs removes the client one tick after it gets removed here, it can
@@ -53,7 +53,7 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
                 player,
                 client,
                 &event,
-                *position,
+                position.0,
                 &mut server.waiting_chunks,
             )?;
         }
@@ -106,7 +106,7 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
             if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
                 if let Some(client) = server.clients.get_mut(*client_id) {
                     client.send_chunk(&event.chunk);
-                    spawn_client_if_needed(client, *game.ecs.get::<Position>(player)?);
+                    spawn_client_if_needed(client, game.ecs.get::<EntityPosition>(player)?.0);
                 }
             }
         }

@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use vane::Component;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::{collections::VecDeque, sync::Arc};
@@ -9,18 +10,17 @@ use flume::{Receiver, Sender};
 use slab::Slab;
 use uuid::Uuid;
 
-use libcraft::biome::BiomeList;
-use libcraft::{
-    BlockState, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle,
-    Position, ProfileProperty, Text, Title, ValidBlockPosition,
-};
-use quill::ChunkHandle;
 use common::world::Dimensions;
 use common::{
     chat::{ChatKind, ChatMessage},
-    Window,
+    PlayerWindow,
 };
+use libcraft::biome::BiomeList;
 use libcraft::items::InventorySlot;
+use libcraft::{
+    BlockState, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Particle, Position,
+    ProfileProperty, Text, Title, ValidBlockPosition,
+};
 use packets::server::{SetSlot, SpawnLivingEntity};
 use protocol::packets::server::{
     ChangeGameState, ClearTitles, DimensionCodec, DimensionCodecEntry, DimensionCodecRegistry,
@@ -40,6 +40,7 @@ use protocol::{
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
 use quill::components::{EntityDimension, EntityWorld, OnGround, PreviousGamemode};
+use quill::ChunkHandle;
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
@@ -54,6 +55,7 @@ const MAX_CHUNKS_PER_TICK: usize = 10;
 /// ID of a client. Can be reused.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ClientId(usize);
+impl Component for ClientId {}
 
 /// Stores all `Client`s.
 #[derive(Default)]
@@ -639,7 +641,7 @@ impl Client {
         self.send_packet(ClearTitles { reset: false });
     }
 
-    pub fn send_window_items(&self, window: &Window) {
+    pub fn send_window_items(&self, window: &PlayerWindow) {
         log::trace!("Updating inventory for {}", self.username);
         let packet = WindowItems {
             window_id: 0,

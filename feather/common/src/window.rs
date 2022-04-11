@@ -1,3 +1,4 @@
+use std::cell::{Ref, RefMut};
 use std::mem;
 
 use anyhow::{anyhow, bail};
@@ -7,8 +8,7 @@ use libcraft::{Area, Item};
 pub use libcraft::inventory::Window as BackingWindow;
 use libcraft::inventory::WindowError;
 use libcraft::items::InventorySlot::{self, Empty};
-use parking_lot::MutexGuard;
-use vane::SysResult;
+use vane::{SysResult, Component};
 
 /// A player's window. Wraps one or more inventories and handles
 /// conversion between protocol and slot indices.
@@ -16,7 +16,7 @@ use vane::SysResult;
 /// Also provides high-level methods to interact with the inventory,
 /// like [`Window::right_click`], [`Window::shift_click`], etc.
 #[derive(Debug)]
-pub struct Window {
+pub struct PlayerWindow {
     /// The backing window (contains the `Inventory`s)
     inner: BackingWindow,
     /// The item currently held by the player's cursor.
@@ -25,7 +25,9 @@ pub struct Window {
     paint_state: Option<PaintState>,
 }
 
-impl Window {
+impl Component for PlayerWindow {}
+
+impl PlayerWindow {
     /// Creates a window from the backing window representation.
     pub fn new(inner: BackingWindow) -> Self {
         Self {
@@ -37,7 +39,7 @@ impl Window {
 
     /// Left-click a slot in the window.
     pub fn left_click(&mut self, slot: usize) -> SysResult {
-        let slot = &mut *self.inner.item(slot)?;
+        let slot = &mut *self.inner.item_mut(slot)?;
         let cursor_slot = &mut self.cursor_item;
 
         // Cases:
@@ -56,7 +58,7 @@ impl Window {
 
     /// Right-clicks a slot in the window.
     pub fn right_click(&mut self, slot_index: usize) -> SysResult {
-        let slot = &mut *self.inner.item(slot_index)?;
+        let slot = &mut *self.inner.item_mut(slot_index)?;
         let cursor_slot = &mut self.cursor_item;
 
         // Cases:
@@ -88,7 +90,7 @@ impl Window {
     pub fn shift_click(&mut self, slot: usize) -> SysResult {
         // If we are shift clicking on a empty slot, then nothing happens.
         {
-            let slot_inventory = &mut *self.inner.item(slot)?;
+            let slot_inventory = &mut *self.inner.item_mut(slot)?;
             if slot_inventory.is_empty() {
                 // Shift clicking on a empty inventory slot does nothing.
                 return Ok(());
@@ -196,7 +198,7 @@ impl Window {
     }
 
     fn shift_click_in_player_window(&mut self, slot: usize) -> SysResult {
-        let slot_item = &mut *self.inner.item(slot)?;
+        let slot_item = &mut *self.inner.item_mut(slot)?;
 
         let (inventory, slot_area, _) = self.inner.index_to_slot(slot).unwrap();
         let areas_to_try = [
@@ -216,7 +218,7 @@ impl Window {
 
             // Find slot with same type first
             let mut i = 0;
-            while let Some(mut stack) = inventory.item(area, i) {
+            while let Some(mut stack) = inventory.item_mut(area, i) {
                 if slot_item.is_mergable(&stack) && stack.is_filled() {
                     stack.merge(slot_item);
                 }
@@ -236,7 +238,7 @@ impl Window {
 
                 // If we still haven't moved all the items, transfer to any empty space
                 let mut i = 0;
-                while let Some(mut stack) = inventory.item(area, i) {
+                while let Some(mut stack) = inventory.item_mut(area, i) {
                     if stack.is_empty() {
                         stack.merge(slot_item);
                     }
@@ -354,8 +356,12 @@ impl Window {
         self.cursor_item = item;
     }
 
-    pub fn item(&self, index: usize) -> Result<MutexGuard<InventorySlot>, WindowError> {
+    pub fn item(&self, index: usize) -> Result<Ref<InventorySlot>, WindowError> {
         self.inner.item(index)
+    }
+
+    pub fn item_mut(&self, index: usize) -> Result<RefMut<InventorySlot>, WindowError> {
+        self.inner.item_mut(index)
     }
 
     /// Sets an [`InventorySlot`] at the index.
@@ -492,7 +498,7 @@ impl PaintState {
         Ok(())
     }
 
-    pub fn finish(self, window: &mut Window) -> SysResult {
+    pub fn finish(self, window: &mut PlayerWindow) -> SysResult {
         match self.mouse {
             Mouse::Left => self.handle_left_drag(window),
             Mouse::Right => self.handle_right_drag(window),
@@ -504,7 +510,7 @@ impl PaintState {
         Splits cursor items evenly into every selected slot.
         Remainder of even split ends up in `window.cursor_item`.
     */
-    fn handle_left_drag(&self, window: &mut Window) {
+    fn handle_left_drag(&self, window: &mut PlayerWindow) {
         // If the cursor has no item then there are no items to share.
         if window.cursor_item().is_empty() {
             return;
@@ -534,9 +540,9 @@ impl PaintState {
     }
 
     /// Tries to move items_per_slot items from cursor to the slots that can contain the item
-    fn move_items_into_slots(&self, window: &mut Window, items_per_slot: u32) {
+    fn move_items_into_slots(&self, window: &mut PlayerWindow, items_per_slot: u32) {
         for s in &self.slots {
-            let slot = &mut *window.inner.item(*s).unwrap();
+            let slot = &mut *window.inner.item_mut(*s).unwrap();
             if !slot.is_mergable(window.cursor_item()) {
                 continue;
             }
@@ -548,7 +554,7 @@ impl PaintState {
         }
     }
 
-    fn handle_right_drag(&self, window: &mut Window) {
+    fn handle_right_drag(&self, window: &mut PlayerWindow) {
         self.move_items_into_slots(window, 1)
     }
 }
@@ -671,7 +677,7 @@ mod tests {
         }
         *inventory.item(Area::Storage, 0).unwrap() =
             InventorySlot::Filled(ItemStack::new(Item::AcaciaSign, 1).unwrap());
-        let mut window = Window::new(BackingWindow::Player {
+        let mut window = PlayerWindow::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
         let index = window
@@ -694,7 +700,7 @@ mod tests {
         *inventory.item(Area::Storage, 3).unwrap() =
             InventorySlot::Filled(ItemStack::new(Item::Stone, 7).unwrap());
 
-        let mut window = Window::new(BackingWindow::Player {
+        let mut window = PlayerWindow::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
 
@@ -724,7 +730,7 @@ mod tests {
         let inventory = Inventory::player();
         *inventory.item(Area::Storage, 3).unwrap() =
             InventorySlot::Filled(ItemStack::new(Item::Stone, 7).unwrap());
-        let mut window = Window::new(BackingWindow::Player {
+        let mut window = PlayerWindow::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
 
@@ -806,8 +812,8 @@ mod tests {
         assert_eq!(window.cursor_item, InventorySlot::Empty);
     }
 
-    fn window() -> Window {
-        Window::new(BackingWindow::Player {
+    fn window() -> PlayerWindow {
+        PlayerWindow::new(BackingWindow::Player {
             player: Inventory::player(),
         })
     }

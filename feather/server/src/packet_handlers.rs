@@ -1,9 +1,9 @@
-use libcraft::{Position, Text};
 use common::{chat::ChatKind, Game};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
 };
+use libcraft::{ Text};
 use protocol::{
     packets::{
         client,
@@ -11,7 +11,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill::components::{EntityDimension, EntityWorld, Name};
+use quill::components::{EntityDimension, EntityWorld, Name, EntityPosition};
 use vane::{Entity, EntityRef, SysResult};
 
 use crate::{NetworkId, Server};
@@ -128,7 +128,7 @@ fn handle_animation(
     server.broadcast_nearby_with(
         *player.get::<EntityWorld>()?,
         &*player.get::<EntityDimension>()?,
-        *player.get::<Position>()?,
+        player.get::<EntityPosition>()?.0,
         |client| client.send_entity_animation(network_id, animation.clone()),
     );
     Ok(())

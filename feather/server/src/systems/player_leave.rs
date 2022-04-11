@@ -8,7 +8,7 @@ use libcraft::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
 use libcraft::{Gamemode, Inventory, Position, Text};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
-    Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
+    Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed, EntityPosition, PlayerGamemode, EntityInventory,
 };
 use vane::{SysResult, SystemExecutor};
 
@@ -46,8 +46,8 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
         .query::<(
             &ClientId,
             &Name,
-            &Position,
-            &Gamemode,
+            &EntityPosition,
+            &PlayerGamemode,
             &PreviousGamemode,
             &Health,
             &WalkSpeed,
@@ -58,7 +58,7 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
             &Instabreak,
             &Invulnerable,
             &HotbarSlot,
-            &Inventory,
+            &EntityInventory,
         )>()
         .iter()
     {
@@ -77,8 +77,8 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
                 .save_player_data(
                     client.uuid(),
                     &create_player_data(
-                        *position,
-                        *gamemode,
+                        position.0,
+                        **gamemode,
                         *previous_gamemode,
                         *health,
                         PlayerAbilities {
@@ -91,7 +91,7 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
                             invulnerable: invulnerable.0,
                         },
                         *hotbar_slot,
-                        &inventory,
+                        &inventory.0,
                         &dimension,
                     ),
                 )

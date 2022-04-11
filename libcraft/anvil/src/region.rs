@@ -14,7 +14,6 @@ use std::{fs, io, iter};
 
 use bitvec::vec::BitVec;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use serde::{Deserialize, Serialize};
 use libcraft_blocks::{BlockKind, BlockState};
 use libcraft_chunk::biome::{BiomeId, BiomeList};
 use libcraft_chunk::paletted_container::{Paletteable, PalettedContainer};
@@ -23,6 +22,7 @@ use libcraft_chunk::{
     BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
 };
 use libcraft_core::{ChunkPosition, WorldHeight, ANVIL_VERSION};
+use serde::{Deserialize, Serialize};
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
 

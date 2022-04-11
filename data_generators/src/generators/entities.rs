@@ -120,14 +120,18 @@ pub fn generate() {
 
     output("libcraft/core/src/entity.rs", out.to_string().as_str());
 
-    let mut markers = quote! {};
+    let mut markers = quote! {
+        use vane::Component;
+    };
     for entity in entities.iter() {
         let name = format_ident!("{}", entity.name.to_case(Case::UpperCamel));
         let doc = format!("A marker component for {} entities.", entity.name);
         markers.extend(quote! {
-        #[derive(Debug, Copy, Clone)]
-        #[doc = #doc]
-        pub struct #name;        });
+            #[derive(Debug, Copy, Clone)]
+            #[doc = #doc]
+            pub struct #name;
+            impl Component for #name {}
+        });
     }
     output("quill/src/entities.rs", markers.to_string().as_str());
 
@@ -139,13 +143,14 @@ pub fn generate() {
             output(
                 path,
                 quote! {
-                    use libcraft::EntityKind;
                     use vane::EntityBuilder;
                     use quill::entities::#name;
+                    use quill::components::EntityKindComponent;
+                    use libcraft::EntityKind;
 
                     pub fn build_default(builder: &mut EntityBuilder) {
                         super::build_default(builder);
-                        builder.add(#name).add(EntityKind::#name);
+                        builder.add(#name).add(EntityKindComponent(EntityKind::#name));
                     }
                 }
                 .to_string()
@@ -166,13 +171,13 @@ pub fn generate() {
         quote! {
             use libcraft::EntityKind;
             use vane::EntityBuilder;
-            use quill::components::OnGround;
+            use quill::components::{OnGround, EntityUuid};
             use uuid::Uuid;
 
             #[doc = "Adds default components shared between all entities."]
             fn build_default(builder: &mut EntityBuilder) {
                 builder
-                    .add(Uuid::new_v4())
+                    .add(EntityUuid(Uuid::new_v4()))
                     .add(OnGround(true));
             }
 

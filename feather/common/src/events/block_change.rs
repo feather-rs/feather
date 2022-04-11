@@ -1,11 +1,12 @@
 use std::{convert::TryInto, iter};
 
+use itertools::Either;
 use libcraft::{
     chunk::{SECTION_HEIGHT, SECTION_VOLUME},
     BlockPosition, ChunkPosition, ValidBlockPosition,
 };
-use itertools::Either;
 use quill::components::{EntityDimension, EntityWorld};
+use vane::Component;
 
 /// Event triggered when one or more blocks are changed.
 ///
@@ -17,6 +18,8 @@ pub struct BlockChangeEvent {
     world: EntityWorld,
     dimension: EntityDimension,
 }
+
+impl Component for BlockChangeEvent {}
 
 impl BlockChangeEvent {
     /// Creates an event affecting a single block.

@@ -1,7 +1,6 @@
 use crate::Server;
-use libcraft::{Particle, Position};
 use common::Game;
-use quill::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld, EntityPosition, EntityParticle};
 use vane::{SysResult, SystemExecutor};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
@@ -13,10 +12,10 @@ fn send_particle_packets(game: &mut Game, server: &mut Server) -> SysResult {
 
     for (entity, (particle, position, world, dimension)) in game
         .ecs
-        .query::<(&Particle, &Position, &EntityWorld, &EntityDimension)>()
+        .query::<(&EntityParticle, &EntityPosition, &EntityWorld, &EntityDimension)>()
         .iter()
     {
-        server.broadcast_nearby_with(*world, &dimension, *position, |client| {
+        server.broadcast_nearby_with(*world, &dimension, position.0, |client| {
             client.send_particle(&particle, false, &position);
         });
 

@@ -1,6 +1,6 @@
 use ahash::AHashMap;
-use libcraft::ChunkPosition;
 use common::{events::ViewUpdateEvent, view::View, Game};
+use libcraft::ChunkPosition;
 use quill::components::{EntityDimension, EntityWorld};
 use quill::events::EntityRemoveEvent;
 use utils::vec_remove_item;

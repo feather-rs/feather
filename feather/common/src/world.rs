@@ -7,10 +7,11 @@ use uuid::Uuid;
 use libcraft::anvil::player::PlayerData;
 use libcraft::biome::BiomeList;
 use libcraft::BlockState;
-use libcraft::{BlockPosition, Chunk, ChunkPosition, ValidBlockPosition};
 use libcraft::{dimension::DimensionInfo, WorldHeight};
-use worldgen::WorldGenerator;
+use libcraft::{BlockPosition, Chunk, ChunkPosition, ValidBlockPosition};
 use quill::{ChunkHandle, ChunkLock};
+use vane::Component;
+use worldgen::WorldGenerator;
 
 use crate::{
     chunk::cache::ChunkCache,
@@ -21,8 +22,12 @@ use crate::{
 #[derive(Clone, Debug, derive_more::Deref, derive_more::Constructor)]
 pub struct WorldName(String);
 
+impl Component for WorldName {}
+
 #[derive(Clone, Debug, derive_more::Deref, derive_more::Constructor)]
 pub struct WorldPath(PathBuf);
+
+impl Component for WorldPath {}
 
 impl WorldPath {
     pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
@@ -36,6 +41,8 @@ impl WorldPath {
 
 #[derive(Default, derive_more::Deref, derive_more::DerefMut)]
 pub struct Dimensions(Vec<Dimension>);
+
+impl Component for Dimensions {}
 
 impl Dimensions {
     pub fn get(&self, dimension: &str) -> Option<&Dimension> {

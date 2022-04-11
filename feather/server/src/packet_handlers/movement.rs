@@ -1,10 +1,10 @@
-use libcraft::Position;
 use common::Game;
+use libcraft::Position;
 use protocol::packets::client::{
     PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
 };
 use quill::{
-    components::{CreativeFlying, OnGround},
+    components::{CreativeFlying, OnGround, EntityPosition},
     events::CreativeFlyingEvent,
 };
 use vane::{Entity, EntityRef, SysResult};
@@ -17,7 +17,7 @@ use crate::{ClientId, Server};
 /// is aware of the position update.
 fn should_skip_movement(server: &Server, player: &EntityRef) -> SysResult<bool> {
     if let Some(client) = server.clients.get(*player.get::<ClientId>()?) {
-        let server_position = *player.get::<Position>()?;
+        let server_position = player.get::<EntityPosition>()?.0;
         let client_position = client.client_known_position();
         if let Some(client_position) = client_position {
             if client_position != server_position {
@@ -44,14 +44,14 @@ pub fn handle_player_position(
         return Ok(());
     }
     let pos = {
-        let mut pos = player.get_mut::<Position>()?;
+        let mut pos = player.get_mut::<EntityPosition>()?;
         pos.x = packet.x;
         pos.y = packet.feet_y;
         pos.z = packet.z;
         player.get_mut::<OnGround>()?.0 = packet.on_ground;
         *pos
     };
-    update_client_position(server, player, pos)?;
+    update_client_position(server, player, pos.0)?;
     Ok(())
 }
 
@@ -64,7 +64,7 @@ pub fn handle_player_position_and_rotation(
         return Ok(());
     }
     let pos = {
-        let mut pos = player.get_mut::<Position>()?;
+        let mut pos = player.get_mut::<EntityPosition>()?;
         pos.x = packet.x;
         pos.y = packet.feet_y;
         pos.z = packet.z;
@@ -73,7 +73,7 @@ pub fn handle_player_position_and_rotation(
         player.get_mut::<OnGround>()?.0 = packet.on_ground;
         *pos
     };
-    update_client_position(server, player, pos)?;
+    update_client_position(server, player, pos.0)?;
     Ok(())
 }
 
@@ -86,13 +86,13 @@ pub fn handle_player_rotation(
         return Ok(());
     }
     let pos = {
-        let mut pos = player.get_mut::<Position>()?;
+        let mut pos = player.get_mut::<EntityPosition>()?;
         pos.yaw = packet.yaw;
         pos.pitch = packet.pitch;
         player.get_mut::<OnGround>()?.0 = packet.on_ground;
         *pos
     };
-    update_client_position(server, player, pos)?;
+    update_client_position(server, player, pos.0)?;
     Ok(())
 }
 

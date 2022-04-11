@@ -1,4 +1,5 @@
 use libcraft::{Text, Title};
+use vane::Component;
 
 /// An entity's "mailbox" for receiving chat messages.
 ///
@@ -11,6 +12,8 @@ pub struct ChatBox {
     titles: Vec<Title>,
     preference: ChatPreference,
 }
+
+impl Component for ChatBox {}
 
 impl ChatBox {
     pub fn new(preference: ChatPreference) -> Self {

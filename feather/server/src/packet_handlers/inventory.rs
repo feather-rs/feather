@@ -1,7 +1,8 @@
 use anyhow::bail;
+use common::{window::BackingWindow, PlayerWindow};
 use libcraft::Gamemode;
-use common::{window::BackingWindow, Window};
 use protocol::packets::client::{ClickWindow, CreativeInventoryAction};
+use quill::components::PlayerGamemode;
 use vane::{EntityRef, SysResult};
 
 use crate::{ClientId, Server};
@@ -11,12 +12,12 @@ pub fn handle_creative_inventory_action(
     packet: CreativeInventoryAction,
     _server: &mut Server,
 ) -> SysResult {
-    if *player.get::<Gamemode>()? != Gamemode::Creative {
+    if player.get::<PlayerGamemode>()?.0 != Gamemode::Creative {
         bail!("cannot use Creative Inventory Action outside of creative mode");
     }
 
     if packet.slot != -1 {
-        let window = player.get::<Window>()?;
+        let window = player.get::<PlayerWindow>()?;
         if !matches!(window.inner(), BackingWindow::Player { .. }) {
             bail!("cannot use Creative Inventory Action in external inventories");
         }
@@ -34,7 +35,7 @@ pub fn handle_click_window(
     player: EntityRef,
     packet: ClickWindow,
 ) -> SysResult {
-    let mut window = player.get_mut::<Window>().unwrap();
+    let mut window = player.get_mut::<PlayerWindow>().unwrap();
     let result = _handle_click_window(&packet, &mut window);
 
     let client = server
@@ -55,7 +56,7 @@ pub fn handle_click_window(
     result
 }
 
-fn _handle_click_window(packet: &ClickWindow, window: &mut Window) -> SysResult {
+fn _handle_click_window(packet: &ClickWindow, window: &mut PlayerWindow) -> SysResult {
     match packet.mode {
         0 => match packet.button {
             0 => window.left_click(packet.slot as usize)?,

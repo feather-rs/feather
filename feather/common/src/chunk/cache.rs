@@ -5,7 +5,7 @@ use std::{
 };
 
 use ahash::AHashMap;
-use libcraft::{ ChunkPosition};
+use libcraft::ChunkPosition;
 use quill::ChunkHandle;
 
 #[cfg(not(test))]

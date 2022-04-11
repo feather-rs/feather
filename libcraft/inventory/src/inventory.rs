@@ -1346,22 +1346,26 @@ impl<T> InventoryBacking<T> {
 impl crate::Inventory {
     pub fn player() -> Self {
         Self {
-            backing: std::sync::Arc::new(InventoryBacking::player()),
+            backing: std::rc::Rc::new(InventoryBacking::player()),
+            slot_mutated_callback: None,
         }
     }
     pub fn chest() -> Self {
         Self {
-            backing: std::sync::Arc::new(InventoryBacking::chest()),
+            backing: std::rc::Rc::new(InventoryBacking::chest()),
+            slot_mutated_callback: None,
         }
     }
     pub fn crafting_table() -> Self {
         Self {
-            backing: std::sync::Arc::new(InventoryBacking::crafting_table()),
+            backing: std::rc::Rc::new(InventoryBacking::crafting_table()),
+            slot_mutated_callback: None,
         }
     }
     pub fn furnace() -> Self {
         Self {
-            backing: std::sync::Arc::new(InventoryBacking::furnace()),
+            backing: std::rc::Rc::new(InventoryBacking::furnace()),
+            slot_mutated_callback: None,
         }
     }
 }

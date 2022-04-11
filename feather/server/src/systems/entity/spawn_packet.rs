@@ -1,11 +1,10 @@
 use ahash::AHashSet;
 use anyhow::Context;
-use libcraft::Position;
 use common::{
     events::{ChunkCrossEvent, ViewUpdateEvent},
     Game,
 };
-use quill::components::{EntityDimension, EntityWorld};
+use quill::components::{EntityDimension, EntityWorld, EntityPosition};
 use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 use vane::{SysResult, SystemExecutor};
 
@@ -65,7 +64,7 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
         .ecs
         .query::<(
             &EntityCreateEvent,
-            &Position,
+            &EntityPosition,
             &SpawnPacketSender,
             &EntityWorld,
             &EntityDimension,
@@ -73,7 +72,7 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
         .iter()
     {
         let entity_ref = game.ecs.entity(entity)?;
-        server.broadcast_nearby_with_mut(*world, &dimension, *position, |client| {
+        server.broadcast_nearby_with_mut(*world, &dimension, position.0, |client| {
             spawn_packet
                 .send(&entity_ref, client)
                 .expect("failed to create spawn packet")
@@ -89,14 +88,14 @@ fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResu
         .ecs
         .query::<(
             &EntityRemoveEvent,
-            &Position,
+            &EntityPosition,
             &NetworkId,
             &EntityWorld,
             &EntityDimension,
         )>()
         .iter()
     {
-        server.broadcast_nearby_with_mut(*world, &dimension, *position, |client| {
+        server.broadcast_nearby_with_mut(*world, &dimension, position.0, |client| {
             client.unload_entity(*network_id)
         });
     }

@@ -8,9 +8,9 @@ pub use light::LightStore;
 pub use packed_array::PackedArray;
 
 use biome::BiomeId;
-use paletted_container::PalettedContainer;
 use libcraft_blocks::{BlockState, HIGHEST_ID};
 use libcraft_core::{ChunkPosition, Sections};
+use paletted_container::PalettedContainer;
 
 pub const BIOME_SAMPLE_RATE: usize = 4;
 /// The width in blocks of a chunk column.
@@ -29,11 +29,11 @@ pub const BIOMES_PER_CHUNK_SECTION: usize = (CHUNK_WIDTH / BIOME_SAMPLE_RATE)
     * (CHUNK_WIDTH / BIOME_SAMPLE_RATE)
     * (SECTION_HEIGHT / BIOME_SAMPLE_RATE);
 
+pub mod biome;
 mod heightmap;
 mod light;
 mod packed_array;
 pub mod paletted_container;
-pub mod biome;
 
 /// A 16 x height x 16 chunk of blocks plus associated
 /// light, biome, and heightmap data.

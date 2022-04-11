@@ -1,30 +1,51 @@
-//! Components not associated with a specific type of entity.
+//! Components for entities.
 //!
 //! See the [entities module](crate::entities) for entity-specific
 //! components.
 
 use std::fmt::Display;
 
+use derive_more::{Deref, DerefMut};
+use libcraft::{ChunkPosition, Gamemode, Inventory, Position, EntityKind, Particle};
 use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
+use uuid::Uuid;
+use vane::Component;
 
-#[doc(inline)]
-pub use libcraft::{ChunkPosition, Gamemode, Position};
+use crate::events::InventorySlotUpdateEvent;
+
+/// The kind of an entity.
+#[derive(Copy, Clone, Debug, Deref, DerefMut)]
+pub struct EntityKindComponent(pub EntityKind);
+impl Component for EntityKindComponent {}
+
+/// Stores the position of an entity.
+#[derive(Copy, Clone, Debug, Deref, DerefMut)]
+pub struct EntityPosition(pub Position);
+impl Component for EntityPosition {}
+
+/// Stores the current chunk of an entity.
+#[derive(Copy, Clone, Debug, Deref, DerefMut)]
+pub struct EntityChunk(pub ChunkPosition);
+impl Component for EntityChunk {}
+
+/// Stores a player's gamemode.
+#[derive(Copy, Clone, Debug, Deref, DerefMut)]
+pub struct PlayerGamemode(pub Gamemode);
+impl Component for PlayerGamemode {}
+
+/// An entity's UUID.
+///
+/// For players, this is the UUID of the player account when
+/// the server is in online mode.
+#[derive(Copy, Clone, Debug, Deref, DerefMut)]
+pub struct EntityUuid(pub Uuid);
+impl Component for EntityUuid {}
 
 /// Whether an entity is touching the ground.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    derive_more::Deref,
-    derive_more::DerefMut,
-)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Deref, DerefMut)]
 pub struct OnGround(pub bool);
+impl Component for OnGround {}
 
 /// A player's username.
 ///
@@ -35,6 +56,7 @@ pub struct OnGround(pub bool);
 /// if you need to name an entity.
 #[derive(Clone, Debug, Serialize, Deserialize, derive_more::Deref)]
 pub struct Name(SmartString<LazyCompact>);
+impl Component for Name {}
 
 impl Name {
     pub fn new(string: &str) -> Self {
@@ -60,6 +82,7 @@ impl Display for Name {
 /// Giving a player a custom name has no effect.
 #[derive(Clone, Debug, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut)]
 pub struct CustomName(SmartString<LazyCompact>);
+impl Component for CustomName {}
 
 impl CustomName {
     /// Creates a custom name from a string.
@@ -87,6 +110,7 @@ impl Display for CustomName {
     Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
 )]
 pub struct WalkSpeed(pub f32);
+impl Component for WalkSpeed {}
 
 impl Default for WalkSpeed {
     fn default() -> Self {
@@ -99,6 +123,7 @@ impl Default for WalkSpeed {
     Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
 )]
 pub struct CreativeFlyingSpeed(pub f32);
+impl Component for CreativeFlyingSpeed {}
 
 impl Default for CreativeFlyingSpeed {
     fn default() -> Self {
@@ -120,6 +145,7 @@ impl Default for CreativeFlyingSpeed {
     derive_more::DerefMut,
 )]
 pub struct CanCreativeFly(pub bool);
+impl Component for CanCreativeFly {}
 
 /// Whether a player is flying (like in creative mode, so it does not reflect if the player is flying by other means)
 #[derive(
@@ -135,6 +161,7 @@ pub struct CanCreativeFly(pub bool);
     derive_more::DerefMut,
 )]
 pub struct CreativeFlying(pub bool);
+impl Component for CreativeFlying {}
 
 /// Whether a player can place and destroy blocks
 #[derive(
@@ -150,6 +177,7 @@ pub struct CreativeFlying(pub bool);
     derive_more::DerefMut,
 )]
 pub struct CanBuild(pub bool);
+impl Component for CanBuild {}
 
 /// Whether a player breaks blocks instantly (like in creative mode)
 #[derive(
@@ -165,6 +193,7 @@ pub struct CanBuild(pub bool);
     derive_more::DerefMut,
 )]
 pub struct Instabreak(pub bool);
+impl Component for Instabreak {}
 
 /// Whether a player is immune to damage
 #[derive(
@@ -180,6 +209,7 @@ pub struct Instabreak(pub bool);
     derive_more::DerefMut,
 )]
 pub struct Invulnerable(pub bool);
+impl Component for Invulnerable {}
 
 /// Whether an entity is sneaking, like in pressing shift.
 #[derive(
@@ -195,6 +225,7 @@ pub struct Invulnerable(pub bool);
     derive_more::DerefMut,
 )]
 pub struct Sneaking(pub bool);
+impl Component for Sneaking {}
 
 /// A player's previous gamemode
 #[derive(
@@ -211,6 +242,7 @@ pub struct Sneaking(pub bool);
     derive_more::DerefMut,
 )]
 pub struct PreviousGamemode(pub Option<Gamemode>);
+impl Component for PreviousGamemode {}
 
 impl PreviousGamemode {
     /// Gets a previous gamemode from its ID.
@@ -241,6 +273,7 @@ impl PreviousGamemode {
     Copy, Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::Deref, derive_more::DerefMut,
 )]
 pub struct Health(pub f32);
+impl Component for Health {}
 
 /// A component on players that tracks if they are sprinting or not.
 #[derive(
@@ -256,6 +289,8 @@ pub struct Health(pub f32);
     derive_more::DerefMut,
 )]
 pub struct Sprinting(pub bool);
+impl Component for Sprinting {}
+
 impl Sprinting {
     pub fn new(value: bool) -> Self {
         Sprinting(value)
@@ -274,6 +309,36 @@ impl Sprinting {
     Deserialize,
 )]
 pub struct EntityDimension(pub String);
+impl Component for EntityDimension {}
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, derive_more::Deref, derive_more::DerefMut)]
 pub struct EntityWorld(pub vane::Entity);
+impl Component for EntityWorld {}
+
+/// An entity's inventory.
+#[derive(Deref, DerefMut, Debug)]
+pub struct EntityInventory(pub Inventory);
+
+impl EntityInventory {
+    pub fn new(inventory: Inventory) -> Self {
+        Self(inventory)
+    }
+}
+
+impl Component for EntityInventory {
+    fn on_inserted(&mut self, ecs: &vane::Entities, owner: vane::Entity) {
+        let bus = ecs.bus();
+        self.0.set_slot_mutated_callback(move |area, slot| {
+            let event = InventorySlotUpdateEvent {
+                entity: owner,
+                area,
+                slot,
+            };
+            bus.defer(|ecs| ecs.insert_event(event));
+        });
+    }
+}
+
+#[derive(Debug, Deref, DerefMut)]
+pub struct EntityParticle(pub Particle);
+impl Component for EntityParticle {}

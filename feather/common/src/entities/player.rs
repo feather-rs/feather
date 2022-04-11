@@ -1,10 +1,15 @@
 use anyhow::bail;
-use libcraft::EntityKind;
+use libcraft::{EntityKind, ProfileProperty};
 use quill::{
-    components::{CreativeFlying, Sneaking, Sprinting},
+    components::{CreativeFlying, Sneaking, Sprinting, EntityKindComponent},
     entities::Player,
 };
-use vane::{EntityBuilder, SysResult};
+use vane::{Component, EntityBuilder, SysResult};
+
+#[derive(Debug)]
+pub struct PlayerProfile(pub Vec<ProfileProperty>);
+
+impl Component for PlayerProfile {}
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
@@ -13,12 +18,14 @@ pub fn build_default(builder: &mut EntityBuilder) {
         .add(CreativeFlying(false))
         .add(Sneaking(false))
         .add(Sprinting(false))
-        .add(EntityKind::Player);
+        .add(EntityKindComponent(EntityKind::Player));
 }
 
 /// The hotbar slot a player's cursor is currently on
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct HotbarSlot(usize);
+
+impl Component for HotbarSlot {}
 
 impl HotbarSlot {
     pub fn new(id: usize) -> Self {

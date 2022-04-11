@@ -6,8 +6,8 @@ is widely used in the Rust gamedev ecosystem.
 In the ECS architecture, there are three key types of objects:
 * Entities: these are just IDs. In Feather, these are represented by the `Entity` struct.
 They allow access to components.
-* Components: these represent entities' data. Each entity can have zero or one component of every type. For example, `Position`
-stores an entity position, and entities with the `Position` component have a position. You can access components
+* Components: these represent entities' data. Each entity can have zero or one component of every type. For example, `EntityPosition`
+stores an entity position, and entities with the `EntityPosition` component have a position. You can access components
 via `Game.ecs.get::<T>()`, where `T` is the component you want.
 * Systems: functions that run each tick. While components are data, systems are logic. They operate on components.
 
@@ -15,14 +15,12 @@ ECS implementations allow for _queries_ that allow iteration over all entities w
 For example, to implement trivial physics:
 
 ```rust
-for (entity, (position, velocity)) in game.ecs.query::<(&mut Position, &Velocity)>().iter() {
+for (entity, (position, velocity)) in game.ecs.query::<(&mut EntityPosition, &EntityVelocity)>().iter() {
     *position += *velocity;
 }
 ```
 
-The above code snippet iterates over _all_ entities with `Position` and `Velocity` components.
-
-For more information on the ECS, we recommend checking out the [`hecs`](https://docs.rs/hecs) documentation.
+The above code snippet iterates over _all_ entities with `EntityPosition` and `EntityVelocity` components.
 
 The Feather game state is defined in the `Game` struct, which lives in `crates/common/src/game.rs`.
 This struct contains the `World` (blocks) and the `Ecs` (entities). It also provides
@@ -35,12 +33,12 @@ this distinction.
 ### Commonly used components
 
 This is a list of components that are frequently accessed throughout the codebase.
-* `Position`
-* `Gamemode` for players
+* `EntityPosition`
+* `PlayerGamemode` for players
 * `Name` - player's username (not for other entities)
 * `CustomName` - entity's custom name (not for players)
-* `Inventory`
-* `Window` - wraps one or more `Inventory`s that the player is looking at right now. In a chest,
+* `EntityInventory`
+* `PlayerWindow` - wraps one or more `Inventory`s that the player is looking at right now. In a chest,
 for example, a player's window would wrap the player inventory and the chest inventory.
 
 ### Crate Structure

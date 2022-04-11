@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 use std::sync::Arc;
 
+use common::entities::player::PlayerProfile;
 use log::debug;
 
 use common::events::PlayerRespawnEvent;
@@ -10,14 +11,14 @@ use common::{
     entities::player::HotbarSlot,
     view::View,
     window::BackingWindow,
-    ChatBox, Game, Window,
+    ChatBox, Game, PlayerWindow,
 };
 use libcraft::anvil::player::PlayerAbilities;
 use libcraft::biome::BiomeList;
 use libcraft::items::InventorySlot;
 use libcraft::EntityKind;
 use libcraft::{Gamemode, Inventory, ItemStack, Position, Text};
-use quill::components;
+use quill::components::{self, PlayerGamemode, EntityInventory, EntityPosition, EntityUuid};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityDimension, EntityWorld,
     Health, Instabreak, Invulnerable, PreviousGamemode, WalkSpeed,
@@ -134,7 +135,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .unwrap_or_else(|_e| HotbarSlot::new(0));
 
     let inventory = Inventory::player();
-    let window = Window::new(BackingWindow::Player {
+    let window = PlayerWindow::new(BackingWindow::Player {
         player: inventory.new_handle(),
     });
     if let Ok(data) = player_data.as_ref() {
@@ -162,20 +163,20 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     builder
         .add(client_id)
-        .add(position)
+        .add(EntityPosition(position))
         .add(View::new(
             position.chunk(),
             config.server.view_distance,
             world,
             dimension.clone(),
         ))
-        .add(gamemode)
+        .add(PlayerGamemode(gamemode))
         .add(previous_gamemode)
         .add(components::Name::new(client.username()))
-        .add(client.uuid())
-        .add(client.profile().to_vec())
+        .add(EntityUuid(client.uuid()))
+        .add(PlayerProfile(client.profile().to_vec()))
         .add(ChatBox::new(ChatPreference::All))
-        .add(inventory)
+        .add(EntityInventory::new(inventory))
         .add(window)
         .add(hotbar_slot)
         .add(dimension)
@@ -252,7 +253,7 @@ fn send_respawn_packets(game: &mut Game, server: &mut Server) -> SysResult {
             &Instabreak,
             &Invulnerable,
             &HotbarSlot,
-            &Window,
+            &PlayerWindow,
         )>()
         .iter()
     {

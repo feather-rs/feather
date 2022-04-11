@@ -1,8 +1,8 @@
 //! Sends tablist info to clients via the Player Info packet.
 
-use uuid::Uuid;
+use common::entities::player::PlayerProfile;
+use quill::components::{EntityUuid, PlayerGamemode};
 
-use libcraft::{Gamemode, ProfileProperty};
 use common::Game;
 use quill::events::{EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
 use quill::{components::Name, entities::Player};
@@ -21,10 +21,10 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 fn remove_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, (_event, _player, uuid)) in game
         .ecs
-        .query::<(&EntityRemoveEvent, &Player, &Uuid)>()
+        .query::<(&EntityRemoveEvent, &Player, &EntityUuid)>()
         .iter()
     {
-        server.broadcast_with(|client| client.remove_tablist_player(*uuid));
+        server.broadcast_with(|client| client.remove_tablist_player(uuid.0));
     }
     Ok(())
 }
@@ -35,27 +35,27 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
         .query::<(
             &PlayerJoinEvent,
             &ClientId,
-            &Uuid,
+            &EntityUuid,
             &Name,
-            &Gamemode,
-            &Vec<ProfileProperty>,
+            &PlayerGamemode,
+            &PlayerProfile,
         )>()
         .iter()
     {
         // Add this player to other players' tablists
         server.broadcast_with(|client| {
-            client.add_tablist_player(*uuid, name.to_string(), &profile, *gamemode)
+            client.add_tablist_player(uuid.0, name.to_string(), &profile.0, gamemode.0)
         });
 
         // Add other players to this player's tablist
         for (other_player, (uuid, name, gamemode, profile)) in game
             .ecs
-            .query::<(&Uuid, &Name, &Gamemode, &Vec<ProfileProperty>)>()
+            .query::<(&EntityUuid, &Name, &PlayerGamemode, &PlayerProfile)>()
             .iter()
         {
             if let Some(client) = server.clients.get(*client_id) {
                 if other_player != player {
-                    client.add_tablist_player(*uuid, name.to_string(), &profile, *gamemode);
+                    client.add_tablist_player(uuid.0, name.to_string(), &profile.0, gamemode.0);
                 }
             }
         }
@@ -64,9 +64,9 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn change_tablist_player_gamemode(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (event, uuid)) in game.ecs.query::<(&GamemodeEvent, &Uuid)>().iter() {
+    for (_, (event, uuid)) in game.ecs.query::<(&GamemodeEvent, &EntityUuid)>().iter() {
         // Change this player's gamemode in players' tablists
-        server.broadcast_with(|client| client.change_player_tablist_gamemode(*uuid, **event));
+        server.broadcast_with(|client| client.change_player_tablist_gamemode(uuid.0, event.0));
     }
     Ok(())
 }

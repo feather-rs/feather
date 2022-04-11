@@ -1,10 +1,12 @@
 use common::{chat::ChatPreference, ChatBox, Game};
-use vane::{EntityBuilder, SysResult, SystemExecutor};
+use vane::{EntityBuilder, SysResult, SystemExecutor, Component};
 
 use crate::{ClientId, Server};
 
 /// Marker component for the console entity.
 struct Console;
+
+impl Component for Console {}
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     // Create the console entity so the console can receive messages
