@@ -1,8 +1,13 @@
 use libcraft::{EntityKind, Position};
-use quill::components::{OnGround, EntityPosition, EntityUuid, EntityKindComponent};
-use vane::{EntityBuilder, EntityRef, SysResult, Component};
+use protocol::packets::client::ClientSettings;
+use quill::components::{EntityKindComponent, EntityPosition, EntityUuid, OnGround};
+use vane::{Component, EntityBuilder, EntityRef, SysResult};
 
 use crate::{Client, NetworkId};
+
+pub struct PlayerClientSettings(pub ClientSettings);
+
+impl Component for PlayerClientSettings {}
 
 /// Component that sends the spawn packet for an entity
 /// using its components.
@@ -65,6 +70,11 @@ fn spawn_player(entity: &EntityRef, client: &mut Client) -> SysResult {
     let pos = entity.get::<EntityPosition>()?;
 
     client.send_player(network_id, uuid, pos.0);
+
+    if let Ok(settings) = entity.get::<PlayerClientSettings>() {
+        client.send_player_model_flags(network_id, settings.0.displayed_skin_parts);
+    }
+
     Ok(())
 }
 

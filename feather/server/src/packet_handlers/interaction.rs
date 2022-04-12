@@ -1,5 +1,6 @@
 use anyhow::Context;
 use common::entities::player::HotbarSlot;
+use common::events::BlockChangeEvent;
 use common::interactable::InteractableRegistry;
 use common::world::Dimensions;
 use common::{Game, PlayerWindow};
@@ -142,13 +143,18 @@ pub fn handle_player_digging(
     match packet.status {
         PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
             let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
-            let (_, (player_world, player_dimension)) =
-                query.iter().find(|(e, _)| *e == player).unwrap();
-            let dimensions = game.ecs.get::<Dimensions>(**player_world)?;
-            let dimension = dimensions
-                .get(&**player_dimension)
-                .context("missing dimension")?;
-            dimension.set_block_at(packet.position, BlockState::new(BlockKind::Air));
+            let (world, dimension) = {
+                let (_, (player_world, player_dimension)) =
+                    query.iter().find(|(e, _)| *e == player).unwrap();
+                let dimensions = game.ecs.get::<Dimensions>(**player_world)?;
+                let dimension = dimensions
+                    .get(&**player_dimension)
+                    .context("missing dimension")?;
+                dimension.set_block_at(packet.position, BlockState::new(BlockKind::Air));
+                (*player_world, player_dimension.clone())
+            };
+            game.ecs
+                .insert_event(BlockChangeEvent::single(packet.position, world, dimension));
             Ok(())
         }
         PlayerDiggingStatus::SwapItemInHand => {
@@ -265,7 +271,8 @@ pub fn handle_held_item_change(
     slot.set(new_id)?;
 
     drop(slot);
-    game.ecs.insert_entity_event(player_id, HeldItemChangeEvent)?;
+    game.ecs
+        .insert_entity_event(player_id, HeldItemChangeEvent)?;
 
     Ok(())
 }

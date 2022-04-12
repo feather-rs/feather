@@ -1,4 +1,4 @@
-use common::{chat::ChatKind, Game};
+use common::{chat::ChatKind, events::ViewUpdateEvent, view::View, Game};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
@@ -14,7 +14,7 @@ use protocol::{
 use quill::components::{EntityDimension, EntityPosition, EntityWorld, Name};
 use vane::{Entity, EntityRef, SysResult};
 
-use crate::{NetworkId, Server};
+use crate::{entities::PlayerClientSettings, NetworkId, Server};
 
 mod entity_action;
 mod interaction;
@@ -62,12 +62,16 @@ pub fn handle_packet(
             handle_player_block_placement(game, server, packet, player_id)
         }
 
-        ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(game, player_id, packet),
+        ClientPlayPacket::HeldItemChange(packet) => {
+            handle_held_item_change(game, player_id, packet)
+        }
         ClientPlayPacket::InteractEntity(packet) => {
             handle_interact_entity(game, server, packet, player_id)
         }
 
-        ClientPlayPacket::ClientSettings(packet) => handle_client_settings(server, player, packet),
+        ClientPlayPacket::ClientSettings(packet) => {
+            handle_client_settings(server, game, player_id, packet)
+        }
 
         ClientPlayPacket::PlayerAbilities(packet) => {
             movement::handle_player_abilities(game, player_id, packet)
@@ -143,12 +147,28 @@ fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessa
 
 fn handle_client_settings(
     server: &mut Server,
-    player: EntityRef,
+    game: &mut Game,
+    player_id: Entity,
     packet: client::ClientSettings,
 ) -> SysResult {
-    let network_id = *player.get::<NetworkId>()?;
-    server.broadcast_with(|client| {
-        client.send_player_model_flags(network_id, packet.displayed_skin_parts)
-    });
+    let player = game.ecs.entity(player_id)?;
+
+    let (old_view, new_view) = {
+        let network_id = *player.get::<NetworkId>()?;
+        server.broadcast_with(|client| {
+            client.send_player_model_flags(network_id, packet.displayed_skin_parts)
+        });
+
+        let mut view = player.get_mut::<View>()?;
+        let old_view = view.clone();
+        view.set_view_distance((packet.view_distance as u32).min(server.options.view_distance));
+        (old_view, view.clone())
+    };
+
+    game.ecs
+        .insert_entity_event(player_id, ViewUpdateEvent::new(&old_view, &new_view))?;
+
+    game.ecs.insert(player_id, PlayerClientSettings(packet))?;
+
     Ok(())
 }

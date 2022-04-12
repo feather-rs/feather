@@ -1,7 +1,6 @@
 //! Sends entity-related packets to clients.
 //! Spawn packets, position updates, equipment, animations, etc.
 
-use common::events::EntityCreateEvent;
 use common::Game;
 use common::{entities::player::HotbarSlot, world::Dimensions};
 use libcraft::{
@@ -158,10 +157,6 @@ fn send_entity_equipment(game: &mut Game, server: &mut Server) -> SysResult {
     }
 
     for (entity, _event) in game.ecs.query::<&HeldItemChangeEvent>().iter() {
-        updated_entities.push(entity);
-    }
-
-    for (entity, _event) in game.ecs.query::<&EntityCreateEvent>().iter() {
         updated_entities.push(entity);
     }
 
