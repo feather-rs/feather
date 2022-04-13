@@ -672,7 +672,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha-1",
- "slab",
+ "slotmap",
  "time",
  "tokio",
  "toml",
@@ -1549,10 +1549,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "derive_more",
+ "flume",
  "libcraft",
  "parking_lot",
  "serde",
  "smartstring",
+ "thiserror",
  "tokio",
  "uuid",
  "vane",
@@ -1840,10 +1842,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "slab"
-version = "0.4.6"
+name = "slotmap"
+version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb703cfe953bccee95685111adeedb76fabe4e97549a58d16f03ea7b9367bb32"
+checksum = "e1e08e261d0e8f5c43123b7adf3e4ca1690d655377ac93a03b2c9d3e98de1342"
+dependencies = [
+ "version_check",
+]
 
 [[package]]
 name = "smallvec"

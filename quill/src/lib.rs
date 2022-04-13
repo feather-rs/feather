@@ -7,6 +7,8 @@ pub mod entities;
 pub mod events;
 mod game;
 mod plugin;
+pub mod threadpool;
+pub mod saveload;
 
 #[doc(inline)]
 pub use vane::{Entities, Entity, EntityBuilder, EntityRef, Resources, SysResult};

@@ -107,7 +107,7 @@ impl BlockState {
 
     /// Gets the stable namespaced ID of the block kind.
     ///
-    /// Combined with [`property_values`], this method can be used
+    /// Combined with `property_values`, this method can be used
     /// for the persistent serialization of block states.
     pub fn namespaced_id(&self) -> &str {
         self.kind().namespaced_id()

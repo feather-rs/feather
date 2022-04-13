@@ -1,15 +1,14 @@
 use std::{path::PathBuf, sync::Arc};
 
 use ahash::{AHashMap, AHashSet};
-use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
-use uuid::Uuid;
-
 use libcraft::anvil::player::PlayerData;
 use libcraft::biome::BiomeList;
 use libcraft::BlockState;
 use libcraft::{dimension::DimensionInfo, WorldHeight};
 use libcraft::{BlockPosition, Chunk, ChunkPosition, ValidBlockPosition};
+use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use quill::{ChunkHandle, ChunkLock};
+use uuid::Uuid;
 use vane::Component;
 use worldgen::WorldGenerator;
 
@@ -19,59 +18,12 @@ use crate::{
     events::ChunkLoadEvent,
 };
 
-#[derive(Clone, Debug, derive_more::Deref, derive_more::Constructor)]
-pub struct WorldName(String);
-
-impl Component for WorldName {}
-
-#[derive(Clone, Debug, derive_more::Deref, derive_more::Constructor)]
-pub struct WorldPath(PathBuf);
-
-impl Component for WorldPath {}
-
-impl WorldPath {
-    pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
-        libcraft::anvil::player::load_player_data(&self.0, uuid)
-    }
-
-    pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
-        libcraft::anvil::player::save_player_data(&self.0, uuid, data)
-    }
-}
-
-#[derive(Default, derive_more::Deref, derive_more::DerefMut)]
-pub struct Dimensions(Vec<Dimension>);
-
-impl Component for Dimensions {}
-
-impl Dimensions {
-    pub fn get(&self, dimension: &str) -> Option<&Dimension> {
-        self.0.iter().find(|d| d.info().r#type == dimension)
-    }
-
-    pub fn get_mut(&mut self, dimension: &str) -> Option<&mut Dimension> {
-        self.0.iter_mut().find(|d| d.info().r#type == dimension)
-    }
-
-    pub fn add(&mut self, dimension: Dimension) {
-        self.0.push(dimension)
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Dimension> {
-        self.0.iter()
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Dimension> {
-        self.0.iter_mut()
-    }
-}
-
-/// Stores all blocks and chunks in a dimension
+/// Stores all blocks and chunks in a world.
 ///
 /// This does not store entities; it only contains blocks.
 pub struct Dimension {
     chunk_map: ChunkMap,
-    pub cache: ChunkCache,
+    cache: ChunkCache,
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,

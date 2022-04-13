@@ -1,16 +1,15 @@
+use ahash::AHashSet;
 use common::entities::player::HotbarSlot;
+use either::Either;
+use flume::{Receiver, Sender};
 use itertools::Itertools;
+use slotmap::SlotMap;
 use std::any::type_name;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::{collections::VecDeque, sync::Arc};
-use vane::Component;
-
-use ahash::AHashSet;
-use either::Either;
-use flume::{Receiver, Sender};
-use slab::Slab;
 use uuid::Uuid;
+use vane::Component;
 
 use common::world::Dimensions;
 use common::{
@@ -55,15 +54,16 @@ use crate::{
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
 
-/// ID of a client. Can be reused.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ClientId(usize);
+slotmap::new_key_type! {
+    pub struct ClientId;
+}
+
 impl Component for ClientId {}
 
 /// Stores all `Client`s.
 #[derive(Default)]
 pub struct Clients {
-    slab: Slab<Client>,
+    map: SlotMap<ClientId, Client>,
 }
 
 impl Clients {
@@ -72,27 +72,27 @@ impl Clients {
     }
 
     pub fn insert(&mut self, client: Client) -> ClientId {
-        ClientId(self.slab.insert(client))
+        self.map.insert(client)
     }
 
     pub fn remove(&mut self, id: ClientId) -> Option<Client> {
-        self.slab.try_remove(id.0)
+        self.map.remove(id)
     }
 
     pub fn get(&self, id: ClientId) -> Option<&Client> {
-        self.slab.get(id.0)
+        self.map.get(id)
     }
 
     pub fn get_mut(&mut self, id: ClientId) -> Option<&mut Client> {
-        self.slab.get_mut(id.0)
+        self.map.get_mut(id)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
-        self.slab.iter().map(|(_i, client)| client)
+        self.map.iter().map(|(_i, client)| client)
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &'_ mut Client> + '_ {
-        self.slab.iter_mut().map(|(_i, client)| client)
+        self.map.iter_mut().map(|(_i, client)| client)
     }
 }
 

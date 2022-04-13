@@ -18,9 +18,9 @@ pub struct ChunkLock {
 }
 
 impl ChunkLock {
-    pub fn new(chunk: Chunk, loaded: bool) -> Self {
+    pub fn new(chunk: Chunk) -> Self {
         Self {
-            loaded: AtomicBool::new(loaded),
+            loaded: AtomicBool::new(true),
             lock: RwLock::new(chunk),
         }
     }
@@ -94,16 +94,16 @@ mod tests {
 
     use super::*;
 
-    fn empty_lock(x: i32, z: i32, loaded: bool) -> ChunkLock {
+    fn empty_lock(x: i32, z: i32) -> ChunkLock {
         ChunkLock::new(
             Chunk::new(ChunkPosition::new(x, z), Sections(16), 0),
-            loaded,
+        
         )
     }
 
     #[test]
     fn normal_function() {
-        let lock = empty_lock(0, 0, true);
+        let lock = empty_lock(0, 0);
         for _ in 0..100 {
             // It should be possible to lock in any way
             if rand::random::<bool>() {
@@ -116,19 +116,21 @@ mod tests {
 
     #[test]
     fn cannot_write_unloaded() {
-        let lock = empty_lock(0, 0, false);
+        let lock = empty_lock(0, 0);
+        lock.set_unloaded();
         assert!(lock.try_write().is_none())
     }
 
     #[test]
     fn can_read_unloaded() {
-        let lock = empty_lock(0, 0, false);
+        let lock = empty_lock(0, 0);
+        lock.set_unloaded();
         assert!(lock.try_read().is_some())
     }
 
     #[test]
     fn multithreaded() {
-        let lock = Arc::new(empty_lock(0, 0, true));
+        let lock = Arc::new(empty_lock(0, 0));
         let mut handles: Vec<JoinHandle<()>> = vec![];
         for _ in 0..20 {
             let l = lock.clone();

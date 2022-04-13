@@ -214,7 +214,7 @@ impl quill::Game for Game {
         self.remove_entity(entity).ok();
     }
 
-    fn runtime(&self) -> runtime::Handle {
+    fn tokio_runtime(&self) -> runtime::Handle {
         self.runtime.handle().clone()
     }
 }
