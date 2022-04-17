@@ -40,7 +40,7 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
-use quill::components::{ OnGround, PreviousGamemode};
+use quill::components::{OnGround, PreviousGamemode};
 use quill::{ChunkHandle, World, WorldId};
 
 use crate::{

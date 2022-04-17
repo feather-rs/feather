@@ -1,6 +1,6 @@
 //! Allows customizing how the server loads world and player data.
 
-use std::time::Duration;
+use std::{collections::VecDeque, time::Duration};
 
 use libcraft::{dimension::DimensionInfo, ChunkPosition};
 
@@ -122,7 +122,7 @@ pub struct ChunkSaved;
 /// A world source that never yields any chunks.
 #[derive(Default)]
 pub struct EmptyWorldSource {
-    queued: Vec<ChunkPosition>,
+    queued: VecDeque<ChunkPosition>,
 }
 
 impl WorldSource for EmptyWorldSource {
@@ -131,11 +131,11 @@ impl WorldSource for EmptyWorldSource {
     }
 
     fn queue_load_chunk(&mut self, pos: ChunkPosition) {
-        self.queued.push(pos);
+        self.queued.push_back(pos);
     }
 
     fn poll_loaded_chunk(&mut self) -> Option<ChunkLoadResult> {
-        self.queued.pop().map(|pos| ChunkLoadResult {
+        self.queued.pop_front().map(|pos| ChunkLoadResult {
             pos,
             result: Err(ChunkLoadError::Missing),
         })

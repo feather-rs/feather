@@ -83,7 +83,7 @@ fn update_chunks(
         client.unload_chunk(pos);
     }
 
-    spawn_client_if_needed(client, &*game.ecs.get::<View>(player)?, position );
+    spawn_client_if_needed(client, &*game.ecs.get::<View>(player)?, position);
 
     Ok(())
 }
@@ -98,7 +98,11 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
             if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
                 if let Some(client) = server.clients.get_mut(*client_id) {
                     client.send_chunk(&world.chunk_handle_at(event.pos)?);
-                    spawn_client_if_needed(client, &*game.ecs.get::<View>(player)?, game.ecs.get::<EntityPosition>(player)?.0);
+                    spawn_client_if_needed(
+                        client,
+                        &*game.ecs.get::<View>(player)?,
+                        game.ecs.get::<EntityPosition>(player)?.0,
+                    );
                 }
             }
         }

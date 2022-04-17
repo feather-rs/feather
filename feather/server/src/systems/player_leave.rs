@@ -7,8 +7,7 @@ use libcraft::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
 use libcraft::{Gamemode, Inventory, Position, Text};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityInventory, EntityPosition,
-     Health, Instabreak, Invulnerable, Name, PlayerGamemode, PreviousGamemode,
-WalkSpeed,
+    Health, Instabreak, Invulnerable, Name, PlayerGamemode, PreviousGamemode, WalkSpeed,
 };
 use quill::World;
 use vane::{SysResult, SystemExecutor};

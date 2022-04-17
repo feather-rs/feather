@@ -33,7 +33,8 @@ impl SuperflatWorldGenerator {
 
 impl WorldGenerator for SuperflatWorldGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
-        let biome = self. biomes
+        let biome = self
+            .biomes
             .get_id(&self.options.biome)
             .unwrap_or_else(|| panic!("Biome does not exist: {}", self.options.biome));
         let mut chunk = Chunk::new(position, self.sections, self.min_y / 16);
@@ -42,7 +43,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
             .iter_mut()
             .for_each(|s| s.biomes_mut().fill(biome));
 
-        let mut y_counter = self.min_y ;
+        let mut y_counter = self.min_y;
         for layer in self.options.clone().layers {
             if layer.height == 0 {
                 continue;
@@ -57,7 +58,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
                             chunk
                                 .set_block_at(
                                     x as usize,
-                                    (y - self. min_y) as usize,
+                                    (y - self.min_y) as usize,
                                     z as usize,
                                     layer_block,
                                     false,
@@ -79,4 +80,3 @@ impl WorldGenerator for SuperflatWorldGenerator {
         chunk
     }
 }
-
