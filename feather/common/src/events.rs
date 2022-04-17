@@ -1,7 +1,6 @@
 use crate::view::View;
 
-use quill::components::{EntityDimension, EntityWorld};
-use quill::{ChunkHandle, ChunkPosition};
+use quill::{ChunkPosition, WorldId};
 
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
@@ -24,11 +23,8 @@ pub struct ViewUpdateEvent {
     /// Chunks that are in `old_view` but not in `new_view`
     pub old_chunks: Vec<ChunkPosition>,
 
-    pub new_world: EntityWorld,
-    pub old_world: EntityWorld,
-
-    pub new_dimension: EntityDimension,
-    pub old_dimension: EntityDimension,
+    pub new_world: WorldId,
+    pub old_world: WorldId,
 }
 
 impl Component for ViewUpdateEvent {}
@@ -42,8 +38,6 @@ impl ViewUpdateEvent {
             old_chunks: old_view.difference(new_view),
             new_world: new_view.world(),
             old_world: old_view.world(),
-            new_dimension: new_view.dimension().clone(),
-            old_dimension: old_view.dimension().clone(),
         };
         this.new_chunks
             .sort_unstable_by_key(|chunk| chunk.distance_squared_to(new_view.center()));
@@ -63,16 +57,6 @@ pub struct ChunkCrossEvent {
 }
 
 impl Component for ChunkCrossEvent {}
-
-/// Triggered when a chunk is loaded.
-#[derive(Debug)]
-pub struct ChunkLoadEvent {
-    pub position: ChunkPosition,
-    pub chunk: ChunkHandle,
-    pub dimension: String,
-}
-
-impl Component for ChunkLoadEvent {}
 
 /// Triggered when an error occurs while loading a chunk.
 #[derive(Debug)]

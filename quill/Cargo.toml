@@ -5,14 +5,17 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2021"
 
 [dependencies]
+ahash = "0.7"
 anyhow = "1"
 derive_more = "0.99"
 flume = "0.10"
 libcraft = { path = "../libcraft" }
+log = "0.4"
 parking_lot = "0.12"
 serde = { version = "1", features = ["derive"] }
 smartstring = { version = "1", features = ["serde"] }
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
-uuid = { version = "0.8", features = ["serde"] }
+toml = "0.5"
+uuid = { version = "0.8", features = ["serde", "v4"] }
 vane = { path = "../vane" }

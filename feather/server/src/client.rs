@@ -11,7 +11,6 @@ use std::{collections::VecDeque, sync::Arc};
 use uuid::Uuid;
 use vane::Component;
 
-use common::world::Dimensions;
 use common::{
     chat::{ChatKind, ChatMessage},
     PlayerWindow,
@@ -41,8 +40,8 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
-use quill::components::{EntityDimension, EntityWorld, OnGround, PreviousGamemode};
-use quill::ChunkHandle;
+use quill::components::{ OnGround, PreviousGamemode};
+use quill::{ChunkHandle, World, WorldId};
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
@@ -52,7 +51,7 @@ use crate::{
 };
 
 /// Max number of chunks to send to a client per tick.
-const MAX_CHUNKS_PER_TICK: usize = 10;
+const MAX_CHUNKS_PER_TICK: usize = 20;
 
 slotmap::new_key_type! {
     pub struct ClientId;
@@ -124,8 +123,7 @@ pub struct Client {
 
     disconnected: bool,
 
-    dimension: Option<EntityDimension>,
-    world: Option<EntityWorld>,
+    world: Option<WorldId>,
 }
 
 impl Client {
@@ -145,7 +143,6 @@ impl Client {
             chunk_send_queue: VecDeque::new(),
             client_known_position: None,
             disconnected: false,
-            dimension: None,
             world: None,
         }
     }
@@ -221,30 +218,21 @@ impl Client {
         &mut self,
         gamemode: Gamemode,
         previous_gamemode: PreviousGamemode,
-        dimensions: &Dimensions,
         biomes: &BiomeList,
         max_players: i32,
-        dimension: EntityDimension,
-        world: EntityWorld,
+        world: &dyn World,
     ) {
         log::trace!("Sending Join Game to {}", self.username);
 
-        let dimension = dimensions.get(&*dimension).unwrap_or_else(|| panic!("Tried to spawn {} in dimension `{}` but the dimension doesn't exist! Existing dimensions: {}", self.username, *dimension, dimensions.iter().map(|dim| format!("`{}`", dim.info().r#type)).join(", ")));
         let dimension_codec = DimensionCodec {
             registries: HashMap::from_iter([
                 (
                     "minecraft:dimension_type".to_string(),
-                    DimensionCodecRegistry::DimensionType(
-                        dimensions
-                            .iter()
-                            .enumerate()
-                            .map(|(i, dim)| DimensionCodecEntry {
-                                name: dim.info().r#type.to_owned(),
-                                id: i as i16,
-                                element: dim.info().info.clone(),
-                            })
-                            .collect(),
-                    ),
+                    DimensionCodecRegistry::DimensionType(vec![DimensionCodecEntry {
+                        name: world.dimension_info().r#type.to_owned(),
+                        id: 0,
+                        element: world.dimension_info().info.clone(),
+                    }]),
                 ),
                 (
                     "minecraft:worldgen/biome".to_string(),
@@ -263,27 +251,25 @@ impl Client {
             ]),
         };
 
-        self.dimension = Some(EntityDimension(dimension.info().r#type.clone()));
-        self.world = Some(world);
+        self.world = Some(world.id());
 
         self.send_packet(JoinGame {
             entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
             is_hardcore: false,
             gamemode,
             previous_gamemode,
-            dimension_names: dimensions
-                .iter().map(|dim| dim.info().r#type.clone()).collect(),
+            dimension_names: vec![world.dimension_info().r#type.clone()],
             dimension_codec: Nbt(dimension_codec),
-            dimension: Nbt(dimension.info().info.clone()),
-            dimension_name: dimension.info().r#type.clone(),
+            dimension: Nbt(world.dimension_info().info.clone()),
+            dimension_name: world.dimension_info().r#type.clone(),
             hashed_seed: 0,
             max_players,
             view_distance: self.options.view_distance as i32,
             simulation_distance: self.options.view_distance as i32,
             reduced_debug_info: false,
             enable_respawn_screen: true,
-            is_debug: dimension.is_debug(),
-            is_flat: dimension.is_flat(),
+            is_debug:false,
+            is_flat: world.is_flat(),
         });
     }
 
@@ -326,28 +312,24 @@ impl Client {
         self.client_known_position = Some(new_position);
     }
 
-    pub fn move_to_dimension(
+    pub fn move_to_world(
         &mut self,
-        dimension: EntityDimension,
-        dimensions: &Dimensions,
         gamemode: Gamemode,
         previous_gamemode: PreviousGamemode,
-        world: EntityWorld,
+        world: &dyn World,
     ) {
-        let dimension = dimensions.get(&*dimension).unwrap_or_else(|| panic!("Tried to move {} to dimension `{}` but the dimension doesn't exist! Existing dimensions: {}", self.username, *dimension, dimensions.iter().map(|dim| format!("`{}`", dim.info().r#type)).join(", ")));
-        let dimension_info = dimension.info().info.clone();
+        let dimension_info = world.dimension_info().info.clone();
 
-        self.dimension = Some(EntityDimension(dimension.info().r#type.clone()));
-        self.world = Some(world);
+        self.world = Some(world.id());
 
         self.send_packet(Respawn {
             dimension: Nbt(dimension_info),
-            dimension_name: dimension.info().r#type.clone(),
+            dimension_name: world.dimension_info().r#type.clone(),
             hashed_seed: 0,
             gamemode,
             previous_gamemode,
-            is_debug: dimension.is_debug(),
-            is_flat: dimension.is_flat(),
+            is_debug: false,
+            is_flat: world.is_flat(),
             copy_metadata: true,
         });
 
@@ -527,31 +509,22 @@ impl Client {
         prev_position: PreviousPosition,
         on_ground: OnGround,
         prev_on_ground: PreviousOnGround,
-        dimension: &EntityDimension,
-        world: EntityWorld,
-        dimensions: &Dimensions,
+        world: &dyn World,
         gamemode: Option<Gamemode>,
         previous_gamemode: Option<PreviousGamemode>,
     ) {
-        let another_dimension =
-            self.world != Some(world) || self.dimension.as_ref() != Some(dimension);
+        let another_world = self.world != Some(world.id());
 
         if self.network_id == Some(network_id) {
             // This entity is the client. Only update
             // the position if it has changed from the client's
             // known position or dimension/world has changed.
-            if another_dimension {
-                self.move_to_dimension(
-                    dimension.clone(),
-                    dimensions,
-                    gamemode.unwrap(),
-                    previous_gamemode.unwrap(),
-                    world,
-                );
+            if another_world {
+                self.move_to_world(gamemode.unwrap(), previous_gamemode.unwrap(), world);
             } else if Some(position) != self.client_known_position {
                 self.update_own_position(position);
             }
-        } else if !another_dimension {
+        } else if !another_world {
             let no_change_yaw = (position.yaw - prev_position.0.yaw).abs() < 0.001;
             let no_change_pitch = (position.pitch - prev_position.0.pitch).abs() < 0.001;
 
@@ -786,12 +759,8 @@ impl Client {
         });
     }
 
-    pub fn dimension(&self) -> &Option<EntityDimension> {
-        &self.dimension
-    }
-
-    pub fn world(&self) -> &Option<EntityWorld> {
-        &self.world
+    pub fn world(&self) -> Option<WorldId> {
+        self.world
     }
 }
 

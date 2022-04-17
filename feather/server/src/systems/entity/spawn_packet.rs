@@ -5,12 +5,14 @@ use common::{
     events::{ChunkCrossEvent, ViewUpdateEvent},
     Game,
 };
-use quill::components::{EntityDimension, EntityInventory, EntityPosition, EntityWorld};
+use quill::components::{EntityInventory, EntityPosition, EntityWorld};
 use quill::events::{EntityCreateEvent, EntityRemoveEvent};
 use vane::{SysResult, SystemExecutor};
 
-use crate::chunk_subscriptions::DimensionChunkPosition;
-use crate::{entities::SpawnPacketSender, ClientId, NetworkId, Server};
+use crate::{
+    chunk_subscriptions::ChunkPositionWithWorld, entities::SpawnPacketSender, ClientId, NetworkId,
+    Server,
+};
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems
@@ -67,7 +69,7 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
 
 /// System to send an entity to clients when it is created.
 fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult {
-    for (entity, (_event, network_id, position, spawn_packet, world, dimension)) in game
+    for (entity, (_event, network_id, position, spawn_packet, world)) in game
         .ecs
         .query::<(
             &EntityCreateEvent,
@@ -75,12 +77,11 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
             &EntityPosition,
             &SpawnPacketSender,
             &EntityWorld,
-            &EntityDimension,
         )>()
         .iter()
     {
         let entity_ref = game.ecs.entity(entity)?;
-        server.broadcast_nearby_with_mut(*world, &dimension, position.0, |client| {
+        server.broadcast_nearby_with_mut(world.0, position.0, |client| {
             spawn_packet
                 .send(&entity_ref, client)
                 .expect("failed to create spawn packet");
@@ -97,18 +98,17 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
 
 /// System to unload an entity on clients when it is removed.
 fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (_event, position, network_id, world, dimension)) in game
+    for (_, (_event, position, network_id, world)) in game
         .ecs
         .query::<(
             &EntityRemoveEvent,
             &EntityPosition,
             &NetworkId,
             &EntityWorld,
-            &EntityDimension,
         )>()
         .iter()
     {
-        server.broadcast_nearby_with_mut(*world, &dimension, position.0, |client| {
+        server.broadcast_nearby_with_mut(world.0, position.0, |client| {
             client.unload_entity(*network_id)
         });
     }
@@ -118,34 +118,25 @@ fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResu
 
 /// System to send/unsend entities on clients when the entity changes chunks.
 fn update_entities_on_chunk_cross(game: &mut Game, server: &mut Server) -> SysResult {
-    for (entity, (event, spawn_packet, network_id, world, dimension)) in game
+    for (entity, (event, spawn_packet, network_id, world)) in game
         .ecs
         .query::<(
             &ChunkCrossEvent,
             &SpawnPacketSender,
             &NetworkId,
             &EntityWorld,
-            &EntityDimension,
         )>()
         .iter()
     {
         let old_clients: AHashSet<_> = server
             .chunk_subscriptions
-            .subscriptions_for(DimensionChunkPosition(
-                *world,
-                dimension.clone(),
-                event.old_chunk,
-            ))
+            .subscriptions_for(ChunkPositionWithWorld::new(world.0, event.old_chunk))
             .iter()
             .copied()
             .collect();
         let new_clients: AHashSet<_> = server
             .chunk_subscriptions
-            .subscriptions_for(DimensionChunkPosition(
-                *world,
-                dimension.clone(),
-                event.new_chunk,
-            ))
+            .subscriptions_for(ChunkPositionWithWorld::new(world.0, event.new_chunk))
             .iter()
             .copied()
             .collect();

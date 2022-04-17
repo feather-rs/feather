@@ -1,9 +1,11 @@
 //! Loads an `Options` from a TOML config.
 
-use std::{fs, net::IpAddr, path::Path, str::FromStr};
+use std::{fs, net::IpAddr, path::Path, str::FromStr, time::Duration};
 
 use anyhow::Context;
+use indexmap::IndexMap;
 use libcraft::Gamemode;
+use quill::world::WorldSaveStrategy;
 use serde::{Deserialize, Deserializer};
 
 use crate::{favicon::Favicon, Options};
@@ -42,7 +44,7 @@ pub struct Config {
     pub network: Network,
     pub server: ServerConfig,
     pub log: Log,
-    pub worlds: Worlds,
+    pub worlds: IndexMap<String, World>,
     pub proxy: Proxy,
 }
 
@@ -90,6 +92,7 @@ pub struct ServerConfig {
     pub max_players: u32,
     pub default_gamemode: Gamemode,
     pub view_distance: u32,
+    pub default_world: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -99,11 +102,44 @@ pub struct Log {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Worlds {
-    pub worlds: Vec<String>,
-    pub default_world: String,
-    pub generator: String,
-    pub seed: String,
+pub struct World {
+    pub save_strategy: SaveStrategy,
+    pub dimension_type: String,
+    pub source: WorldSourceSpec,
+    #[serde(default)]
+    pub flat: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum SaveStrategy {
+    SaveIncrementally {
+        #[serde(with = "humantime_serde")]
+        interval: Duration,
+    },
+    DropChanges,
+    KeepLoaded,
+}
+
+impl From<SaveStrategy> for WorldSaveStrategy {
+    fn from(s: SaveStrategy) -> Self {
+        match s {
+            SaveStrategy::SaveIncrementally { interval } => WorldSaveStrategy::SaveIncrementally {
+                save_interval: interval,
+            },
+            SaveStrategy::DropChanges => WorldSaveStrategy::DropChanges,
+            SaveStrategy::KeepLoaded => WorldSaveStrategy::KeepLoaded,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct WorldSourceSpec {
+    #[serde(rename = "type")]
+    pub typ: String,
+    #[serde(flatten)]
+    pub params: toml::value::Table,
 }
 
 #[derive(Debug, Deserialize, Clone)]

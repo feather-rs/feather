@@ -585,12 +585,15 @@ dependencies = [
  "itertools",
  "libcraft",
  "log",
+ "num_cpus",
  "parking_lot",
  "quill",
  "rand",
  "rayon",
+ "serde",
  "smartstring",
  "tokio",
+ "toml",
  "uuid",
  "vane",
 ]
@@ -648,12 +651,12 @@ dependencies = [
  "feather-common",
  "feather-protocol",
  "feather-utils",
- "feather-worldgen",
  "fern",
  "flate2",
  "flume",
  "futures-lite",
  "hematite-nbt",
+ "humantime-serde",
  "indexmap",
  "itertools",
  "konst",
@@ -691,6 +694,7 @@ version = "0.6.0"
 dependencies = [
  "libcraft",
  "log",
+ "quill",
  "rand",
 ]
 
@@ -843,6 +847,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "humantime"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
+
+[[package]]
+name = "humantime-serde"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57a3db5ea5923d99402c94e9feb261dc5ee9b4efa158b0315f788cf549cc200c"
+dependencies = [
+ "humantime",
+ "serde",
 ]
 
 [[package]]
@@ -1547,15 +1567,18 @@ dependencies = [
 name = "quill"
 version = "0.1.0"
 dependencies = [
+ "ahash 0.7.6",
  "anyhow",
  "derive_more",
  "flume",
  "libcraft",
+ "log",
  "parking_lot",
  "serde",
  "smartstring",
  "thiserror",
  "tokio",
+ "toml",
  "uuid",
  "vane",
 ]

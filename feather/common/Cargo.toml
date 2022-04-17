@@ -12,12 +12,15 @@ flume = "0.10"
 itertools = "0.10"
 libcraft = { path = "../../libcraft" }
 log = "0.4"
+num_cpus = "1"
 parking_lot = "0.12"
 quill = { path = "../../quill" }
 rand = "0.8"
 rayon = "1.5"
+serde = { version = "1", features = [ "derive" ] }
 smartstring = "1"
 tokio = "1"
+toml = "0.5"
 utils = { path = "../utils", package = "feather-utils" }
 uuid = { version = "0.8", features = [ "v4" ] }
 vane = { path = "../../vane" }

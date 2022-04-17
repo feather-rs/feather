@@ -6,13 +6,13 @@
 use std::fmt::Display;
 
 use derive_more::{Deref, DerefMut};
-use libcraft::{ChunkPosition, Gamemode, Inventory, Position, EntityKind, Particle};
+use libcraft::{ChunkPosition, EntityKind, Gamemode, Inventory, Particle, Position};
 use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
 use uuid::Uuid;
 use vane::Component;
 
-use crate::events::InventorySlotUpdateEvent;
+use crate::{events::InventorySlotUpdateEvent, WorldId};
 
 /// The kind of an entity.
 #[derive(Copy, Clone, Debug, Deref, DerefMut)]
@@ -297,22 +297,8 @@ impl Sprinting {
     }
 }
 
-#[derive(
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    Debug,
-    derive_more::Deref,
-    derive_more::DerefMut,
-    Serialize,
-    Deserialize,
-)]
-pub struct EntityDimension(pub String);
-impl Component for EntityDimension {}
-
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, derive_more::Deref, derive_more::DerefMut)]
-pub struct EntityWorld(pub vane::Entity);
+pub struct EntityWorld(pub WorldId);
 impl Component for EntityWorld {}
 
 /// An entity's inventory.

@@ -8,7 +8,7 @@ use libcraft::{Area, Item};
 pub use libcraft::inventory::Window as BackingWindow;
 use libcraft::inventory::WindowError;
 use libcraft::items::InventorySlot::{self, Empty};
-use vane::{SysResult, Component};
+use vane::{Component, SysResult};
 
 /// A player's window. Wraps one or more inventories and handles
 /// conversion between protocol and slot indices.

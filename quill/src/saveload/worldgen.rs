@@ -35,13 +35,13 @@ pub struct WorldGeneratorWorldSource {
 impl WorldGeneratorWorldSource {
     pub fn new(
         inner: impl WorldSource,
-        generator: impl WorldGenerator,
+        generator: Arc<dyn WorldGenerator>,
         compute_pool: &ThreadPool,
     ) -> Self {
         let (generated_chunks_sender, generated_chunks_receiver) = flume::unbounded();
         Self {
             inner: Box::new(inner),
-            generator: Arc::new(generator),
+            generator,
             generated_chunks_sender,
             generated_chunks_receiver,
             pool: compute_pool.clone(),
@@ -84,14 +84,16 @@ impl WorldSource for WorldGeneratorWorldSource {
 
     fn poll_loaded_chunk(&mut self) -> Option<ChunkLoadResult> {
         self.poll_generated_chunk().or_else(|| {
-            let result = self.inner.poll_loaded_chunk()?;
+            // Greedily consume all missing chunks.
+            loop {
+                let result = self.inner.poll_loaded_chunk()?;
 
-            match &result.result {
-                Err(ChunkLoadError::Missing) => {
-                    self.queue_generate_chunk(result.pos);
-                    None
+                match &result.result {
+                    Err(ChunkLoadError::Missing) => {
+                        self.queue_generate_chunk(result.pos);
+                    }
+                    Ok(_) | Err(_) => break Some(result),
                 }
-                Ok(_) | Err(_) => Some(result),
             }
         })
     }

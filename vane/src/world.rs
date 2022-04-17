@@ -141,9 +141,11 @@ impl Entities {
 
         for (component_meta, component) in builder.drain() {
             unsafe {
-                let ptr =
-                    self.components
-                        .insert_raw(entity.index(), component_meta.clone(), component.as_ptr());
+                let ptr = self.components.insert_raw(
+                    entity.index(),
+                    component_meta.clone(),
+                    component.as_ptr(),
+                );
                 (component_meta.on_inserted_fn)(ptr, self, entity);
             }
         }

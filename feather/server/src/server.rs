@@ -4,11 +4,11 @@ use flume::Receiver;
 
 use common::Game;
 use libcraft::Position;
-use quill::components::{EntityDimension, EntityWorld};
+use quill::WorldId;
 use vane::SystemExecutor;
 
 use crate::{
-    chunk_subscriptions::{ChunkSubscriptions, DimensionChunkPosition},
+    chunk_subscriptions::{ChunkPositionWithWorld, ChunkSubscriptions},
     initial_handler::NewPlayer,
     listener::Listener,
     player_count::PlayerCount,
@@ -120,18 +120,13 @@ impl Server {
     /// any packets that need to be sent only to nearby players.
     pub fn broadcast_nearby_with(
         &self,
-        world: EntityWorld,
-        dimension: &EntityDimension,
+        world: WorldId,
         position: Position,
         mut callback: impl FnMut(&Client),
     ) {
         for &client_id in self
             .chunk_subscriptions
-            .subscriptions_for(DimensionChunkPosition(
-                world,
-                dimension.clone(),
-                position.chunk(),
-            ))
+            .subscriptions_for(ChunkPositionWithWorld::new(world, position.chunk()))
         {
             if let Some(client) = self.clients.get(client_id) {
                 callback(client);
@@ -145,18 +140,13 @@ impl Server {
     /// any packets that need to be sent only to nearby players.
     pub fn broadcast_nearby_with_mut(
         &mut self,
-        world: EntityWorld,
-        dimension: &EntityDimension,
+        world: WorldId,
         position: Position,
         mut callback: impl FnMut(&mut Client),
     ) {
         for &client_id in self
             .chunk_subscriptions
-            .subscriptions_for(DimensionChunkPosition(
-                world,
-                dimension.clone(),
-                position.chunk(),
-            ))
+            .subscriptions_for(ChunkPositionWithWorld::new(world, position.chunk()))
         {
             if let Some(client) = self.clients.get_mut(client_id) {
                 callback(client);

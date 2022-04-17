@@ -6,7 +6,7 @@ use super::{PackedArray, SECTION_VOLUME};
 /// Contains light data for a chunk section.
 #[derive(Debug, Clone)]
 pub struct LightStore {
-    /// Could be None in some dimensions (see [has_skylight](crate::common::world::DimensionTypeInfo.has_skylight)) 
+    /// Could be None in some dimensions (see [has_skylight](crate::common::world::DimensionTypeInfo.has_skylight))
     /// or when you get this packet from deserialization of the LightData packet
     sky_light: Option<PackedArray>,
     /// Could be None when you get this packet from deserialization of the LightData packet

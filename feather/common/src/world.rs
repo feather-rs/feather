@@ -1,277 +1,301 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{collections::VecDeque, sync::Arc, time::Instant};
 
-use ahash::{AHashMap, AHashSet};
-use libcraft::anvil::player::PlayerData;
-use libcraft::biome::BiomeList;
-use libcraft::BlockState;
-use libcraft::{dimension::DimensionInfo, WorldHeight};
-use libcraft::{BlockPosition, Chunk, ChunkPosition, ValidBlockPosition};
-use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
-use quill::{ChunkHandle, ChunkLock};
-use uuid::Uuid;
-use vane::Component;
-use worldgen::WorldGenerator;
-
-use crate::{
-    chunk::cache::ChunkCache,
-    chunk::worker::{ChunkWorker, LoadRequest, SaveRequest},
+use ahash::AHashSet;
+use libcraft::{
+    dimension::DimensionInfo, BlockPosition, BlockState, Chunk, ChunkPosition, WorldHeight,
+};
+use quill::{
     events::ChunkLoadEvent,
+    saveload::{ChunkLoadError, StoredChunk, WorldSource},
+    world::{ChunkNotLoaded, ChunkTicket, WorldDescriptor, WorldSaveStrategy, WorldSettings},
+    ChunkHandle, ChunkLock, World as _, WorldId,
 };
 
-/// Stores all blocks and chunks in a world.
-///
-/// This does not store entities; it only contains blocks.
-pub struct Dimension {
+use crate::Game;
+
+use self::{chunk_cache::ChunkCache, chunk_map::ChunkMap, tickets::ChunkTickets};
+
+mod chunk_cache;
+mod chunk_map;
+pub mod systems;
+mod tickets;
+
+pub struct World {
+    id: WorldId,
+    name: Option<String>,
+
+    settings: WorldSettings,
+
+    dimension_info: DimensionInfo,
+
     chunk_map: ChunkMap,
-    cache: ChunkCache,
-    chunk_worker: ChunkWorker,
+    chunk_cache: ChunkCache,
+    tickets: ChunkTickets,
+    unload_queue: UnloadQueue,
+
+    source: Box<dyn WorldSource>,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
-    dimension_info: DimensionInfo,
-    /// Debug mode dimensions cannot be modified and have predefined blocks
-    debug: bool,
+
     /// If true, has a different void fog and horizon at y=min
     flat: bool,
 }
 
-impl Dimension {
-    pub fn new(
-        dimension_info: DimensionInfo,
-        generator: Arc<dyn WorldGenerator>,
-        world_dir: impl Into<PathBuf> + Clone,
-        debug: bool,
-        flat: bool,
-        biomes: Arc<BiomeList>,
-    ) -> Self {
-        assert_eq!(dimension_info.info.height % 16, 0);
+impl World {
+    pub fn new(desc: WorldDescriptor, _game: &Game) -> Self {
+        assert_eq!(
+            desc.dimension_info.info.height % 16,
+            0,
+            "world height must be a multiple of the chunk section height (16)"
+        );
+
+        if matches!(
+            &desc.settings.save_strategy,
+            &WorldSaveStrategy::SaveIncrementally { .. }
+        ) {
+            assert!(
+                desc.source.supports_saving(),
+                "world is configured to save incrementally, but its source doesn't support saving!"
+            );
+        }
+
         Self {
+            name: desc.name,
+            id: desc.id,
+            settings: desc.settings,
             chunk_map: ChunkMap::new(
-                WorldHeight(dimension_info.info.height as usize),
-                dimension_info.info.min_y,
+                WorldHeight(desc.dimension_info.info.height as usize),
+                desc.dimension_info.info.min_y,
             ),
-            cache: Default::default(),
-            chunk_worker: ChunkWorker::new(
-                world_dir,
-                generator,
-                WorldHeight(dimension_info.info.height as usize),
-                dimension_info.info.min_y,
-                biomes,
-            ),
-            loading_chunks: Default::default(),
-            canceled_chunk_loads: Default::default(),
-            dimension_info,
-            debug,
-            flat,
+            chunk_cache: ChunkCache::new(),
+            tickets: ChunkTickets::new(),
+            unload_queue: UnloadQueue::default(),
+            loading_chunks: AHashSet::new(),
+            canceled_chunk_loads: AHashSet::new(),
+            source: desc.source,
+            dimension_info: desc.dimension_info,
+            flat: desc.flat,
         }
     }
 
+    /// Should be called on each tick.
+    pub fn update_chunks(&mut self) -> Vec<ChunkLoadEvent> {
+        // For chunks that have lost all tickets, put them into the unload
+        // queue.
+        while let Some(chunk_to_unload) = self.tickets.poll_chunk_with_no_tickets() {
+            self.unload_queue.push(chunk_to_unload, &self.settings);
+        }
+
+        // Unload chunks that have made their way through the unload queue.
+        let mut num_unloaded = 0;
+        while let Some(chunk) = self.unload_queue.pop() {
+            self.unload_chunk(chunk);
+            num_unloaded += 1;
+        }
+        if num_unloaded != 0 {
+            log::debug!(
+                "Unloaded {} chunks for world {} (total loaded chunks: {} + {} cached)",
+                num_unloaded,
+                self.display_name(),
+                self.chunk_map.len(),
+                self.chunk_cache.len()
+            );
+        }
+
+        self.chunk_cache.purge_old_unused();
+
+        self.load_chunks()
+    }
+
     /// Queues the given chunk to be loaded. If the chunk was cached, it is loaded immediately.
-    pub fn queue_chunk_load(&mut self, req: LoadRequest) {
-        let pos = req.pos;
-        if self.cache.contains(&pos) {
+    fn queue_chunk_load(&mut self, pos: ChunkPosition) {
+        if self.is_chunk_loaded(pos) || self.is_chunk_loading(pos) {
+            return;
+        }
+
+        if let Some(chunk) = self.chunk_cache.remove(pos) {
+            // Load immediately.
             // Move the chunk from the cache to the map
-            self.chunk_map
-                .inner
-                .insert(pos, self.cache.remove(pos).unwrap());
-            self.chunk_map.chunk_handle_at(pos).unwrap().set_loaded();
-        } else {
-            self.loading_chunks.insert(req.pos);
-            self.chunk_worker.queue_load(req);
+            chunk.set_loaded();
+            self.chunk_map.insert_chunk(chunk);
+        } else if self.loading_chunks.insert(pos) {
+            self.source.queue_load_chunk(pos);
         }
     }
 
     /// Loads any chunks that have been loaded asynchronously
     /// after a call to [`World::queue_chunk_load`].
-    pub fn load_chunks(&mut self) -> anyhow::Result<Vec<ChunkLoadEvent>> {
+    fn load_chunks(&mut self) -> Vec<ChunkLoadEvent> {
         let mut events = Vec::new();
-        while let Some(loaded) = self.chunk_worker.poll_loaded_chunk()? {
+        while let Some(loaded) = self.source.poll_loaded_chunk() {
             self.loading_chunks.remove(&loaded.pos);
             if self.canceled_chunk_loads.remove(&loaded.pos) {
                 continue;
             }
-            let chunk = loaded.chunk;
+
+            let chunk = match loaded.result {
+                Ok(chunk) => chunk.chunk,
+                Err(ChunkLoadError::Missing) => {
+                    log::debug!(
+                        "Chunk at {:?} is missing from the world source. Using an empty chunk.",
+                        loaded.pos
+                    );
+                    ChunkHandle::new(ChunkLock::new(Chunk::new(
+                        loaded.pos,
+                        self.height().into(),
+                        self.min_y(),
+                    )))
+                }
+                Err(e) => {
+                    log::error!("Failed to load chunk at {:?}: {:?}", loaded.pos, e);
+                    continue;
+                }
+            };
 
             self.chunk_map.insert_chunk(chunk);
+
             events.push(ChunkLoadEvent {
-                chunk: Arc::clone(&self.chunk_map.inner[&loaded.pos]),
-                position: loaded.pos,
-                dimension: self.info().r#type.clone(),
+                pos: loaded.pos,
+                world: self.id,
             });
             log::trace!("Loaded chunk {:?}", loaded.pos);
         }
-        Ok(events)
+
+        if !events.is_empty() {
+            log::debug!(
+                "Loaded {} chunks for world {} (total loaded chunks: {} + {} cached)",
+                events.len(),
+                self.display_name(),
+                self.chunk_map.len(),
+                self.chunk_cache.len()
+            );
+        }
+
+        events
     }
 
     /// Unloads the given chunk.
-    pub fn unload_chunk(&mut self, pos: ChunkPosition) -> anyhow::Result<()> {
-        if let Some(handle) = self.chunk_map.inner.remove(&pos) {
-            handle.set_unloaded()?;
-            self.chunk_worker.queue_chunk_save(SaveRequest {
-                pos,
-                chunk: handle.clone(),
-                entities: vec![],
-                block_entities: vec![],
-            });
-            self.cache.insert(pos, handle);
+    fn unload_chunk(&mut self, pos: ChunkPosition) {
+        if matches!(&self.settings.save_strategy, &WorldSaveStrategy::KeepLoaded) {
+            // Don't ever unload chunks.
+            return;
         }
-        self.chunk_map.remove_chunk(pos);
+
+        if let Some(handle) = self.chunk_map.remove_chunk(pos) {
+            // TODO: handle case where chunk is being written on a separate
+            // thread
+            handle.set_unloaded().ok();
+
+            if !matches!(
+                &self.settings.save_strategy,
+                &WorldSaveStrategy::DropChanges
+            ) {
+                self.source.queue_save_chunk(StoredChunk {
+                    pos,
+                    chunk: Arc::clone(&handle),
+                });
+            }
+
+            self.chunk_cache.insert(pos, handle);
+        }
+
         if self.is_chunk_loading(pos) {
             self.canceled_chunk_loads.insert(pos);
         }
-
-        Ok(())
     }
 
-    /// Returns whether the given chunk is loaded.
-    pub fn is_chunk_loaded(&self, pos: ChunkPosition) -> bool {
-        self.chunk_map.inner.contains_key(&pos)
-    }
-
-    /// Returns whether the given chunk is queued to be loaded.
-    pub fn is_chunk_loading(&self, pos: ChunkPosition) -> bool {
+    fn is_chunk_loading(&self, pos: ChunkPosition) -> bool {
         self.loading_chunks.contains(&pos)
     }
+}
 
-    /// Sets the block at the given position.
-    ///
-    /// Returns `true` if the block was set, or `false`
-    /// if its chunk was not loaded or the coordinates
-    /// are out of bounds and thus no operation
-    /// was performed.
-    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockState) -> bool {
-        self.chunk_map.set_block_at(pos, block)
+impl quill::World for World {
+    fn id(&self) -> WorldId {
+        self.id
     }
 
-    /// Retrieves the block at the specified
-    /// location. If the chunk in which the block
-    /// exists is not loaded or the coordinates
-    /// are out of bounds, `None` is returned.
-    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockState> {
-        self.chunk_map.block_at(pos)
+    fn name(&self) -> Option<&str> {
+        self.name.as_ref().map(String::as_str)
     }
 
-    /// Returns the chunk map.
-    pub fn chunk_map(&self) -> &ChunkMap {
-        &self.chunk_map
+    fn block_at(&self, pos: BlockPosition) -> Result<BlockState, ChunkNotLoaded> {
+        self.chunk_map
+            .block_at(pos)
+            .ok_or_else(|| ChunkNotLoaded(pos.chunk()))
     }
 
-    /// Mutably gets the chunk map.
-    pub fn chunk_map_mut(&mut self) -> &mut ChunkMap {
-        &mut self.chunk_map
+    fn set_block_at(&self, pos: BlockPosition, block: BlockState) -> Result<(), ChunkNotLoaded> {
+        if self.chunk_map.set_block_at(pos, block) {
+            Ok(())
+        } else {
+            Err(ChunkNotLoaded(pos.chunk()))
+        }
     }
 
-    pub fn info(&self) -> &DimensionInfo {
+    fn chunk_handle_at(&self, pos: ChunkPosition) -> Result<ChunkHandle, ChunkNotLoaded> {
+        self.chunk_map
+            .chunk_handle_at(pos)
+            .ok_or_else(|| ChunkNotLoaded(pos))
+    }
+
+    fn is_chunk_loaded(&self, pos: ChunkPosition) -> bool {
+        self.chunk_map.contains(pos)
+    }
+
+    fn dimension_info(&self) -> &DimensionInfo {
         &self.dimension_info
     }
 
-    pub fn height(&self) -> WorldHeight {
-        WorldHeight(self.dimension_info.info.height as usize)
+    fn create_chunk_ticket(&mut self, chunk: ChunkPosition) -> ChunkTicket {
+        let ticket = self.tickets.create_ticket(chunk);
+        self.queue_chunk_load(chunk);
+        self.unload_queue.remove(chunk);
+        ticket
     }
 
-    pub fn is_debug(&self) -> bool {
-        self.debug
+    fn is_persistent(&self) -> bool {
+        self.source.supports_saving()
     }
 
-    pub fn is_flat(&self) -> bool {
+    fn is_flat(&self) -> bool {
         self.flat
     }
 }
 
-pub type ChunkMapInner = AHashMap<ChunkPosition, ChunkHandle>;
-
-/// This struct stores all the chunks on the server,
-/// so it allows access to blocks and lighting data.
-///
-/// Chunks are internally wrapped in `Arc<RwLock>`,
-/// allowing multiple systems to access different parts
-/// of the world in parallel. Mutable access to this
-/// type is only required for inserting and removing
-/// chunks.
-pub struct ChunkMap {
-    inner: ChunkMapInner,
-    height: WorldHeight,
-    min_y: i32,
+#[derive(Debug, Copy, Clone)]
+struct QueuedChunkUnload {
+    pos: ChunkPosition,
+    time: Instant,
 }
 
-impl ChunkMap {
-    /// Creates a new, empty world.
-    pub fn new(world_height: WorldHeight, min_y: i32) -> Self {
-        ChunkMap {
-            inner: ChunkMapInner::default(),
-            height: world_height,
-            min_y,
+#[derive(Default)]
+struct UnloadQueue {
+    entries: VecDeque<QueuedChunkUnload>,
+}
+
+impl UnloadQueue {
+    pub fn push(&mut self, chunk: ChunkPosition, settings: &WorldSettings) {
+        self.remove(chunk);
+        let time = Instant::now() + settings.unload_delay;
+        self.entries
+            .push_back(QueuedChunkUnload { pos: chunk, time });
+    }
+
+    pub fn remove(&mut self, chunk: ChunkPosition) {
+        self.entries.retain(|e| e.pos != chunk)
+    }
+
+    pub fn pop(&mut self) -> Option<ChunkPosition> {
+        match self.entries.get(0).copied() {
+            Some(entry) => {
+                if entry.time < Instant::now() {
+                    self.entries.remove(0);
+                    Some(entry.pos)
+                } else {
+                    None
+                }
+            }
+            None => None,
         }
     }
-
-    /// Retrieves a handle to the chunk at the given
-    /// position, or `None` if it is not loaded.
-    pub fn chunk_at(&self, pos: ChunkPosition) -> Option<RwLockReadGuard<Chunk>> {
-        self.inner.get(&pos).map(|lock| lock.read())
-    }
-
-    /// Retrieves a handle to the chunk at the given
-    /// position, or `None` if it is not loaded.
-    pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
-        self.inner.get(&pos).map(|lock| lock.write()).flatten()
-    }
-
-    /// Returns an `Arc<RwLock<Chunk>>` at the given position.
-    pub fn chunk_handle_at(&self, pos: ChunkPosition) -> Option<ChunkHandle> {
-        self.inner.get(&pos).map(Arc::clone)
-    }
-
-    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockState> {
-        check_coords(pos, self.height, self.min_y)?;
-
-        let (x, y, z) = chunk_relative_pos(pos.into());
-        self.chunk_at(pos.chunk())
-            .map(|chunk| chunk.block_at(x, (y - self.min_y as isize) as usize, z))
-            .flatten()
-    }
-
-    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockState) -> bool {
-        if check_coords(pos, self.height, self.min_y).is_none() {
-            return false;
-        }
-
-        let (x, y, z) = chunk_relative_pos(pos.into());
-
-        self.chunk_at_mut(pos.chunk())
-            .map(|mut chunk| {
-                chunk.set_block_at(x, (y - self.min_y as isize) as usize, z, block, true)
-            })
-            .is_some()
-    }
-
-    /// Returns an iterator over chunks.
-    pub fn iter_chunks(&self) -> impl IntoIterator<Item = &ChunkHandle> {
-        self.inner.values()
-    }
-
-    /// Inserts a new chunk into the chunk map.
-    pub fn insert_chunk(&mut self, chunk: Chunk) {
-        self.inner
-            .insert(chunk.position(), Arc::new(ChunkLock::new(chunk, true)));
-    }
-
-    /// Removes the chunk at the given position, returning `true` if it existed.
-    pub fn remove_chunk(&mut self, pos: ChunkPosition) -> bool {
-        self.inner.remove(&pos).is_some()
-    }
-}
-
-fn check_coords(pos: ValidBlockPosition, world_height: WorldHeight, min_y: i32) -> Option<()> {
-    if pos.y() >= min_y && pos.y() < *world_height as i32 + min_y {
-        Some(())
-    } else {
-        None
-    }
-}
-
-fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, isize, usize) {
-    (
-        block_pos.x as usize & 0xf,
-        block_pos.y as isize,
-        block_pos.z as usize & 0xf,
-    )
 }

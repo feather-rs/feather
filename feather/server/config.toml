@@ -13,6 +13,8 @@ motd = "A Feather server"
 max_players = 16
 default_gamemode = "creative"
 view_distance = 12
+# The default world where players will spawn on join
+default_world = "default"
 
 [log]
 # If you prefer less verbose logs, switch this to "info".
@@ -27,19 +29,18 @@ url = ""
 # Optional SHA1 hash of the resource pack file.
 hash = ""
 
-[worlds]
-# World names
-worlds = [ "world" ]
-# The default world where players will spawn on join
-default_world = "world"
-# The generator to use if the world does not exist.
-# Implemented values are: flat
-generator = "flat"
-# The seed to use if the world does not exist.
-# Leaving this value empty will generate a random seed.
-# If this value is not a valid integer, the string
-# will be converted using a hash function.
-seed = ""
+# Worlds to configure at startup.
+# Note that plugins may create additional worlds
+# not in this config file.
+[worlds.default]
+# How the server will save chunks:
+# - save_incrementally: save chunks at a time interval and on shutdown
+# - drop_changes: never save chunks; changes are lost when chunks are unloaded (use only for immutable worlds)
+# - keep_loaded: never save or unload chunks; changes are lost on server restart (useful for minigames with small maps)
+save_strategy = { type = "drop_changes" }
+dimension_type = "minecraft:overworld"
+source = { type = "worldgen", generator = "flat" }
+flat = true
 
 [proxy]
 # Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.

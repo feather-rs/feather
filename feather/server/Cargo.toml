@@ -28,6 +28,7 @@ flate2 = "1"
 flume = "0.10"
 futures-lite = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+humantime-serde = "1"
 indexmap = { version = "1", features = ["serde"] }
 itertools = "0.10.3"
 konst = "0.2.13"
@@ -55,7 +56,6 @@ ureq = { version = "2", features = [ "json" ] }
 utils = { path = "../utils", package = "feather-utils" }
 uuid = "0.8"
 vane = { path = "../../vane" }
-worldgen = { path = "../worldgen", package = "feather-worldgen" }
 
 [features]
 # Use zlib-ng for faster compression. Requires CMake.

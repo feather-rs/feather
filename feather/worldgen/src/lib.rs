@@ -12,18 +12,6 @@ use libcraft::chunk::Chunk;
 use libcraft::ChunkPosition;
 use libcraft::{Sections, WorldHeight};
 mod superflat;
-
-pub trait WorldGenerator: Send + Sync {
-    /// Generates the chunk at the given position.
-    fn generate_chunk(
-        &self,
-        position: ChunkPosition,
-        sections: Sections,
-        min_y: i32,
-        biomes: &BiomeList,
-    ) -> Chunk;
-}
-
 pub struct VoidWorldGenerator;
 
 /// Returns an index into a one-dimensional array

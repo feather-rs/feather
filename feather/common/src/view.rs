@@ -1,10 +1,12 @@
-use ahash::AHashSet;
+use ahash::{AHashMap, AHashSet};
 use itertools::Either;
-use libcraft::{ChunkPosition};
-use quill::components::{Name, EntityPosition};
-use quill::components::{EntityDimension, EntityWorld};
+use libcraft::ChunkPosition;
+use quill::components::EntityWorld;
+use quill::components::{EntityPosition, Name};
 use quill::events::PlayerJoinEvent;
-use vane::{SysResult, SystemExecutor, Component};
+use quill::world::ChunkTicket;
+use quill::WorldId;
+use vane::{Component, SysResult, SystemExecutor};
 
 use crate::{events::ViewUpdateEvent, Game};
 
@@ -12,25 +14,21 @@ use crate::{events::ViewUpdateEvent, Game};
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems
         .add_system(update_player_views)
-        .add_system(update_view_on_join);
+        .add_system(update_view_on_join)
+        .add_system(update_tickets_for_players);
 }
 
 /// Updates players' views when they change chunks.
 fn update_player_views(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (mut view, position, name, world, dimension)) in game
+    for (player, (mut view, position, name, world)) in game
         .ecs
-        .query::<(&mut View, &EntityPosition, &Name, &EntityWorld, &EntityDimension)>()
+        .query::<(&mut View, &EntityPosition, &Name, &EntityWorld)>()
         .iter()
     {
         if position.chunk() != view.center() {
             let old_view = view.clone();
-            let new_view = View::new(
-                position.chunk(),
-                old_view.view_distance,
-                *world,
-                dimension.clone(),
-            );
+            let new_view = View::new(position.chunk(), old_view.view_distance, world.0);
 
             let event = ViewUpdateEvent::new(&old_view, &new_view);
             events.push((player, event));
@@ -49,23 +47,47 @@ fn update_player_views(game: &mut Game) -> SysResult {
 /// Triggers a ViewUpdateEvent when a player joins the game.
 fn update_view_on_join(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (view, name, world, dimension, _)) in game
+    for (player, (view, name, world, _)) in game
         .ecs
-        .query::<(
-            &View,
-            &Name,
-            &EntityWorld,
-            &EntityDimension,
-            &PlayerJoinEvent,
-        )>()
+        .query::<(&View, &Name, &EntityWorld, &PlayerJoinEvent)>()
         .iter()
     {
-        let event = ViewUpdateEvent::new(&View::empty(*world, dimension.clone()), &view);
+        let event = ViewUpdateEvent::new(&View::empty(world.0), &view);
         events.push((player, event));
         log::trace!("View of {} has been updated (player joined)", name);
     }
     for (player, event) in events {
         game.ecs.insert_entity_event(player, event)?;
+        game.ecs.insert(player, PlayerChunkTickets::default())?;
+    }
+    Ok(())
+}
+
+#[derive(Default)]
+struct PlayerChunkTickets {
+    map: AHashMap<ChunkPosition, ChunkTicket>,
+}
+
+impl Component for PlayerChunkTickets {}
+
+fn update_tickets_for_players(game: &mut Game) -> SysResult {
+    for (_, (event, mut chunk_tickets, world_id)) in game
+        .ecs
+        .query::<(&ViewUpdateEvent, &mut PlayerChunkTickets, &EntityWorld)>()
+        .iter()
+    {
+        // Remove old tickets
+        for old_chunk in &event.old_chunks {
+            // Dropping the ticket automatically removes it from the world
+            chunk_tickets.map.remove(old_chunk);
+        }
+
+        // Create new tickets
+        let mut world = game.world_mut(world_id.0)?;
+        for &new_chunk in &event.new_chunks {
+            let ticket = world.create_chunk_ticket(new_chunk);
+            chunk_tickets.map.insert(new_chunk, ticket);
+        }
     }
     Ok(())
 }
@@ -76,8 +98,7 @@ fn update_view_on_join(game: &mut Game) -> SysResult {
 pub struct View {
     center: ChunkPosition,
     view_distance: u32,
-    world: EntityWorld,
-    dimension: EntityDimension,
+    world: WorldId,
 }
 
 impl Component for View {}
@@ -85,23 +106,17 @@ impl Component for View {}
 impl View {
     /// Creates a `View` from a center chunk (the position of the player)
     /// and the view distance.
-    pub fn new(
-        center: ChunkPosition,
-        view_distance: u32,
-        world: EntityWorld,
-        dimension: EntityDimension,
-    ) -> Self {
+    pub fn new(center: ChunkPosition, view_distance: u32, world: WorldId) -> Self {
         Self {
             center,
             view_distance,
             world,
-            dimension,
         }
     }
 
     /// Gets the empty view, i.e., the view containing no chunks.
-    pub fn empty(world: EntityWorld, dimension: EntityDimension) -> Self {
-        Self::new(ChunkPosition::new(0, 0), 0, world, dimension)
+    pub fn empty(world: WorldId) -> Self {
+        Self::new(ChunkPosition::new(0, 0), 0, world)
     }
 
     /// Determines whether this is the empty view.
@@ -141,7 +156,7 @@ impl View {
 
     /// Returns the set of chunks that are in `self` but not in `other`.
     pub fn difference(&self, other: &View) -> Vec<ChunkPosition> {
-        if self.dimension != other.dimension || self.world != other.world {
+        if self.world != other.world {
             self.iter().collect()
         } else {
             // PERF: consider analytical approach instead of sets
@@ -192,11 +207,7 @@ impl View {
         self.center.z + self.view_distance as i32 + 1
     }
 
-    pub fn dimension(&self) -> &EntityDimension {
-        &self.dimension
-    }
-
-    pub fn world(&self) -> EntityWorld {
+    pub fn world(&self) -> WorldId {
         self.world
     }
 }

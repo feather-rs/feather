@@ -4,14 +4,12 @@
 //! determined based on the player's [`common::view::View`].
 
 use ahash::AHashMap;
-use anyhow::Context;
-use common::world::Dimensions;
-use common::{
-    events::{ChunkLoadEvent, ViewUpdateEvent},
-    Game,
-};
+use common::{events::ViewUpdateEvent, view::View, Game};
 use libcraft::{ChunkPosition, Position};
-use quill::components::{EntityDimension, EntityWorld, EntityPosition};
+use quill::{
+    components::{EntityPosition, EntityWorld},
+    events::ChunkLoadEvent,
+};
 use vane::{Entity, SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
@@ -71,14 +69,9 @@ fn update_chunks(
 ) -> SysResult {
     // Send chunks that are in the new view but not the old view.
     for &pos in &event.new_chunks {
-        let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
-        let (_, (world, dimension)) = query.iter().find(|(e, _)| *e == player).unwrap();
-
-        let mut dimensions = game.ecs.get_mut::<Dimensions>(world.0)?;
-        let dimension = dimensions
-            .get_mut(&**dimension)
-            .context("missing dimension")?;
-        if let Some(chunk) = dimension.chunk_map().chunk_handle_at(pos) {
+        let world_id = game.ecs.get::<EntityWorld>(player)?.0;
+        let world = game.world(world_id)?;
+        if let Ok(chunk) = world.chunk_handle_at(pos) {
             client.send_chunk(&chunk);
         } else {
             waiting_chunks.insert(player, pos);
@@ -90,7 +83,7 @@ fn update_chunks(
         client.unload_chunk(pos);
     }
 
-    spawn_client_if_needed(client, position);
+    spawn_client_if_needed(client, &*game.ecs.get::<View>(player)?, position );
 
     Ok(())
 }
@@ -99,14 +92,13 @@ fn update_chunks(
 /// waiting for those chunks to load.
 fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, event) in game.ecs.query::<&ChunkLoadEvent>().iter() {
-        for player in server
-            .waiting_chunks
-            .drain_players_waiting_for(event.position)
-        {
+        for player in server.waiting_chunks.drain_players_waiting_for(event.pos) {
+            let world_id = game.ecs.get::<EntityWorld>(player)?.0;
+            let world = game.world(world_id)?;
             if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
                 if let Some(client) = server.clients.get_mut(*client_id) {
-                    client.send_chunk(&event.chunk);
-                    spawn_client_if_needed(client, game.ecs.get::<EntityPosition>(player)?.0);
+                    client.send_chunk(&world.chunk_handle_at(event.pos)?);
+                    spawn_client_if_needed(client, &*game.ecs.get::<View>(player)?, game.ecs.get::<EntityPosition>(player)?.0);
                 }
             }
         }
@@ -114,8 +106,8 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-fn spawn_client_if_needed(client: &mut Client, pos: Position) {
-    if !client.knows_own_position() && client.known_chunks().contains(&pos.chunk()) {
+fn spawn_client_if_needed(client: &mut Client, view: &View, pos: Position) {
+    if !client.knows_own_position() && client.known_chunks().len() >= view.iter().count() {
         log::debug!("Spawning {}", client.username());
         client.update_own_position(pos);
     }

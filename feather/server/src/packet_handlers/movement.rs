@@ -4,7 +4,7 @@ use protocol::packets::client::{
     PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
 };
 use quill::{
-    components::{CreativeFlying, OnGround, EntityPosition},
+    components::{CreativeFlying, EntityPosition, OnGround},
     events::CreativeFlyingEvent,
 };
 use vane::{Entity, EntityRef, SysResult};
@@ -25,6 +25,9 @@ fn should_skip_movement(server: &Server, player: &EntityRef) -> SysResult<bool> 
                 // Don't override.
                 return Ok(true);
             }
+        } else {
+            // Client doesn't know its position yet.
+            return Ok(true);
         }
     }
     Ok(false)

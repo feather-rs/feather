@@ -1,7 +1,13 @@
+//! A plugin's primary interface to interacting with the server state.
+
+use std::cell::{Ref, RefMut};
+
 use tokio::runtime;
 use vane::{Entities, Entity, EntityBuilder, Resources};
 
-use crate::threadpool::ThreadPool;
+use crate::{
+    saveload::WorldSourceFactory, threadpool::ThreadPool, world::WorldDescriptor, World, WorldId,
+};
 
 /// A plugin's primary interface to interacting with the server state.
 ///
@@ -10,7 +16,7 @@ use crate::threadpool::ThreadPool;
 ///
 /// # Asynchronous work
 /// Often a plugin needs to run some task asynchronously, on a separate
-/// thread, for performance reasons. The server contains two objects
+/// thread, for performance reasons. The server contains two facilities
 /// to assist in this:
 /// * A Tokio runtime for running asynchronous IO work.
 /// * A thread pool for compute tasks.
@@ -36,6 +42,56 @@ pub trait Game: 'static {
     /// Mutably gets the `Resources` stored in the server.
     fn resources_mut(&mut self) -> &mut Resources;
 
+    /// Creates a new `World` using the given world descriptor.
+    ///
+    /// Note that the world will not persist in the `Game` after
+    /// a server restart. You need to add back the world each time
+    /// the server starts, using the same ID.
+    fn create_world(&mut self, desc: WorldDescriptor);
+
+    /// Registers a `WorldSourceFactory` that can be referenced in the server config file.
+    fn register_world_source_factory(&mut self, name: &str, factory: Box<dyn WorldSourceFactory>);
+
+    /// Gets a `WorldSourceFactory` by its name.
+    fn world_source_factory(
+        &self,
+        name: &str,
+    ) -> Result<&dyn WorldSourceFactory, WorldSourceFactoryNotFound>;
+
+    /// Removes the world with the given ID.
+    ///
+    /// The world will no longer be accessible, but its chunks
+    /// are kept in memory until they have all been saved,
+    /// even if the server starts to shut down.
+    fn remove_world(&mut self, id: WorldId) -> Result<(), WorldNotFound>;
+
+    /// Gets a reference to the world with the given ID.
+    fn world(&self, id: WorldId) -> Result<Ref<dyn World>, WorldNotFound>;
+
+    /// Gets a mutable reference to the world with the given ID.
+    fn world_mut(&self, id: WorldId) -> Result<RefMut<dyn World>, WorldNotFound>;
+
+    /// Sets the default world.
+    ///
+    /// # Panics
+    /// Panics if `id` does not reference a valid world.
+    fn set_default_world(&mut self, id: WorldId);
+
+    /// Gets the ID of the main/default world.
+    fn default_world_id(&self) -> WorldId;
+
+    /// Gets a reference to the default world.
+    fn default_world(&self) -> Ref<dyn World> {
+        self.world(self.default_world_id())
+            .expect("default world does not exist?")
+    }
+
+    /// Gets a mutable reference to the default world.
+    fn default_world_mut(&self) -> RefMut<dyn World> {
+        self.world_mut(self.default_world_id())
+            .expect("default world does not exist?")
+    }
+
     /// Spawns a new entity.
     ///
     /// This method will correctly trigger events related
@@ -58,3 +114,11 @@ pub trait Game: 'static {
     /// compute work.
     fn compute_pool(&self) -> &ThreadPool;
 }
+
+#[derive(Debug, thiserror::Error)]
+#[error("world with ID {0} was not found")]
+pub struct WorldNotFound(pub WorldId);
+
+#[derive(Debug, thiserror::Error)]
+#[error("world source factory '{0}' was not found")]
+pub struct WorldSourceFactoryNotFound(pub String);

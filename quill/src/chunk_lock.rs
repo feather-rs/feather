@@ -95,10 +95,7 @@ mod tests {
     use super::*;
 
     fn empty_lock(x: i32, z: i32) -> ChunkLock {
-        ChunkLock::new(
-            Chunk::new(ChunkPosition::new(x, z), Sections(16), 0),
-        
-        )
+        ChunkLock::new(Chunk::new(ChunkPosition::new(x, z), Sections(16), 0))
     }
 
     #[test]

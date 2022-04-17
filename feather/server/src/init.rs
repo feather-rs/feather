@@ -1,18 +1,17 @@
 use std::path::PathBuf;
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 
-use anyhow::{bail, Context};
+use anyhow::{anyhow, bail, Context};
+use libcraft::dimension::DimensionInfo;
+use quill::world::{WorldDescriptor, WorldSettings};
+use quill::{Game as _, WorldId};
 use tokio::runtime::Runtime;
 
 use crate::{config::Config, logging, Server};
-use common::world::{Dimensions, WorldName, WorldPath};
-use common::{Dimension, Game, TickLoop};
+use common::{Game, TickLoop};
 use data_generators::extract_vanilla_data;
-use libcraft::anvil::level::SuperflatGeneratorOptions;
 use libcraft::biome::{BiomeGeneratorInfo, BiomeList};
-use libcraft::dimension::DimensionInfo;
 use vane::SystemExecutor;
-use worldgen::{SuperflatWorldGenerator, WorldGenerator};
 
 const CONFIG_PATH: &str = "config.toml";
 
@@ -39,16 +38,14 @@ pub async fn create_game(runtime: Runtime) -> anyhow::Result<Game> {
     Ok(game)
 }
 
-pub fn run(game: Game) {
-    launch(game);
+pub fn run(game: Game) -> anyhow::Result<()> {
+    launch(game)
 }
 
 fn init_game(server: Server, config: &Config, runtime: Runtime) -> anyhow::Result<Game> {
     let mut game = Game::new(runtime);
     init_systems(&mut game, server);
     init_biomes(&mut game)?;
-    init_worlds(&mut game, config);
-    init_dimensions(&mut game, config)?;
     Ok(game)
 }
 
@@ -62,102 +59,6 @@ fn init_systems(game: &mut Game, server: Server) {
     server.link_with_game(game, &mut systems);
 
     game.system_executor = Rc::new(RefCell::new(systems));
-}
-
-fn init_worlds(game: &mut Game, config: &Config) {
-    for world in &config.worlds.worlds {
-        //let seed = 42; // FIXME: load from the level file
-
-        game.ecs.spawn_bundle((
-            WorldName::new(world.to_string()),
-            WorldPath::new(PathBuf::from(format!("worlds/{}", world))),
-            Dimensions::default(),
-        ));
-    }
-}
-
-fn init_dimensions(game: &mut Game, config: &Config) -> anyhow::Result<()> {
-    let biomes = game.resources.get::<Arc<BiomeList>>().unwrap();
-    let worldgen = PathBuf::from("worldgen");
-    for namespace in std::fs::read_dir(&worldgen)
-        .context("There's no worldgen/ directory. Try removing generated/ and re-running feather")?
-        .flatten()
-    {
-        let namespace_path = namespace.path();
-        for file in std::fs::read_dir(namespace_path.join("dimension"))?.flatten() {
-            if file.path().is_dir() {
-                bail!(
-                    "worldgen/{}/dimension/ shouldn't contain directories",
-                    file.file_name().to_str().unwrap_or("<non-UTF8 characters>")
-                )
-            }
-            let mut dimension_info: DimensionInfo =
-                serde_json::from_str(&std::fs::read_to_string(file.path()).unwrap())
-                    .context("Invalid dimension format")?;
-
-            let (dimension_namespace, dimension_value) =
-                dimension_info.r#type.split_once(':').context(format!(
-                    "Invalid dimension type `{}`. It should contain `:` once",
-                    dimension_info.r#type
-                ))?;
-            if dimension_value.contains(':') {
-                bail!(
-                    "Invalid dimension type `{}`. It should contain `:` exactly once",
-                    dimension_info.r#type
-                );
-            }
-            let mut dimension_type_path = worldgen.join(dimension_namespace);
-            dimension_type_path.push("dimension_type");
-            dimension_type_path.push(format!("{}.json", dimension_value));
-            dimension_info.info =
-                serde_json::from_str(&std::fs::read_to_string(dimension_type_path).unwrap())
-                    .context(format!(
-                        "Invalid dimension type format (worldgen/{}/dimension_type/{}.json",
-                        dimension_namespace, dimension_value
-                    ))?;
-
-            for (_, (world_name, world_path, mut dimensions)) in game
-                .ecs
-                .query::<(&WorldName, &WorldPath, &mut Dimensions)>()
-                .iter()
-            {
-                if !dimensions
-                    .iter()
-                    .any(|dim| dim.info().r#type == dimension_info.r#type)
-                {
-                    let generator: Arc<dyn WorldGenerator> = match &config.worlds.generator[..] {
-                        "flat" => Arc::new(SuperflatWorldGenerator::new(
-                            SuperflatGeneratorOptions::default(),
-                        )),
-                        other => {
-                            log::error!("Invalid generator specified in config.toml: {}", other);
-                            std::process::exit(1);
-                        }
-                    };
-                    let is_flat = config.worlds.generator == "flat";
-
-                    log::info!(
-                        "Adding dimension `{}` to world `{}`",
-                        dimension_info.r#type,
-                        **world_name
-                    );
-                    let mut world_path = world_path.join("dimensions");
-                    world_path.push(dimension_namespace);
-                    world_path.push(dimension_value);
-                    dimensions.add(Dimension::new(
-                        dimension_info.clone(),
-                        generator,
-                        world_path,
-                        false,
-                        is_flat,
-                        Arc::clone(&*biomes),
-                    ));
-                }
-            }
-        }
-    }
-
-    Ok(())
 }
 
 fn init_biomes(game: &mut Game) -> anyhow::Result<()> {
@@ -206,10 +107,123 @@ fn init_biomes(game: &mut Game) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn launch(game: Game) {
+fn launch(mut game: Game) -> anyhow::Result<()> {
+    // World initialization must happen after plugin initialization
+    // so plugin world sources can be referenced in the `config.toml`.
+    init_worlds(&mut game)?;
+
     let tick_loop = create_tick_loop(game);
     log::debug!("Launching the game loop");
     tick_loop.run();
+    Ok(())
+}
+
+fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
+    let config = game.resources.get::<Config>()?.clone();
+    let dimension_types = load_dimension_types()?;
+    let mut default_world_set = false;
+    for (world_name, world) in config.worlds {
+        let dimension_info = dimension_types
+            .iter()
+            .find(|dim| dim.r#type == world.dimension_type)
+            .ok_or_else(|| {
+                anyhow!(
+                    "world '{}' has unknown dimension type '{}'",
+                    world_name,
+                    world.dimension_type
+                )
+            })?
+            .clone();
+
+        let source_factory = game
+            .world_source_factory(&world.source.typ)
+            .with_context(|| format!("unknown world source in world '{}'", world_name))?;
+        let source = source_factory
+            .create_world_source(
+                game,
+                &toml::Value::Table(world.source.params),
+                &dimension_info,
+            )
+            .with_context(|| {
+                format!(
+                    "failed to initialize world source for world '{}'",
+                    world_name
+                )
+            })?;
+
+        let id = WorldId::new_random(); // TODO persist
+        let desc = WorldDescriptor {
+            id,
+            source,
+            name: Some(world_name.clone()),
+            dimension_info,
+            flat: world.flat,
+            settings: WorldSettings {
+                save_strategy: world.save_strategy.into(),
+                ..Default::default()
+            },
+        };
+        game.create_world(desc);
+
+        if world_name == config.server.default_world {
+            game.set_default_world(id);
+            default_world_set = true;
+        }
+    }
+
+    if !default_world_set {
+        bail!(
+            "default world '{}' is not configured",
+            config.server.default_world
+        );
+    }
+
+    Ok(())
+}
+
+fn load_dimension_types() -> anyhow::Result<Vec<DimensionInfo>> {
+    let mut types = Vec::new();
+    let worldgen = PathBuf::from("worldgen");
+    for namespace in std::fs::read_dir(&worldgen)
+        .context("There's no worldgen/ directory. Try removing generated/ and re-running feather")?
+        .flatten()
+    {
+        let namespace_path = namespace.path();
+        for file in std::fs::read_dir(namespace_path.join("dimension"))?.flatten() {
+            if file.path().is_dir() {
+                bail!(
+                    "worldgen/{}/dimension/ shouldn't contain directories",
+                    file.file_name().to_str().unwrap_or("<non-UTF8 characters>")
+                )
+            }
+            let mut dimension_info: DimensionInfo =
+                serde_json::from_str(&std::fs::read_to_string(file.path()).unwrap())
+                    .context("Invalid dimension format")?;
+
+            let (dimension_namespace, dimension_value) =
+                dimension_info.r#type.split_once(':').context(format!(
+                    "Invalid dimension type `{}`. It should contain `:` once",
+                    dimension_info.r#type
+                ))?;
+            if dimension_value.contains(':') {
+                bail!(
+                    "Invalid dimension type `{}`. It should contain `:` exactly once",
+                    dimension_info.r#type
+                );
+            }
+            let mut dimension_type_path = worldgen.join(dimension_namespace);
+            dimension_type_path.push("dimension_type");
+            dimension_type_path.push(format!("{}.json", dimension_value));
+            dimension_info.info =
+                serde_json::from_str(&std::fs::read_to_string(dimension_type_path).unwrap())
+                    .context(format!(
+                        "Invalid dimension type format (worldgen/{}/dimension_type/{}.json",
+                        dimension_namespace, dimension_value
+                    ))?;
+            types.push(dimension_info);
+        }
+    }
+    Ok(types)
 }
 
 fn create_tick_loop(mut game: Game) -> TickLoop {

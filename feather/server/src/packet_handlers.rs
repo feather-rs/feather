@@ -11,7 +11,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill::components::{EntityDimension, EntityPosition, EntityWorld, Name};
+use quill::components::{EntityPosition, EntityWorld, Name};
 use vane::{Entity, EntityRef, SysResult};
 
 use crate::{entities::PlayerClientSettings, NetworkId, Server};
@@ -130,8 +130,7 @@ fn handle_animation(
     };
 
     server.broadcast_nearby_with(
-        *player.get::<EntityWorld>()?,
-        &*player.get::<EntityDimension>()?,
+        player.get::<EntityWorld>()?.0,
         player.get::<EntityPosition>()?.0,
         |client| client.send_entity_animation(network_id, animation.clone()),
     );

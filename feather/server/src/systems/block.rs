@@ -13,7 +13,6 @@
 //! like WorldEdit. This module chooses the optimal packet from
 //! the above three options to achieve ideal performance.
 
-use common::world::Dimensions;
 use common::{events::BlockChangeEvent, Game};
 use libcraft::{chunk::SECTION_VOLUME, position, CHUNK_WIDTH};
 use vane::{SysResult, SystemExecutor};
@@ -28,7 +27,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn broadcast_block_changes(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, event) in game.ecs.query::<&BlockChangeEvent>().iter() {
-        broadcast_block_change(&event, game, server);
+        broadcast_block_change(&event, game, server)?;
     }
     Ok(())
 }
@@ -37,11 +36,11 @@ fn broadcast_block_changes(game: &mut Game, server: &mut Server) -> SysResult {
 // overwrite packets.
 const CHUNK_OVERWRITE_THRESHOLD: usize = SECTION_VOLUME / 2;
 
-fn broadcast_block_change(event: &BlockChangeEvent, game: &Game, server: &mut Server) {
+fn broadcast_block_change(event: &BlockChangeEvent, game: &Game, server: &mut Server) -> SysResult {
     if event.count() >= CHUNK_OVERWRITE_THRESHOLD {
-        broadcast_block_change_chunk_overwrite(event, game, server);
+        broadcast_block_change_chunk_overwrite(event, game, server)
     } else {
-        broadcast_block_change_simple(event, game, server);
+        broadcast_block_change_simple(event, game, server)
     }
 }
 
@@ -49,35 +48,36 @@ fn broadcast_block_change_chunk_overwrite(
     event: &BlockChangeEvent,
     game: &Game,
     server: &mut Server,
-) {
-    let mut dimensions = game.ecs.get_mut::<Dimensions>(event.world().0).unwrap();
-    let dimension = dimensions.get_mut(&**event.dimension()).unwrap();
+) -> SysResult {
+    let world = game.world(event.world())?;
     for (chunk_pos, _, _) in event.iter_affected_chunk_sections() {
-        if let Some(chunk) = dimension.chunk_map().chunk_handle_at(chunk_pos) {
+        if let Ok(chunk) = world.chunk_handle_at(chunk_pos) {
             let position = position!(
                 (chunk_pos.x * CHUNK_WIDTH as i32) as f64,
                 0.0,
                 (chunk_pos.z * CHUNK_WIDTH as i32) as f64,
             );
-            server.broadcast_nearby_with(event.world(), event.dimension(), position, |client| {
+            server.broadcast_nearby_with(event.world(), position, |client| {
                 client.overwrite_chunk(&chunk);
             })
         }
     }
+    Ok(())
 }
 
-fn broadcast_block_change_simple(event: &BlockChangeEvent, game: &Game, server: &mut Server) {
-    let dimensions = game.ecs.get::<Dimensions>(event.world().0).unwrap();
-    let dimension = dimensions.get(&**event.dimension()).unwrap();
+fn broadcast_block_change_simple(
+    event: &BlockChangeEvent,
+    game: &Game,
+    server: &mut Server,
+) -> SysResult {
+    let world = game.world(event.world())?;
     for pos in event.iter_changed_blocks() {
-        let new_block = dimension.block_at(pos);
-        if let Some(new_block) = new_block {
-            server.broadcast_nearby_with(
-                event.world(),
-                event.dimension(),
-                pos.position(),
-                |client| client.send_block_change(pos, new_block),
-            );
+        let new_block = world.block_at(pos.into());
+        if let Ok(new_block) = new_block {
+            server.broadcast_nearby_with(event.world(), pos.position(), |client| {
+                client.send_block_change(pos, new_block)
+            });
         }
     }
+    Ok(())
 }

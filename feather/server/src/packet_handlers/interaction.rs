@@ -1,8 +1,6 @@
-use anyhow::Context;
 use common::entities::player::HotbarSlot;
 use common::events::BlockChangeEvent;
 use common::interactable::InteractableRegistry;
-use common::world::Dimensions;
 use common::{Game, PlayerWindow};
 use libcraft::anvil::inventory_consts::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use libcraft::{BlockFace as LibcraftBlockFace, BlockPosition, Hand};
@@ -12,7 +10,7 @@ use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
-use quill::components::{EntityDimension, EntityWorld, Sneaking};
+use quill::components::{EntityWorld, Sneaking};
 use quill::events::{
     BlockInteractEvent, BlockPlacementEvent, HeldItemChangeEvent, InteractEntityEvent,
 };
@@ -60,17 +58,12 @@ pub fn handle_player_block_placement(
     );
 
     let block_kind = {
-        let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
-        let (_, (player_world, player_dimension)) =
-            query.iter().find(|(e, _)| *e == player).unwrap();
-        let dimensions = game.ecs.get::<Dimensions>(**player_world)?;
-        let dimension = dimensions
-            .get(&**player_dimension)
-            .context("missing dimension")?;
-        let result = dimension.block_at(packet.position);
+        let world_id = game.ecs.get::<EntityWorld>(player)?;
+        let world = game.world(world_id.0)?;
+        let result = world.block_at(packet.position.into());
         match result {
-            Some(block) => block.kind(),
-            None => {
+            Ok(block) => block.kind(),
+            Err(_) => {
                 let client_id = game.ecs.get::<ClientId>(player).unwrap();
 
                 let client = server.clients.get_mut(*client_id).unwrap();
@@ -142,19 +135,14 @@ pub fn handle_player_digging(
     log::trace!("Got player digging with status {:?}", packet.status);
     match packet.status {
         PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
-            let mut query = game.ecs.query::<(&EntityWorld, &EntityDimension)>();
-            let (world, dimension) = {
-                let (_, (player_world, player_dimension)) =
-                    query.iter().find(|(e, _)| *e == player).unwrap();
-                let dimensions = game.ecs.get::<Dimensions>(**player_world)?;
-                let dimension = dimensions
-                    .get(&**player_dimension)
-                    .context("missing dimension")?;
-                dimension.set_block_at(packet.position, BlockState::new(BlockKind::Air));
-                (*player_world, player_dimension.clone())
-            };
+            let world_id = game.ecs.get::<EntityWorld>(player)?.0;
+            {
+                let world = game.world(world_id)?;
+                world.set_block_at(packet.position.into(), BlockState::new(BlockKind::Air))?;
+            }
+
             game.ecs
-                .insert_event(BlockChangeEvent::single(packet.position, world, dimension));
+                .insert_event(BlockChangeEvent::single(packet.position, world_id));
             Ok(())
         }
         PlayerDiggingStatus::SwapItemInHand => {

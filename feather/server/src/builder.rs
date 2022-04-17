@@ -31,8 +31,7 @@ impl ServerBuilder {
     pub fn run(mut self) -> anyhow::Result<()> {
         self.plugin_loader.initialize(&mut self.game)?;
         print_systems(&self.game.system_executor.borrow());
-        crate::init::run(self.game);
-        Ok(())
+        crate::init::run(self.game)
     }
 }
 

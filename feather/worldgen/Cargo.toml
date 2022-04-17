@@ -7,4 +7,5 @@ edition = "2021"
 [dependencies]
 libcraft = { path = "../../libcraft" }
 log = "0.4"
+quill = { path = "../../quill" }
 rand = "0.8"

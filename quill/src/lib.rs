@@ -5,14 +5,16 @@ pub mod components;
 /// Marker components for each specific entity.
 pub mod entities;
 pub mod events;
-mod game;
+pub mod game;
 mod plugin;
-pub mod threadpool;
 pub mod saveload;
+pub mod threadpool;
+pub mod world;
 
 #[doc(inline)]
 pub use vane::{Entities, Entity, EntityBuilder, EntityRef, Resources, SysResult};
 
+#[doc(inline)]
 pub use game::Game;
 pub use plugin::{Plugin, PluginInfo, Setup};
 
@@ -30,3 +32,5 @@ pub use libcraft::{
     text::{Text, TextComponentBuilder},
     BlockPosition, ChunkPosition, Position, CHUNK_WIDTH,
 };
+#[doc(inline)]
+pub use world::{World, WorldId};

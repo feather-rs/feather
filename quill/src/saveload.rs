@@ -2,9 +2,9 @@
 
 use std::time::Duration;
 
-use libcraft::ChunkPosition;
+use libcraft::{dimension::DimensionInfo, ChunkPosition};
 
-use crate::ChunkHandle;
+use crate::{ChunkHandle, Game};
 
 pub mod worldgen;
 
@@ -109,7 +109,7 @@ pub struct ChunkSaveError {
     /// restart), then this functionality may help retain world durability.
     ///
     /// The server will retry the same chunk a maximum number of times,
-    /// configured in the `config.toml`. After reaching the retry limit,
+    /// configured in the world's `WorldSettings`. After reaching the retry limit,
     /// the server drops the chunk, and all changes are lost.
     pub retry_in: Duration,
 }
@@ -119,21 +119,46 @@ pub struct ChunkSaveError {
 #[derive(Debug)]
 pub struct ChunkSaved;
 
-/// How a `WorldSource` requests the server to save chunks.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum WorldSourceSaveKind {
-    /// Chunks will be saved incrementally (interval configured in the server config.toml).
-    ///
-    /// The server will save chunks by calling `WorldSource::save_chunk`.
-    SaveIncrementally,
-    /// The server will not save chunks, instead choosing to drop any changes made
-    /// to chunks when they are unloaded.
-    ///
-    /// This option is only recommended if you have an immutable world.
-    DropChanges,
-    /// The server will not save chunks, instead choosing to keep all loaded
-    /// chunks in memory. Changes will not persist after a server restart.
-    ///
-    /// This option is useful for minigames where the map is reset each new game.
-    Todo,
+/// A world source that never yields any chunks.
+#[derive(Default)]
+pub struct EmptyWorldSource {
+    queued: Vec<ChunkPosition>,
+}
+
+impl WorldSource for EmptyWorldSource {
+    fn supports_saving(&self) -> bool {
+        false
+    }
+
+    fn queue_load_chunk(&mut self, pos: ChunkPosition) {
+        self.queued.push(pos);
+    }
+
+    fn poll_loaded_chunk(&mut self) -> Option<ChunkLoadResult> {
+        self.queued.pop().map(|pos| ChunkLoadResult {
+            pos,
+            result: Err(ChunkLoadError::Missing),
+        })
+    }
+
+    fn queue_save_chunk(&mut self, _chunk: StoredChunk) {
+        unimplemented!()
+    }
+
+    fn poll_saved_chunk(&mut self) -> Option<ChunkSaveResult> {
+        unimplemented!()
+    }
+}
+
+/// A factory for a [`WorldSource`].
+///
+/// Registering `WorldSourceFactory`s allows the `config.toml`
+/// file to create worlds using plugins' `WorldSource`s.
+pub trait WorldSourceFactory: 'static {
+    fn create_world_source(
+        &self,
+        game: &dyn Game,
+        params: &toml::Value,
+        dimension_info: &DimensionInfo,
+    ) -> anyhow::Result<Box<dyn WorldSource>>;
 }

@@ -3,7 +3,7 @@ use libcraft::anvil::player::PlayerAbilities;
 use libcraft::Gamemode;
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
-    PreviousGamemode, WalkSpeed, PlayerGamemode,
+    PlayerGamemode, PreviousGamemode, WalkSpeed,
 };
 use quill::events::{
     BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,

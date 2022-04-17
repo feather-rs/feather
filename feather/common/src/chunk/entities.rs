@@ -1,6 +1,9 @@
 use ahash::AHashMap;
-use libcraft::{ChunkPosition};
-use quill::{events::{EntityCreateEvent, EntityRemoveEvent}, components::{EntityChunk, EntityPosition}};
+use libcraft::ChunkPosition;
+use quill::{
+    components::{EntityChunk, EntityPosition},
+    events::{EntityCreateEvent, EntityRemoveEvent},
+};
 use utils::vec_remove_item;
 use vane::{Entity, SysResult, SystemExecutor};
 
@@ -50,8 +53,10 @@ impl ChunkEntities {
 fn update_chunk_entities(game: &mut Game) -> SysResult {
     // Entities that have crossed chunks
     let mut events = Vec::new();
-    for (entity, (mut old_chunk, position)) in
-        game.ecs.query::<(&mut EntityChunk, &EntityPosition)>().iter()
+    for (entity, (mut old_chunk, position)) in game
+        .ecs
+        .query::<(&mut EntityChunk, &EntityPosition)>()
+        .iter()
     {
         let new_chunk = position.chunk();
         if position.chunk() != **old_chunk {
@@ -74,7 +79,11 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
 
     // Entities that have been created
     let mut insertions = Vec::new();
-    for (entity, (_event, position)) in game.ecs.query::<(&EntityCreateEvent, &EntityPosition)>().iter() {
+    for (entity, (_event, position)) in game
+        .ecs
+        .query::<(&EntityCreateEvent, &EntityPosition)>()
+        .iter()
+    {
         let chunk = position.chunk();
         game.chunk_entities.update(entity, None, chunk);
         insertions.push((entity, chunk));
