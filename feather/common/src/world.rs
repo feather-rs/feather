@@ -87,21 +87,23 @@ impl World {
         }
 
         // Unload chunks that have made their way through the unload queue.
-        let mut num_unloaded = 0;
-        while let Some(chunk) = self.unload_queue.pop() {
-            self.unload_chunk(chunk);
-            num_unloaded += 1;
+        if !matches!(&self.settings.save_strategy, &WorldSaveStrategy::KeepLoaded) {
+            let mut num_unloaded = 0;
+            while let Some(chunk) = self.unload_queue.pop() {
+                self.unload_chunk(chunk);
+                num_unloaded += 1;
+            }
+            if num_unloaded != 0 {
+                log::debug!(
+                    "Unloaded {} chunks for world {} (total loaded chunks: {} + {} cached)",
+                    num_unloaded,
+                    self.display_name(),
+                    self.chunk_map.len(),
+                    self.chunk_cache.len()
+                );
+            }
         }
-        if num_unloaded != 0 {
-            log::debug!(
-                "Unloaded {} chunks for world {} (total loaded chunks: {} + {} cached)",
-                num_unloaded,
-                self.display_name(),
-                self.chunk_map.len(),
-                self.chunk_cache.len()
-            );
-        }
-
+        
         self.chunk_cache.purge_old_unused();
 
         self.load_chunks()
