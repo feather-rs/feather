@@ -164,8 +164,11 @@ fn handle_client_settings(
         (old_view, view.clone())
     };
 
-    game.ecs
-        .insert_entity_event(player_id, ViewUpdateEvent::new(&old_view, &new_view))?;
+    // Don't overwrite an existing view update event
+    if !game.ecs.has::<ViewUpdateEvent>(player_id) {
+        game.ecs
+            .insert_entity_event(player_id, ViewUpdateEvent::new(&old_view, &new_view))?;
+    }
 
     game.ecs.insert(player_id, PlayerClientSettings(packet))?;
 

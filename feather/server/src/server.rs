@@ -12,7 +12,6 @@ use crate::{
     initial_handler::NewPlayer,
     listener::Listener,
     player_count::PlayerCount,
-    systems::view::WaitingChunks,
     Client, ClientId, Clients, Options,
 };
 
@@ -28,7 +27,6 @@ pub struct Server {
     pub(crate) clients: Clients,
     pub(crate) new_players: Receiver<NewPlayer>,
 
-    pub(crate) waiting_chunks: WaitingChunks,
     pub(crate) chunk_subscriptions: ChunkSubscriptions,
 
     pub(crate) last_keepalive_time: Instant,
@@ -57,7 +55,6 @@ impl Server {
             options,
             clients: Clients::new(),
             new_players,
-            waiting_chunks: WaitingChunks::default(),
             chunk_subscriptions: ChunkSubscriptions::default(),
             last_keepalive_time: Instant::now(),
             player_count,

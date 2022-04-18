@@ -217,3 +217,42 @@ fn too_many_shared_borrows() {
 
     assert_eq!(world.get::<Comp<i32>>(entity).unwrap().0, 10);
 }
+
+#[test]
+fn query_after_removing() {
+    let mut world = Entities::new();
+
+    let entity = world.spawn_bundle((Comp(0i32), Comp("foo")));
+
+    assert_eq!(world.query::<&Comp<i32>>().iter().count(), 1);
+
+    world.remove::<Comp<i32>>(entity).unwrap();
+
+    assert_eq!(world.query::<&Comp<i32>>().iter().count(), 0);
+
+    for _ in 0..100 {
+        world.spawn_bundle((Comp("foo"),));
+    }
+
+    let entity = world.spawn_bundle((Comp(0i32), Comp("foo")));
+
+    assert_eq!(world.query::<&Comp<i32>>().iter().count(), 1);
+
+    world.remove::<Comp<i32>>(entity).unwrap();
+
+    assert_eq!(world.query::<&Comp<i32>>().iter().count(), 0);
+}
+
+#[test]
+fn insert_twice_overwrites() {
+    let mut world = Entities::new();
+
+    let entity = world.spawn_empty();
+
+    world.insert(entity, Comp(0i32)).unwrap();
+    assert_eq!(world.query::<&Comp<i32>>().iter().count(), 1);
+
+    world.insert(entity, Comp(1i32)).unwrap();
+    assert_eq!(world.query::<&Comp<i32>>().iter().count(), 1);
+    assert_eq!(world.get::<Comp<i32>>(entity).unwrap().0, 1);
+}

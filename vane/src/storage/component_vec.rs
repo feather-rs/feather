@@ -179,7 +179,14 @@ fn item_index_within_array(item_index: u32) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use crate::Component;
+
     use super::*;
+
+    #[repr(transparent)]
+    struct Comp<T>(T);
+
+    impl<T: 'static> Component for Comp<T> {}
 
     #[test]
     fn array_index_zero() {
@@ -209,7 +216,7 @@ mod tests {
     #[test]
     #[cfg_attr(miri, ignore)]
     fn push_and_get() {
-        let meta = ComponentMeta::of::<i32>();
+        let meta = ComponentMeta::of::<Comp<i32>>();
         let mut vec = ComponentVec::new(meta);
 
         unsafe {
@@ -225,7 +232,7 @@ mod tests {
     #[test]
     #[cfg_attr(miri, ignore)]
     fn swap_remove() {
-        let meta = ComponentMeta::of::<i32>();
+        let meta = ComponentMeta::of::<Comp<i32>>();
         let mut vec = ComponentVec::new(meta);
 
         unsafe {

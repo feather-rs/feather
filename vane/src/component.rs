@@ -30,6 +30,7 @@ pub struct ComponentMeta {
     /// Function to drop the component.
     pub(crate) drop_fn: unsafe fn(*mut u8),
     pub(crate) on_inserted_fn: unsafe fn(*mut u8, &Entities, Entity),
+    pub(crate) name: &'static str,
 }
 
 impl ComponentMeta {
@@ -43,6 +44,7 @@ impl ComponentMeta {
                 let val = &mut *(ptr.cast::<T>());
                 val.on_inserted(entities, owner)
             },
+            name: std::any::type_name::<T>(),
         }
     }
 }

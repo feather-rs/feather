@@ -2,8 +2,8 @@ use core::slice;
 use std::{
     any::TypeId,
     iter::{self, Enumerate},
-    mem::MaybeUninit,
-    ptr::NonNull,
+    mem::{self, MaybeUninit},
+    ptr::{self, NonNull},
 };
 
 use once_cell::sync::Lazy;
@@ -64,12 +64,23 @@ impl SparseSetStorage {
     pub unsafe fn insert_raw(&mut self, index: u32, component: *const u8) -> *mut u8 {
         self.grow_sparse_for(index);
 
-        self.sparse[index as usize] = self.dense.len() as u32;
-        let ptr = self.components.push(component);
-        self.dense.push(index);
-        self.borrow_flags.push(BorrowFlag::default());
+        if let Some((existing_component, _)) = self.get_raw(index) {
+            // Component already exists for this index; overwrite it.
+            ptr::drop_in_place(existing_component.as_ptr());
+            ptr::copy_nonoverlapping(
+                component,
+                existing_component.as_ptr(),
+                self.components.component_meta().layout.size(),
+            );
+            existing_component.as_ptr()
+        } else {
+            self.sparse[index as usize] = self.dense.len() as u32;
+            let ptr = self.components.push(component);
+            self.dense.push(index);
+            self.borrow_flags.push(BorrowFlag::default());
 
-        ptr
+            ptr
+        }
     }
 
     pub fn get<T: 'static>(&self, index: u32) -> Result<Option<Ref<T>>, BorrowError> {
@@ -240,32 +251,52 @@ impl<'a> Iterator for Iter<'a> {
 mod tests {
     use std::alloc::Layout;
 
+    use crate::Component;
+
     use super::*;
+
+    #[repr(transparent)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+    struct Comp<T>(T);
+
+    impl<T: 'static> Component for Comp<T> {}
 
     #[test]
     fn insert_and_get() {
-        let mut storage = SparseSetStorage::new(ComponentMeta::of::<&'static str>());
+        let mut storage = SparseSetStorage::new(ComponentMeta::of::<Comp<&'static str>>());
 
         let entity_a = 10;
         let entity_b = 15;
 
-        storage.insert(entity_b, "entity b");
-        storage.insert(entity_a, "entity a");
+        storage.insert(entity_b, Comp("entity b"));
+        storage.insert(entity_a, Comp("entity a"));
 
         assert_eq!(
-            *storage.get::<&'static str>(entity_b).unwrap().unwrap(),
-            "entity b"
+            *storage
+                .get::<Comp<&'static str>>(entity_b)
+                .unwrap()
+                .unwrap(),
+            Comp("entity b")
         );
         assert_eq!(
-            *storage.get::<&'static str>(entity_a).unwrap().unwrap(),
-            "entity a"
+            *storage
+                .get::<Comp<&'static str>>(entity_a)
+                .unwrap()
+                .unwrap(),
+            Comp("entity a")
         );
 
         storage.remove(entity_a);
         assert_eq!(
-            *storage.get::<&'static str>(entity_b).unwrap().unwrap(),
-            "entity b"
+            *storage
+                .get::<Comp<&'static str>>(entity_b)
+                .unwrap()
+                .unwrap(),
+            Comp("entity b")
         );
-        assert!(storage.get::<&'static str>(entity_a).unwrap().is_none());
+        assert!(storage
+            .get::<Comp<&'static str>>(entity_a)
+            .unwrap()
+            .is_none());
     }
 }

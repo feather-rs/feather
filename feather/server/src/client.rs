@@ -1,5 +1,6 @@
 use ahash::AHashSet;
 use common::entities::player::HotbarSlot;
+use common::Game;
 use either::Either;
 use flume::{Receiver, Sender};
 use itertools::Itertools;
@@ -41,7 +42,7 @@ use protocol::{
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
 use quill::components::{OnGround, PreviousGamemode};
-use quill::{ChunkHandle, World, WorldId};
+use quill::{ChunkHandle, SysResult, World, WorldId};
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},
@@ -52,6 +53,8 @@ use crate::{
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 20;
+
+const MIN_CHUNKS_BEFORE_SPAWNING: usize = 5 * 5;
 
 slotmap::new_key_type! {
     pub struct ClientId;
@@ -115,7 +118,7 @@ pub struct Client {
     knows_position: bool,
     known_chunks: AHashSet<ChunkPosition>,
 
-    chunk_send_queue: VecDeque<ChunkData>,
+    chunk_send_queue: VecDeque<ChunkPosition>,
 
     /// The previous own position sent by the client.
     /// Used to detect when we need to teleport the client.
@@ -124,6 +127,8 @@ pub struct Client {
     disconnected: bool,
 
     world: Option<WorldId>,
+
+    total_sent_chunks: usize,
 }
 
 impl Client {
@@ -144,6 +149,7 @@ impl Client {
             client_known_position: None,
             disconnected: false,
             world: None,
+            total_sent_chunks: 0,
         }
     }
 
@@ -187,20 +193,47 @@ impl Client {
         self.knows_position
     }
 
-    pub fn tick(&mut self) {
-        let num_to_send = MAX_CHUNKS_PER_TICK.min(self.chunk_send_queue.len());
-        let packets = self
-            .chunk_send_queue
-            .drain(..num_to_send)
-            .collect::<Vec<_>>();
-        for packet in packets {
-            log::trace!(
-                "Sending chunk at {:?} to {}",
-                packet.chunk.as_ref().unwrap_left().read().position(),
-                self.username
-            );
-            self.send_packet(packet);
+    pub fn tick(&mut self, game: &Game, pos: Position) -> SysResult {
+        self.flush_chunk_queue(game, pos)
+    }
+
+    fn flush_chunk_queue(&mut self, game: &Game, pos: Position) -> SysResult {
+        if let Some(world_id) = self.world {
+            let mut sent = 0;
+            let world = game.world(world_id)?;
+            while let Some(&chunk_pos) = self.chunk_send_queue.get(0) {
+                if !self.known_chunks.contains(&chunk_pos) {
+                    // The chunk has been unloaded on the client, so
+                    // we don't need to send it anymore.
+                    self.chunk_send_queue.pop_front();
+                    continue;
+                }
+
+                match world.chunk_handle_at(chunk_pos) {
+                    Ok(chunk) => {
+                        self.send_packet(ChunkData {
+                            chunk: Either::Left(chunk),
+                        });
+                        self.total_sent_chunks += 1;
+                    }
+                    Err(_not_loaded) => break,
+                }
+
+                self.chunk_send_queue.pop_front();
+
+                sent += 1;
+                if sent >= MAX_CHUNKS_PER_TICK {
+                    break;
+                }
+            }
         }
+
+        if self.total_sent_chunks >= MIN_CHUNKS_BEFORE_SPAWNING && !self.knows_own_position() {
+            log::info!("Spawning {}", self.username());
+            self.update_own_position(pos);
+        }
+
+        Ok(())
     }
 
     /// Returns whether the entity with the given ID
@@ -346,11 +379,10 @@ impl Client {
         });
     }
 
-    pub fn send_chunk(&mut self, chunk: &ChunkHandle) {
-        self.chunk_send_queue.push_back(ChunkData {
-            chunk: Either::Left(Arc::clone(chunk)),
-        });
-        self.known_chunks.insert(chunk.read().position());
+    pub fn queue_send_chunk(&mut self, chunk: ChunkPosition) {
+        if self.known_chunks.insert(chunk) {
+            self.chunk_send_queue.push_back(chunk);
+        }
     }
 
     pub fn overwrite_chunk(&self, chunk: &ChunkHandle) {
@@ -429,8 +461,13 @@ impl Client {
     }
 
     pub fn send_player(&mut self, network_id: NetworkId, uuid: Uuid, pos: Position) {
+        if Some(network_id) == self.network_id {
+            return;
+        }
+        if self.sent_entities.contains(&network_id) {
+            return;
+        }
         log::trace!("Sending {:?} to {}", uuid, self.username);
-        assert!(!self.sent_entities.contains(&network_id));
         self.send_packet(SpawnPlayer {
             entity_id: network_id.0,
             player_uuid: uuid,

@@ -14,7 +14,7 @@ pub mod view;
 use std::time::{Duration, Instant};
 
 use common::Game;
-use quill::components::Name;
+use quill::components::{EntityPosition, Name};
 use vane::{SysResult, SystemExecutor};
 
 use crate::{client::ClientId, Server};
@@ -78,10 +78,11 @@ fn send_keepalives(_game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 /// Ticks `Client`s.
-fn tick_clients(_game: &mut Game, server: &mut Server) -> SysResult {
-    for client in server.clients.iter_mut() {
-        client.tick();
+fn tick_clients(game: &mut Game, server: &mut Server) -> SysResult {
+    for (player, (client_id, position)) in game.ecs.query::<(&ClientId, &EntityPosition)>().iter() {
+        if let Some(client) = server.clients.get_mut(*client_id) {
+            client.tick(game, position.0)?;
+        }
     }
-
     Ok(())
 }
