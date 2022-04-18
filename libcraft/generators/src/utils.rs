@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 pub use quote::{format_ident, quote, ToTokens};
-pub use rayon::prelude::*;
 use serde::de::DeserializeOwned;
 pub use serde::Deserialize;
 
@@ -57,18 +56,6 @@ pub fn output(file: &str, content: &str) {
     println!("Generated {}", path.to_str().unwrap());
 
     rustfmt(path)
-}
-
-pub fn output_bytes(file: &str, content: impl AsRef<[u8]>) {
-    let path = std::env::current_dir().unwrap().join(file);
-    if !path.parent().unwrap().exists() {
-        panic!(
-            "Couldn't write to file.\nPath {} does not exist",
-            path.parent().unwrap().to_str().unwrap()
-        );
-    }
-    std::fs::write(&path, content).unwrap();
-    println!("Generated {}", path.to_str().unwrap());
 }
 
 fn rustfmt(path: impl Into<PathBuf> + Clone) {

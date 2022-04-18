@@ -47,14 +47,16 @@ pub fn generate() {
     out.extend(generate_enum!(
         BlockKind,
         blocks
-            .par_iter()
+            .iter ()
             .map(|block| block.name.to_case(Case::UpperCamel))
             .collect::<Vec<_>>(),
         [
             num_derive::FromPrimitive,
             num_derive::ToPrimitive,
             serde::Serialize,
-            serde::Deserialize
+            serde::Deserialize,
+            bincode::Encode,
+            bincode::Decode
         ],
         #[serde(rename_all = "snake_case")]
     ));

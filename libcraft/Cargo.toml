@@ -5,8 +5,10 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2021"
 
 [dependencies]
+bincode = "2.0.0-rc.1"
 bitflags = "1"
 derive_more = "0.99"
+flate2 = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 libcraft-anvil = { path = "anvil" }
 libcraft-blocks = { path = "blocks" }

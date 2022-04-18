@@ -2,11 +2,14 @@
 //! See the `libcraft-blocks` crate
 //! for actual block definitions.
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumString;
 
 /// Direction a block is facing in.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 #[repr(u8)]
 pub enum BlockFace {
@@ -29,7 +32,9 @@ pub enum BlockFace {
 }
 
 /// Size of bamboo leaves.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum BambooLeaves {
     None,
@@ -38,7 +43,9 @@ pub enum BambooLeaves {
 }
 
 /// Part of a bed.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum BedPart {
     Foot,
@@ -46,7 +53,9 @@ pub enum BedPart {
 }
 
 /// How a bell is attached.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum BellAttachment {
     Ceiling,
@@ -57,7 +66,9 @@ pub enum BellAttachment {
 
 /// An axis. Used for bone blocks,
 /// portal blocks, chains, etc.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum Axis {
     X,
@@ -66,7 +77,9 @@ pub enum Axis {
 }
 
 /// Block face a button or grindstone is attached to.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum AttachedFace {
     Ceiling,
@@ -75,7 +88,9 @@ pub enum AttachedFace {
 }
 
 /// Type of a chest.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum ChestType {
     Single,
@@ -86,7 +101,9 @@ pub enum ChestType {
 }
 
 /// Which half of a door or flower block is.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum BlockHalf {
     Lower,
@@ -94,7 +111,9 @@ pub enum BlockHalf {
 }
 
 /// Which half of stairs.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum StairHalf {
     Bottom,
@@ -102,7 +121,9 @@ pub enum StairHalf {
 }
 
 /// To which side a door's hinge is.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum DoorHinge {
     Left,
@@ -110,7 +131,9 @@ pub enum DoorHinge {
 }
 
 /// Orientation of a jigsaw block.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum Orientation {
     DownEast,
@@ -128,7 +151,9 @@ pub enum Orientation {
 }
 
 /// A note block instrument.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum Instrument {
     Banjo,
@@ -150,7 +175,9 @@ pub enum Instrument {
 }
 
 /// Type of a slab block.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum SlabType {
     Bottom,
@@ -159,7 +186,9 @@ pub enum SlabType {
 }
 
 /// Type of a moving piston or piston head.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum PistonType {
     Normal,
@@ -167,7 +196,9 @@ pub enum PistonType {
 }
 
 /// Shape of a rail block.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum RailShape {
     EastWest,
@@ -183,7 +214,9 @@ pub enum RailShape {
 }
 
 /// Mode of a redstone comparator.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum ComparatorMode {
     Compare,
@@ -191,7 +224,9 @@ pub enum ComparatorMode {
 }
 
 /// How a redstone dust connects to a given side.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum RedstoneConnection {
     None,
@@ -200,7 +235,9 @@ pub enum RedstoneConnection {
 }
 
 /// Shape of a stairs block.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum StairShape {
     InnerLeft,
@@ -211,7 +248,9 @@ pub enum StairShape {
 }
 
 /// Mode of a structure block.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum StructureBlockMode {
     Corner,
@@ -221,7 +260,9 @@ pub enum StructureBlockMode {
 }
 
 /// How a wall connects to a given direction.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Encode, Decode, EnumString,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum WallConnection {
     None,

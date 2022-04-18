@@ -119,11 +119,20 @@ checksum = "e6b4d9b1225d28d360ec6a231d65af1fd99a2a095154c8040689617290569c5c"
 
 [[package]]
 name = "bincode"
-version = "1.3.3"
+version = "2.0.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
+checksum = "f609ceb2c41b0d0277314a789ef0e7eb14593d5485f7c67320bed3924ebb1b33"
 dependencies = [
- "serde",
+ "bincode_derive",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "913287a8f3e00db4c7ae1b87e9b9b8cebd6b89217eaadfc281fa5c897da35dc3"
+dependencies = [
+ "virtue",
 ]
 
 [[package]]
@@ -389,41 +398,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crossbeam-channel"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aaa7bd5fb665c6864b5f963dd9097905c54125909c7aa94c9e18507cdbe6c53"
-dependencies = [
- "cfg-if",
- "crossbeam-utils",
-]
-
-[[package]]
-name = "crossbeam-deque"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6455c0ca19f0d2fbf751b908d5c55c1f5cbc65e03c4225427254b46890bdde1e"
-dependencies = [
- "cfg-if",
- "crossbeam-epoch",
- "crossbeam-utils",
-]
-
-[[package]]
-name = "crossbeam-epoch"
-version = "0.9.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1145cf131a2c6ba0615079ab6a638f7e1973ac9c2634fcbeaaad6114246efe8c"
-dependencies = [
- "autocfg 1.1.0",
- "cfg-if",
- "crossbeam-utils",
- "lazy_static",
- "memoffset",
- "scopeguard",
-]
-
-[[package]]
 name = "crossbeam-utils"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -493,26 +467,6 @@ dependencies = [
  "darling_core",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "data-generators"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "convert_case 0.5.0",
- "fs_extra",
- "indexmap",
- "libcraft-core",
- "log",
- "once_cell",
- "proc-macro2",
- "quote",
- "rayon",
- "regex",
- "serde",
- "serde_json",
- "ureq",
 ]
 
 [[package]]
@@ -589,7 +543,6 @@ dependencies = [
  "parking_lot",
  "quill",
  "rand",
- "rayon",
  "serde",
  "smartstring",
  "tokio",
@@ -646,7 +599,6 @@ dependencies = [
  "colored",
  "const_format",
  "crossbeam-utils",
- "data-generators",
  "either",
  "feather-common",
  "feather-protocol",
@@ -980,8 +932,10 @@ checksum = "ec647867e2bf0772e28c8bcde4f0d19a9216916e890543b5a03ed8ef27b8f259"
 name = "libcraft"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "bitflags",
  "derive_more",
+ "flate2",
  "hematite-nbt",
  "libcraft-anvil",
  "libcraft-blocks",
@@ -1039,8 +993,9 @@ dependencies = [
 name = "libcraft-chunk"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "derive_more",
- "indexmap",
+ "flate2",
  "itertools",
  "libcraft-blocks",
  "libcraft-core",
@@ -1052,6 +1007,7 @@ dependencies = [
 name = "libcraft-core"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "bytemuck",
  "derive_more",
  "num-derive",
@@ -1069,10 +1025,22 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "convert_case 0.5.0",
  "flate2",
+ "fs_extra",
+ "indexmap",
+ "libcraft",
  "libcraft-blocks",
+ "libcraft-chunk",
+ "libcraft-core",
+ "log",
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "regex",
  "serde",
  "serde_json",
+ "ureq",
 ]
 
 [[package]]
@@ -1183,15 +1151,6 @@ name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
-
-[[package]]
-name = "memoffset"
-version = "0.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
-dependencies = [
- "autocfg 1.1.0",
-]
 
 [[package]]
 name = "miniz_oxide"
@@ -1626,31 +1585,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 dependencies = [
  "getrandom",
-]
-
-[[package]]
-name = "rayon"
-version = "1.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c06aca804d41dbc8ba42dfd964f0d01334eceb64314b9ecf7c5fad5188a06d90"
-dependencies = [
- "autocfg 1.1.0",
- "crossbeam-deque",
- "either",
- "rayon-core",
-]
-
-[[package]]
-name = "rayon-core"
-version = "1.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d78120e2c850279833f1dd3582f730c4ab53ed95aeaaaa862a2a5c71b1656d8e"
-dependencies = [
- "crossbeam-channel",
- "crossbeam-deque",
- "crossbeam-utils",
- "lazy_static",
- "num_cpus",
 ]
 
 [[package]]
@@ -2233,6 +2167,12 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "virtue"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "757cfbfe0d17ee6f22fe97e536d463047d451b47cf9d11e2b7d1398b0ef274dd"
 
 [[package]]
 name = "waker-fn"

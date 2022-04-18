@@ -1,8 +1,8 @@
 use itertools::Itertools;
-use std::collections::HashMap;
 use std::sync::atomic::Ordering;
+use std::{collections::HashMap, io::Cursor};
 
-use indexmap::IndexMap;
+use bincode::{Decode, Encode};
 use libcraft_blocks::BlockKind;
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +21,8 @@ use libcraft_core::EntityKind;
     derive_more::Deref,
     Serialize,
     Deserialize,
+    Encode,
+    Decode,
 )]
 pub struct BiomeId(usize);
 
@@ -36,25 +38,41 @@ impl Default for BiomeId {
     }
 }
 
-#[derive(Default, derive_more::Deref)]
-pub struct BiomeList(IndexMap<String, BiomeGeneratorInfo>);
+#[derive(Default, Serialize, Deserialize, Encode, Decode)]
+pub struct BiomeList(Vec<(String, BiomeGeneratorInfo)>);
 
 impl BiomeList {
+    /// Returns the default set of biomes used in vanilla.
+    pub fn vanilla() -> Self {
+        static DATA: &[u8] = include_bytes!("../../assets/vanilla_biomes.bc.gz");
+
+        let mut decoder = flate2::read::GzDecoder::new(Cursor::new(DATA));
+        bincode::decode_from_std_read(&mut decoder, bincode::config::standard())
+            .expect("malformed vanilla biomes data")
+    }
+
     pub fn insert(&mut self, biome: String, info: BiomeGeneratorInfo) {
         BIOMES_COUNT.fetch_add(1, Ordering::Relaxed);
-        self.0.insert(biome, info);
+        self.0.push((biome, info));
     }
 
     pub fn get_by_id(&self, id: &BiomeId) -> Option<(&String, &BiomeGeneratorInfo)> {
-        self.0.get_index(**id)
+        self.0.get(id.0).map(|(a, b)| (a, b))
     }
 
     pub fn get_id(&self, identifier: &str) -> Option<BiomeId> {
-        self.0.get_index_of(identifier).map(BiomeId)
+        self.0
+            .iter()
+            .position(|(name, _)| name == identifier)
+            .map(BiomeId)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &BiomeGeneratorInfo)> + '_ {
+        self.0.iter().map(|(a, b)| (a, b))
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeGeneratorInfo {
     pub carvers: HashMap<BlockKind, Vec<String>>,
     pub features: Vec<Vec<String>>,
@@ -65,7 +83,7 @@ pub struct BiomeGeneratorInfo {
     pub info: BiomeInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeInfo {
     pub effects: BiomeEffects,
     pub precipitation: String,
@@ -123,38 +141,38 @@ pub mod spawn_costs {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeSpawnCost {
     energy_budget: f32,
     charge: f32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeParticle {
     pub probability: f32,
     pub options: BiomeParticleOptions,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeParticleOptions {
     #[serde(rename = "type")]
     pub particle_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 #[serde(rename_all = "snake_case")]
 pub enum BiomeTemperatureModifier {
     Frozen,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 #[serde(rename_all = "snake_case")]
 pub enum BiomeGrassColorModifier {
     Swamp,
     DarkForest,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 #[serde(rename_all = "snake_case")]
 pub enum BiomeCategory {
     Ocean,
@@ -178,7 +196,7 @@ pub enum BiomeCategory {
     None,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeEffects {
     pub mood_sound: Option<BiomeMoodSound>,
     pub music: Option<BiomeMusic>,
@@ -193,13 +211,13 @@ pub struct BiomeEffects {
     pub water_fog_color: BiomeColor,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeAdditionsSound {
     pub sound: String,
     pub tick_chance: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeMusic {
     pub sound: String,
     pub min_delay: i32,
@@ -208,7 +226,7 @@ pub struct BiomeMusic {
     pub replace_current_music: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 #[serde(from = "i32", into = "i32")]
 pub struct BiomeColor {
     pub r: u8,
@@ -239,7 +257,7 @@ impl From<BiomeColor> for i32 {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeMoodSound {
     pub sound: String,
     pub tick_delay: i32,
@@ -247,7 +265,7 @@ pub struct BiomeMoodSound {
     pub offset: f32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 pub struct BiomeSpawners {
     pub monster: Vec<BiomeSpawner>,
     pub creature: Vec<BiomeSpawner>,
@@ -260,7 +278,7 @@ pub struct BiomeSpawners {
     pub misc: Vec<BiomeSpawner>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Encode, Decode)]
 #[serde(rename_all = "camelCase")]
 pub struct BiomeSpawner {
     #[serde(rename = "type")]
@@ -268,4 +286,16 @@ pub struct BiomeSpawner {
     pub weight: usize,
     pub min_count: usize,
     pub max_count: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn vanilla_biomes_load() {
+        let biomes = BiomeList::vanilla();
+        assert!(!biomes.0.is_empty());
+        assert!(biomes.get_id("minecraft:plains").is_some());
+    }
 }

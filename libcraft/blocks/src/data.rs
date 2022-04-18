@@ -4,16 +4,16 @@ use std::{
 };
 
 use crate::BlockKind;
+use bincode::{Decode, Encode};
 use libcraft_core::block::{
     AttachedFace, Axis, BambooLeaves, BedPart, BellAttachment, BlockFace, BlockHalf, ChestType,
     ComparatorMode, DoorHinge, Instrument, Orientation, PistonType, RailShape, RedstoneConnection,
     SlabType, StairHalf, StairShape, StructureBlockMode, WallConnection,
 };
 use serde::{Deserialize, Serialize};
-use smartstring::{LazyCompact, SmartString};
 
 /// Defines all possible data associated with a block state.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
 pub struct RawBlockState {
     /// Block state ID
     pub id: u16,
@@ -21,10 +21,10 @@ pub struct RawBlockState {
     /// Whether this is the default state for this block kind
     pub default: bool,
     pub properties: RawBlockStateProperties,
-    pub untyped_properties: Vec<(SmartString<LazyCompact>, SmartString<LazyCompact>)>,
+    pub untyped_properties: Vec<(String, String)>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
 pub struct RawBlockStateProperties {
     pub facing: Option<BlockFace>,
     pub bamboo_leaves: Option<BambooLeaves>,
@@ -325,13 +325,13 @@ impl BlockReportState {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
 pub struct RawBlockProperties {
     pub kind: BlockKind,
     pub valid_properties: ValidProperties,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
 pub struct ValidProperties {
     pub facing: Vec<BlockFace>,
     pub bamboo_leaves: Vec<BambooLeaves>,

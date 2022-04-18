@@ -7,7 +7,7 @@ pub fn generate() {
 
     let mut out = generate_enum!(
         Item,
-        data.par_iter()
+        data.iter()
             .map(|item| item.name.to_case(Case::UpperCamel))
             .collect::<Vec<_>>(),
         [serde::Serialize, serde::Deserialize],

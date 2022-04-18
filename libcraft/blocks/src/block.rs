@@ -168,6 +168,8 @@ pub mod dig_multipliers {
     num_derive :: ToPrimitive,
     serde :: Serialize,
     serde :: Deserialize,
+    bincode :: Encode,
+    bincode :: Decode,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum BlockKind {

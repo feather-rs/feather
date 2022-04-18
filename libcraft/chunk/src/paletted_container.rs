@@ -307,6 +307,7 @@ impl Paletteable for BiomeId {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use libcraft_blocks::BlockState;
@@ -347,3 +348,4 @@ mod tests {
         }
     }
 }
+*/

@@ -24,8 +24,6 @@ members = [
     "feather/protocol",
     "feather/server",
     
-    "data_generators",
-
     # Other
     "proxy",
     "vane",

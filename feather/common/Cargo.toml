@@ -16,7 +16,6 @@ num_cpus = "1"
 parking_lot = "0.12"
 quill = { path = "../../quill" }
 rand = "0.8"
-rayon = "1.5"
 serde = { version = "1", features = [ "derive" ] }
 smartstring = "1"
 tokio = "1"

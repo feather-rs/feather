@@ -9,7 +9,6 @@ use tokio::runtime::Runtime;
 
 use crate::{config::Config, logging, Server};
 use common::{Game, TickLoop};
-use data_generators::extract_vanilla_data;
 use libcraft::biome::{BiomeGeneratorInfo, BiomeList};
 use vane::SystemExecutor;
 
@@ -25,8 +24,6 @@ pub async fn create_game(runtime: Runtime) -> anyhow::Result<Game> {
         log::info!("Created default config");
     }
     log::info!("Loaded config");
-
-    extract_vanilla_data();
 
     log::info!("Creating server");
     let options = config.to_options();
@@ -45,7 +42,7 @@ pub fn run(game: Game) -> anyhow::Result<()> {
 fn init_game(server: Server, config: &Config, runtime: Runtime) -> anyhow::Result<Game> {
     let mut game = Game::new(runtime);
     init_systems(&mut game, server);
-    init_biomes(&mut game)?;
+    init_biomes(&mut game);
     Ok(game)
 }
 
@@ -61,50 +58,9 @@ fn init_systems(game: &mut Game, server: Server) {
     game.system_executor = Rc::new(RefCell::new(systems));
 }
 
-fn init_biomes(game: &mut Game) -> anyhow::Result<()> {
-    let mut biomes = BiomeList::default();
-
-    let worldgen = PathBuf::from("worldgen");
-    for dir in std::fs::read_dir(&worldgen)
-        .context("There's no worldgen/ directory. Try removing generated/ and re-running feather")?
-        .flatten()
-    {
-        let namespace = dir
-            .file_name()
-            .to_str()
-            .context(format!(
-                "Non-UTF8 characters in namespace directory: {:?}",
-                dir.file_name()
-            ))?
-            .to_string();
-        let namespace_dir = dir.path();
-        let namespace_worldgen = namespace_dir.join("worldgen");
-        for file in std::fs::read_dir(namespace_worldgen.join("biome")).context(
-            format!("There's no worldgen/{}/worldgen/biome/ directory. Try removing generated/ and re-running feather",
-                    dir.file_name().to_str().unwrap_or("<non-UTF8 characters>")),
-        )?.flatten() {
-            if let Some(file_name) = file.file_name().to_str() {
-                if file_name.ends_with(".json") {
-                    let biome: BiomeGeneratorInfo = serde_json::from_str(
-                        &std::fs::read_to_string(file.path()).unwrap(),
-                    )
-                    .unwrap();
-                    let name = format!(
-                        "{}:{}",
-                        namespace,
-                        file_name.strip_suffix(".json").unwrap()
-                    );
-                    log::trace!("Loaded biome: {}", name);
-                    biomes.insert(name, biome);
-                }
-            } else {
-                // non-utf8 namespaces are errors, but non-utf8 values are just ignored
-                log::warn!("Ignoring a biome file with non-UTF8 characters in name: {:?}", file.file_name())
-            }
-        }
-    }
-    game.insert_resource(Arc::new(biomes));
-    Ok(())
+fn init_biomes(game: &mut Game) {
+    let biomes = Arc::new(BiomeList::vanilla());
+    game.insert_resource(biomes);
 }
 
 fn launch(mut game: Game) -> anyhow::Result<()> {
@@ -120,7 +76,7 @@ fn launch(mut game: Game) -> anyhow::Result<()> {
 
 fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
     let config = game.resources.get::<Config>()?.clone();
-    let dimension_types = load_dimension_types()?;
+    let dimension_types = libcraft::dimension::vanilla_dimensions();
     let mut default_world_set = false;
     for (world_name, world) in config.worlds {
         let dimension_info = dimension_types
@@ -179,51 +135,6 @@ fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
     }
 
     Ok(())
-}
-
-fn load_dimension_types() -> anyhow::Result<Vec<DimensionInfo>> {
-    let mut types = Vec::new();
-    let worldgen = PathBuf::from("worldgen");
-    for namespace in std::fs::read_dir(&worldgen)
-        .context("There's no worldgen/ directory. Try removing generated/ and re-running feather")?
-        .flatten()
-    {
-        let namespace_path = namespace.path();
-        for file in std::fs::read_dir(namespace_path.join("dimension"))?.flatten() {
-            if file.path().is_dir() {
-                bail!(
-                    "worldgen/{}/dimension/ shouldn't contain directories",
-                    file.file_name().to_str().unwrap_or("<non-UTF8 characters>")
-                )
-            }
-            let mut dimension_info: DimensionInfo =
-                serde_json::from_str(&std::fs::read_to_string(file.path()).unwrap())
-                    .context("Invalid dimension format")?;
-
-            let (dimension_namespace, dimension_value) =
-                dimension_info.r#type.split_once(':').context(format!(
-                    "Invalid dimension type `{}`. It should contain `:` once",
-                    dimension_info.r#type
-                ))?;
-            if dimension_value.contains(':') {
-                bail!(
-                    "Invalid dimension type `{}`. It should contain `:` exactly once",
-                    dimension_info.r#type
-                );
-            }
-            let mut dimension_type_path = worldgen.join(dimension_namespace);
-            dimension_type_path.push("dimension_type");
-            dimension_type_path.push(format!("{}.json", dimension_value));
-            dimension_info.info =
-                serde_json::from_str(&std::fs::read_to_string(dimension_type_path).unwrap())
-                    .context(format!(
-                        "Invalid dimension type format (worldgen/{}/dimension_type/{}.json",
-                        dimension_namespace, dimension_value
-                    ))?;
-            types.push(dimension_info);
-        }
-    }
-    Ok(types)
 }
 
 fn create_tick_loop(mut game: Game) -> TickLoop {

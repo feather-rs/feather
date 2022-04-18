@@ -1,12 +1,12 @@
 use std::fs::{read_to_string, write};
 use std::io::Write;
 
+use bincode::Encode;
 use libcraft_blocks::data::BlockReport;
 use libcraft_blocks::BlockKind;
 
 use anyhow::{anyhow, Context, Result};
 use flate2::Compression;
-use serde::Serialize;
 
 pub fn load_block_report(path: &str) -> Result<BlockReport> {
     println!("Reading BlockReport from blocks.json");
@@ -15,9 +15,9 @@ pub fn load_block_report(path: &str) -> Result<BlockReport> {
 }
 
 /// Writes data to file provided in compressed binary format (.bc.gz)
-pub fn compress_and_write<T: Serialize>(data: Vec<T>, path: &str) -> Result<()> {
-    println!("Writing {} entries to {}", data.len(), path);
-    let encoded = bincode::serialize(&data)?;
+pub fn compress_and_write<T: Encode>(data: T, path: &str) -> Result<()> {
+    println!("Writing data to {}", path);
+    let encoded = bincode::encode_to_vec(&data, bincode::config::standard())?;
 
     let mut writer = flate2::write::GzEncoder::new(Vec::new(), Compression::best());
     writer.write_all(&encoded)?;

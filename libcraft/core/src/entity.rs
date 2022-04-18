@@ -10,6 +10,8 @@
     Ord,
     serde :: Serialize,
     serde :: Deserialize,
+    bincode :: Encode,
+    bincode :: Decode,
 )]
 #[serde(try_from = "String", into = "&'static str")]
 pub enum EntityKind {

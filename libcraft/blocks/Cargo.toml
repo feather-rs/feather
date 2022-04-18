@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 ahash = "0.7"
-bincode = "1"
+bincode = "2.0.0-rc.1"
 bytemuck = { version = "1", features = ["derive"] }
 flate2 = "1"
 libcraft-core = { path = "../core" }

@@ -1,6 +1,19 @@
+use std::io::Cursor;
+
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Loads the vanilla dimensions from a precomputed data set.
+pub fn vanilla_dimensions() -> Vec<DimensionInfo> {
+    static DATA: &[u8] = include_bytes!("../assets/vanilla_dimensions.bc.gz");
+
+    let mut decoder = flate2::read::GzDecoder::new(Cursor::new(DATA));
+
+    bincode::decode_from_std_read(&mut decoder, bincode::config::standard())
+        .expect("malformed dimension data ")
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub struct DimensionInfo {
     pub r#type: String,
     #[serde(default)]
@@ -8,7 +21,7 @@ pub struct DimensionInfo {
     pub generator: DimensionGeneratorInfo,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, Encode, Decode)]
 pub struct DimensionTypeInfo {
     pub logical_height: i32,
     pub infiniburn: String,
@@ -36,7 +49,7 @@ pub struct DimensionTypeInfo {
     pub fixed_time: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub struct DimensionGeneratorInfo {
     pub biome_source: BiomeSource,
     pub seed: u64,
@@ -44,7 +57,7 @@ pub struct DimensionGeneratorInfo {
     pub r#type: GeneratorRandomSource,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 #[serde(tag = "type")]
 pub enum BiomeSource {
     #[serde(rename = "minecraft:multi_noise")]
@@ -53,13 +66,13 @@ pub enum BiomeSource {
     TheEnd,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub struct Biome {
     pub parameters: BiomeParams,
     pub biome: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub struct BiomeParams {
     pub erosion: ValueOrRange,
     pub depth: ValueOrRange,
@@ -70,14 +83,14 @@ pub struct BiomeParams {
     pub continentalness: ValueOrRange,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 #[serde(untagged)]
 pub enum ValueOrRange {
     Value(f64),
     Range([f64; 2]),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub enum GeneratorRandomSource {
     #[serde(rename = "minecraft:noise")]
     Noise,
@@ -85,7 +98,7 @@ pub enum GeneratorRandomSource {
     MultiNoise,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub enum DimensionSettings {
     #[serde(rename = "minecraft:overworld")]
     Overworld,
@@ -93,4 +106,15 @@ pub enum DimensionSettings {
     Nether,
     #[serde(rename = "minecraft:end")]
     End,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn vanilla_dimensions_load() {
+        let dimensions = vanilla_dimensions();
+        assert!(!dimensions.is_empty());
+    }
 }

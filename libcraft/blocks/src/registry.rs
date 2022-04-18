@@ -159,7 +159,7 @@ impl Serialize for BlockState {
     }
 }
 
-impl <'de> Deserialize<'de>  for BlockState {
+impl<'de> Deserialize<'de> for BlockState {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -196,15 +196,17 @@ struct BlockRegistry {
 
 impl BlockRegistry {
     fn new() -> Self {
-        const STATE_DATA: &[u8] = include_bytes!("../assets/raw_block_states.bc.gz");
-        let state_reader = flate2::bufread::GzDecoder::new(Cursor::new(STATE_DATA));
+        static STATE_DATA: &[u8] = include_bytes!("../../assets/raw_block_states.bc.gz");
+        let mut state_reader = flate2::bufread::GzDecoder::new(Cursor::new(STATE_DATA));
         let states: Vec<RawBlockState> =
-            bincode::deserialize_from(state_reader).expect("malformed block state data");
+            bincode::decode_from_std_read(&mut state_reader, bincode::config::standard())
+                .expect("malformed block state data");
 
-        const PROPERTY_DATA: &[u8] = include_bytes!("../assets/raw_block_properties.bc.gz");
-        let property_reader = flate2::bufread::GzDecoder::new(Cursor::new(PROPERTY_DATA));
+        static PROPERTY_DATA: &[u8] = include_bytes!("../../assets/raw_block_properties.bc.gz");
+        let mut property_reader = flate2::bufread::GzDecoder::new(Cursor::new(PROPERTY_DATA));
         let properties: Vec<RawBlockProperties> =
-            bincode::deserialize_from(property_reader).expect("malformed block properties");
+            bincode::decode_from_std_read(&mut property_reader, bincode::config::standard())
+                .expect("malformed block properties");
 
         // Ensure that indexes match IDs.
         #[cfg(debug_assertions)]
@@ -234,7 +236,13 @@ impl BlockRegistry {
             .iter()
             .map(|s| {
                 (
-                    (s.kind.namespaced_id().into(), s.untyped_properties.clone()),
+                    (
+                        s.kind.namespaced_id().into(),
+                        s.untyped_properties
+                            .iter()
+                            .map(|(a, b)| (a.into(), b.into()))
+                            .collect(),
+                    ),
                     s.id,
                 )
             })

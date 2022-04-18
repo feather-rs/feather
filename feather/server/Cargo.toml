@@ -21,7 +21,6 @@ colored = "2"
 common = { path = "../common", package = "feather-common" }
 const_format = "0.2.22"
 crossbeam-utils = "0.8"
-data-generators = { path = "../../data_generators" }
 either = "1.6.1"
 fern = "0.6"
 flate2 = "1"

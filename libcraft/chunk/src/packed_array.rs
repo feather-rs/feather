@@ -225,8 +225,6 @@ impl PackedArray {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::{Rng, SeedableRng};
-    use rand_pcg::Pcg64Mcg;
     use std::convert::TryInto;
 
     #[test]
@@ -255,11 +253,10 @@ mod tests {
     #[test]
     fn iter() {
         let mut array = PackedArray::new(10_000, 10.try_into().unwrap());
-        let mut rng = Pcg64Mcg::seed_from_u64(10);
         let mut oracle = Vec::new();
 
         for i in 0..array.len() {
-            let value = rng.gen_range(0..1024);
+            let value = i as u64;
             oracle.push(value);
             array.set(i, value);
             assert_eq!(array.get(i), Some(value));
@@ -276,15 +273,13 @@ mod tests {
 
     #[test]
     fn resize() {
-        let mut rng = Pcg64Mcg::seed_from_u64(11);
-
         let length = 1024;
         let mut array = PackedArray::new(length, 1.try_into().unwrap());
 
         let mut oracle = Vec::new();
         for new_bits_per_value in 2..=16 {
             for i in 0..array.len() {
-                let value = rng.gen_range(0..array.max_value() + 1);
+                let value = i as u64;
                 array.set(i, value);
                 oracle.push(value);
             }

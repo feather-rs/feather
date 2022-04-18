@@ -103,7 +103,7 @@ impl World {
                 );
             }
         }
-        
+
         self.chunk_cache.purge_old_unused();
 
         self.load_chunks()

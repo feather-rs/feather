@@ -395,7 +395,7 @@ fn read_section_into_chunk(
     let mut biome_palette = Vec::new();
     for biome in section.biomes.palette {
         let biome = biome_list
-            .get_index_of(&biome)
+            .get_id(&biome)
             .unwrap_or_else(|| panic!("Biome not found: {}", biome))
             .into();
         biome_palette.push(biome);

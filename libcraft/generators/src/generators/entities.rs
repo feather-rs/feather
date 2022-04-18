@@ -6,10 +6,10 @@ pub fn generate() {
     let entities: Vec<EntityInfo> = load_minecraft_json("entities.json").unwrap();
     let mut out = generate_enum!(
         EntityKind,
-        entities.par_iter()
+        entities.iter  ()
             .map(|e| e.name.to_case(Case::UpperCamel))
             .collect::<Vec<_>>(),
-        [serde::Serialize, serde::Deserialize],
+        [serde::Serialize, serde::Deserialize, bincode::Encode, bincode::Decode],
         #[serde(try_from = "String", into = "&'static str")]
     );
 

@@ -5,6 +5,7 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2021"
 
 [dependencies]
+bincode = "2.0.0-rc.1"
 bytemuck = { version = "1", features = ["derive"] }
 derive_more = "0.99"
 num-derive = "0.3"
