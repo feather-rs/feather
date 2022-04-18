@@ -4,9 +4,10 @@ use crate::{BlockData, BlockKind, SimplifiedBlockKind};
 use ahash::AHashMap;
 use bytemuck::{Pod, Zeroable};
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
 
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::io::Cursor;
 
@@ -19,20 +20,7 @@ use std::io::Cursor;
 /// * _Data_, or properties, represented by structs implementing the [`BlockData`](crate::BlockData)
 /// trait. For example, a chest has a "type" property in its block data
 /// that determines whether the chest is single or double.
-#[derive(
-    Copy,
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    Serialize,
-    Deserialize,
-    Zeroable,
-    Pod,
-    Default,
-)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Zeroable, Pod, Default)]
 #[repr(transparent)]
 pub struct BlockState {
     id: u16,
@@ -149,6 +137,36 @@ impl BlockState {
     pub(crate) fn from_raw(raw: &RawBlockStateProperties) -> Option<Self> {
         let id = REGISTRY.id_for_state(raw)?;
         Some(Self { id })
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct SerializedBlockState<'a> {
+    kind: &'a str,
+    properties: BTreeMap<&'a str, &'a str>,
+}
+
+impl Serialize for BlockState {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        SerializedBlockState {
+            kind: self.namespaced_id(),
+            properties: self.property_values().collect(),
+        }
+        .serialize(serializer)
+    }
+}
+
+impl <'de> Deserialize<'de>  for BlockState {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let serialized = SerializedBlockState::deserialize(deserializer)?;
+        BlockState::from_namespaced_id_and_property_values(serialized.kind, serialized.properties)
+            .ok_or_else(|| de::Error::custom("invalid block state"))
     }
 }
 
