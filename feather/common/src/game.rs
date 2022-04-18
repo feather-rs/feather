@@ -250,7 +250,7 @@ impl quill::Game for Game {
 
     fn create_world(&mut self, desc: WorldDescriptor) {
         log::info!(
-            "Creating world '{}'",
+            "Created world '{}'",
             desc.name.clone().unwrap_or_else(|| desc.id.to_string())
         );
         let world = World::new(desc, self);

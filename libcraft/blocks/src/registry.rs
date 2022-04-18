@@ -191,7 +191,17 @@ struct BlockRegistry {
     id_mapping: AHashMap<RawBlockStateProperties, u16>,
     valid_properties: AHashMap<BlockKind, ValidProperties>,
     default_states: AHashMap<BlockKind, BlockState>,
+    default_property_values: AHashMap<BlockKind, PropertyValues>,
     by_untyped_repr: AHashMap<(SmartStr, PropertyValues), u16>,
+}
+
+fn set_defualt_property_values(values: &mut PropertyValues, default: &PropertyValues) {
+    for (key, value) in default {
+        if !values.iter().any(|(k, _)| k == key) {
+            values.push((key.clone(), value.clone()));
+        }
+    }
+    values.sort_unstable();
 }
 
 impl BlockRegistry {
@@ -232,18 +242,29 @@ impl BlockRegistry {
             .map(|s| (s.kind, BlockState { id: s.id }))
             .collect();
 
-        let by_untyped_repr = states
+        let by_untyped_repr: AHashMap<(SmartStr, PropertyValues), u16> = states
             .iter()
             .map(|s| {
+                let mut props: PropertyValues = s
+                    .untyped_properties
+                    .iter()
+                    .map(|(a, b)| (a.into(), b.into()))
+                    .collect();
+                props.sort_unstable();
+                ((s.kind.namespaced_id().into(), props), s.id)
+            })
+            .collect();
+
+        let default_property_values = states
+            .iter()
+            .filter(|s| s.default)
+            .map(|s| {
                 (
-                    (
-                        s.kind.namespaced_id().into(),
-                        s.untyped_properties
-                            .iter()
-                            .map(|(a, b)| (a.into(), b.into()))
-                            .collect(),
-                    ),
-                    s.id,
+                    s.kind,
+                    s.untyped_properties
+                        .iter()
+                        .map(|(a, b)| (a.into(), b.into()))
+                        .collect(),
                 )
             })
             .collect();
@@ -254,6 +275,7 @@ impl BlockRegistry {
             valid_properties,
             default_states,
             by_untyped_repr,
+            default_property_values,
         }
     }
 
@@ -274,14 +296,15 @@ impl BlockRegistry {
         namespaced_id: impl Into<SmartStr>,
         property_values: impl IntoIterator<Item = (&'a str, &'a str)>,
     ) -> Option<u16> {
+        let namespaced_id = namespaced_id.into();
+        let kind = BlockKind::from_namespaced_id(&namespaced_id)?;
+        let mut property_values: PropertyValues = property_values
+            .into_iter()
+            .map(|(k, v)| (k.into(), v.into()))
+            .collect::<Vec<_>>();
+        set_defualt_property_values(&mut property_values, &self.default_property_values[&kind]);
         self.by_untyped_repr
-            .get(&(
-                namespaced_id.into(),
-                property_values
-                    .into_iter()
-                    .map(|(k, v)| (k.into(), v.into()))
-                    .collect::<Vec<_>>(),
-            ))
+            .get(&(namespaced_id, property_values))
             .copied()
     }
 }

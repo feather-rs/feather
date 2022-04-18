@@ -21,7 +21,7 @@ use libcraft_chunk::{
     Chunk, ChunkSection, Heightmap, HeightmapStore, LightStore, PackedArray,
     BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
 };
-use libcraft_core::{ChunkPosition, WorldHeight, ANVIL_VERSION};
+use libcraft_core::{ChunkPosition, WorldHeight, ANVIL_VERSION_RANGE};
 use serde::{Deserialize, Serialize};
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
@@ -45,17 +45,18 @@ pub struct DataChunk {
     #[serde(rename = "LastUpdate")]
     last_update: i64,
     #[serde(rename = "InhabitedTime")]
+    #[serde(default)]
     inhabited_time: i64,
     sections: Vec<LevelSection>,
     #[serde(default)]
     entities: Vec<EntityData>,
+    #[serde(default)]
     block_entities: Vec<BlockEntityData>,
     #[serde(rename = "PostProcessing")]
+    #[serde(default)]
     post_processing: Vec<Vec<i16>>,
     #[serde(rename = "Status")]
     worldgen_status: Cow<'static, str>,
-    #[serde(rename = "Heightmaps")]
-    heightmaps: HashMap<String, Vec<i64>>,
 }
 
 /// Represents a chunk section in a region file.
@@ -197,7 +198,7 @@ impl RegionHandle {
         };
 
         // Check data version
-        if data_chunk.data_version != ANVIL_VERSION {
+        if !ANVIL_VERSION_RANGE.contains(&data_chunk.data_version) {
             return Err(Error::UnsupportedDataVersion(data_chunk.data_version));
         }
 
@@ -206,65 +207,13 @@ impl RegionHandle {
             self.world_height.into(),
             data_chunk.min_y_section,
         );
-        *chunk.heightmaps_mut() = HeightmapStore {
-            motion_blocking: data_chunk
-                .heightmaps
-                .remove("MOTION_BLOCKING")
-                .map(|h| {
-                    Heightmap::from_u64_vec(
-                        unsafe {
-                            let mut h = ManuallyDrop::new(h);
-                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
-                        },
-                        self.world_height,
-                    )
-                })
-                .ok_or(Error::ChunkNotExist)?,
-            motion_blocking_no_leaves: data_chunk
-                .heightmaps
-                .remove("MOTION_BLOCKING_NO_LEAVES")
-                .map(|h| {
-                    Heightmap::from_u64_vec(
-                        unsafe {
-                            let mut h = ManuallyDrop::new(h);
-                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
-                        },
-                        self.world_height,
-                    )
-                })
-                .ok_or(Error::ChunkNotExist)?,
-            ocean_floor: data_chunk
-                .heightmaps
-                .remove("OCEAN_FLOOR")
-                .map(|h| {
-                    Heightmap::from_u64_vec(
-                        unsafe {
-                            let mut h = ManuallyDrop::new(h);
-                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
-                        },
-                        self.world_height,
-                    )
-                })
-                .ok_or(Error::ChunkNotExist)?,
-            world_surface: data_chunk
-                .heightmaps
-                .remove("WORLD_SURFACE")
-                .map(|h| {
-                    Heightmap::from_u64_vec(
-                        unsafe {
-                            let mut h = ManuallyDrop::new(h);
-                            Vec::from_raw_parts(h.as_mut_ptr() as *mut u64, h.len(), h.capacity())
-                        },
-                        self.world_height,
-                    )
-                })
-                .ok_or(Error::ChunkNotExist)?,
-        };
 
         // Read sections
         for section in std::mem::take(&mut data_chunk.sections) {
             read_section_into_chunk(section, &mut chunk, data_chunk.min_y_section, biomes)?;
         }
+
+        chunk.recalculate_heightmaps();
 
         Ok((chunk, data_chunk.entities, data_chunk.block_entities))
     }
@@ -376,7 +325,12 @@ fn read_section_into_chunk(
             ),
             None => BlockKind::from_namespaced_id(&entry.name).map(BlockState::new),
         }
-        .ok_or_else(|| Error::InvalidBlockType)?;
+        .ok_or_else(|| {
+            Error::InvalidBlockType(format!(
+                "{} with properties {:?}",
+                entry.name, entry.properties
+            ))
+        })?;
 
         block_palette.push(block);
     }
@@ -412,11 +366,26 @@ fn read_section_into_chunk(
         PalettedContainer::new()
     };
 
-    if let Some(blocks_data) = section
+    if let Some(mut blocks_data) = section
         .block_states
         .data
         .map(|data| PackedArray::from_i64_vec(data, SECTION_VOLUME))
     {
+        // Correct the palette.
+        // For some reason, vanilla seems to write
+        // out-of-bounds palette indexes into the data array. We
+        // set these to 0.
+
+        if let Some(palette) = blocks.palette() {
+            for i in 0..SECTION_VOLUME {
+                let block = blocks_data.get(i).unwrap();
+
+                if block as usize >= palette.len() {
+                    blocks_data.set(i, 0);
+                }
+            }
+        }
+
         blocks.set_data(
             if blocks_data.bits_per_value() > <BlockState as Paletteable>::MAX_BITS_PER_ENTRY {
                 // Convert to GlobalPalette
@@ -519,7 +488,7 @@ fn chunk_to_data_chunk(
     biome_list: &BiomeList,
 ) -> DataChunk {
     DataChunk {
-        data_version: ANVIL_VERSION,
+        data_version: *ANVIL_VERSION_RANGE.end(),
         x_pos: chunk.position().x,
         z_pos: chunk.position().z,
         min_y_section: chunk.min_y_section(),
@@ -621,36 +590,6 @@ fn chunk_to_data_chunk(
         entities: entities.into(),
         post_processing: vec![vec![]; 16],
         worldgen_status: "postprocessed".into(),
-        heightmaps: HashMap::from_iter([
-            (
-                String::from("MOTION_BLOCKING"),
-                bytemuck::cast_slice(chunk.heightmaps().motion_blocking.as_u64_slice())
-                    .iter()
-                    .copied()
-                    .collect(),
-            ),
-            (
-                String::from("MOTION_BLOCKING_NO_LEAVES"),
-                bytemuck::cast_slice(chunk.heightmaps().motion_blocking_no_leaves.as_u64_slice())
-                    .iter()
-                    .copied()
-                    .collect(),
-            ),
-            (
-                String::from("WORLD_SURFACE"),
-                bytemuck::cast_slice(chunk.heightmaps().world_surface.as_u64_slice())
-                    .iter()
-                    .copied()
-                    .collect(),
-            ),
-            (
-                String::from("OCEAN_FLOOR"),
-                bytemuck::cast_slice(chunk.heightmaps().ocean_floor.as_u64_slice())
-                    .iter()
-                    .copied()
-                    .collect(),
-            ),
-        ]),
     }
 }
 
@@ -780,7 +719,7 @@ pub enum Error {
     /// The chunk uses an unsupported data version
     UnsupportedDataVersion(i32),
     /// The palette for the chunk contained in invalid block type
-    InvalidBlockType,
+    InvalidBlockType(String),
     /// The "Chunk [x, z]" tag was missing
     MissingRootTag,
     /// Chunk section index was out of bounds
@@ -803,8 +742,8 @@ impl Display for Error {
             }
             Error::UnknownBlock(name) => f.write_str(&format!("Chunk contains invalid block {}", name))?,
             Error::ChunkNotExist => f.write_str("The chunk does not exist")?,
-            Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.16.5 region files.")?,
-            Error::InvalidBlockType => f.write_str("Chunk contains invalid block type")?,
+            Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.18.1-1.18.2 region files.")?,
+            Error::InvalidBlockType(s) => f.write_str(&format!("Chunk contains invalid block type {}", s))?,
             Error::MissingRootTag => f.write_str("Chunk is missing a root NBT tag")?,
             Error::IndexOutOfBounds => f.write_str("Section index out of bounds")?,
             Error::InvalidBiomeId(id) => write!(f, "Invalid biome ID {}", id)?,

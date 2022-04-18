@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{ops::RangeInclusive, time::Duration};
 
 /// Number of updates (ticks) to do per second.
 pub const TPS: u32 = 20;
@@ -17,8 +17,8 @@ pub const SERVER_DOWNLOAD_URL: &str =
     "https://launcher.mojang.com/v1/objects/125e5adf40c659fd3bce3e66e67a16bb49ecc1b9/server.jar";
 /// Minecraft version of this server in format x.y.z (1.16.5, 1.18.1)
 pub const VERSION_STRING: &str = "1.18.1";
-/// World save version compatible with this version of the server
-pub const ANVIL_VERSION: i32 = 2865;
+/// World save versions compatible with this version of the server
+pub const ANVIL_VERSION_RANGE: RangeInclusive<i32> = 2865..=2975;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_SECTION_HEIGHT: usize = 16;
