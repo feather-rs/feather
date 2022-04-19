@@ -80,9 +80,7 @@ impl InventorySlot {
             -106
         } else if SLOT_ARMOR_MIN <= index && index <= SLOT_ARMOR_MAX {
             ((SLOT_ARMOR_MAX - index) + 100) as i8
-        } else if SLOT_INVENTORY_OFFSET <= index
-            && index < SLOT_INVENTORY_OFFSET + INVENTORY_SIZE
-        {
+        } else if SLOT_INVENTORY_OFFSET <= index && index < SLOT_INVENTORY_OFFSET + INVENTORY_SIZE {
             index as i8
         } else {
             return None;
