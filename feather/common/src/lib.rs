@@ -24,9 +24,6 @@ pub mod chunk;
 
 pub mod world;
 
-pub mod chat;
-pub use chat::ChatBox;
-
 pub mod entities;
 
 pub mod interactable;

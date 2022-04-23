@@ -1,4 +1,4 @@
-use common::{chat::ChatKind, events::ViewUpdateEvent, view::View, Game};
+use common::{events::ViewUpdateEvent, view::View, Game};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
@@ -11,6 +11,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
+use quill::chat::ChatKind;
 use quill::components::{EntityPosition, EntityWorld, Name};
 use vane::{Entity, EntityRef, SysResult};
 

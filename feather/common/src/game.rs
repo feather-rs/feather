@@ -4,6 +4,7 @@ use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 use ahash::AHashMap;
 use libcraft::EntityKind;
 use libcraft::{Position, Text, Title};
+use quill::chat::{ChatKind, ChatMessage};
 use quill::components::EntityPosition;
 use quill::entities::Player;
 use quill::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
@@ -11,7 +12,7 @@ use quill::game::{WorldNotFound, WorldSourceFactoryNotFound};
 use quill::saveload::WorldSourceFactory;
 use quill::threadpool::ThreadPool;
 use quill::world::WorldDescriptor;
-use quill::{World as _, WorldId};
+use quill::{World as _, WorldId, ChatBox};
 use tokio::runtime::{self, Runtime};
 use vane::{
     Entities, Entity, EntityBuilder, EntityDead, HasEntities, HasResources, Resources, SysResult,
@@ -21,9 +22,7 @@ use vane::{
 use crate::events::PlayerRespawnEvent;
 use crate::world::World;
 use crate::{
-    chat::{ChatKind, ChatMessage},
     chunk::entities::ChunkEntities,
-    ChatBox,
 };
 
 type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, EntityKind)>;

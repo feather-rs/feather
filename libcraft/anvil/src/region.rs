@@ -64,7 +64,9 @@ pub struct DataChunk {
 pub struct LevelSection {
     #[serde(rename = "Y")]
     y: i8,
+    #[serde(default)]
     block_states: PaletteAndData<SerializedBlockState>,
+    #[serde(default = "default_biomes")]
     biomes: PaletteAndData<String>,
     #[serde(rename = "SkyLight")]
     sky_light: Option<Vec<i8>>,
@@ -72,10 +74,29 @@ pub struct LevelSection {
     block_light: Option<Vec<i8>>,
 }
 
+fn default_biomes() -> PaletteAndData<String> {
+    PaletteAndData {
+        palette: vec!["minecraft:the_void".to_owned()],
+        data: None,
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 struct PaletteAndData<T> {
     palette: Vec<T>,
     data: Option<Vec<i64>>,
+}
+
+impl<T> Default for PaletteAndData<T>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Self {
+            palette: vec![T::default()],
+            data: None,
+        }
+    }
 }
 
 /// Represents a palette entry in a region file.
@@ -86,6 +107,15 @@ pub struct SerializedBlockState {
     name: Cow<'static, str>,
     /// Optional properties for this block
     properties: Option<LevelProperties>,
+}
+
+impl Default for SerializedBlockState {
+    fn default() -> Self {
+        Self {
+            name: Cow::Borrowed("minecraft:air"),
+            properties: None,
+        }
+    }
 }
 
 /// Represents the properties for a palette entry.

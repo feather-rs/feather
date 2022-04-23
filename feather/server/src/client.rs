@@ -1,21 +1,10 @@
 use ahash::AHashSet;
 use common::entities::player::HotbarSlot;
 use common::Game;
+use common::PlayerWindow;
 use either::Either;
 use flume::{Receiver, Sender};
 use itertools::Itertools;
-use slotmap::SlotMap;
-use std::any::type_name;
-use std::collections::HashMap;
-use std::iter::FromIterator;
-use std::{collections::VecDeque, sync::Arc};
-use uuid::Uuid;
-use vane::Component;
-
-use common::{
-    chat::{ChatKind, ChatMessage},
-    PlayerWindow,
-};
 use libcraft::biome::BiomeList;
 use libcraft::items::InventorySlot;
 use libcraft::{
@@ -41,8 +30,16 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, VarInt, Writeable,
 };
+use quill::chat::{ChatKind, ChatMessage};
 use quill::components::{OnGround, PreviousGamemode};
 use quill::{ChunkHandle, SysResult, World, WorldId};
+use slotmap::SlotMap;
+use std::any::type_name;
+use std::collections::HashMap;
+use std::iter::FromIterator;
+use std::{collections::VecDeque, sync::Arc};
+use uuid::Uuid;
+use vane::Component;
 
 use crate::{
     entities::{PreviousOnGround, PreviousPosition},

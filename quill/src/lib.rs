@@ -1,5 +1,6 @@
 //! Quill, Feather's plugin API.
 
+pub mod chat;
 mod chunk_lock;
 pub mod components;
 /// Marker components for each specific entity.
@@ -12,14 +13,18 @@ pub mod threadpool;
 pub mod world;
 
 #[doc(inline)]
-pub use vane::{Entities, Entity, EntityBuilder, EntityRef, Resources, SysResult};
+pub use vane::{Component, Entities, Entity, EntityBuilder, EntityRef, Resources, SysResult};
 
+#[doc(inline)]
+pub use chat::ChatBox;
+#[doc(inline)]
+pub use chunk_lock::{ChunkHandle, ChunkLock};
 #[doc(inline)]
 pub use game::Game;
 pub use plugin::{Plugin, PluginInfo, Setup};
-
 #[doc(inline)]
-pub use chunk_lock::{ChunkHandle, ChunkLock};
+pub use world::{World, WorldId};
+
 #[doc(inline)]
 pub use libcraft::{
     blocks::{block_data, BlockData, BlockKind, BlockState},
@@ -32,5 +37,5 @@ pub use libcraft::{
     text::{Text, TextComponentBuilder},
     BlockPosition, ChunkPosition, Position, CHUNK_WIDTH,
 };
-#[doc(inline)]
-pub use world::{World, WorldId};
+
+pub extern crate libcraft;

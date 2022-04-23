@@ -1,4 +1,5 @@
-use common::{chat::ChatPreference, ChatBox, Game};
+use common::Game;
+use quill::{chat::ChatPreference, ChatBox};
 use vane::{Component, EntityBuilder, SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};

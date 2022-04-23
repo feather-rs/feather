@@ -4,16 +4,17 @@ use common::entities::player::PlayerProfile;
 
 use common::events::PlayerRespawnEvent;
 use common::{
-    chat::{ChatKind, ChatPreference},
     entities::player::HotbarSlot,
     view::View,
     window::BackingWindow,
-    ChatBox, Game, PlayerWindow,
+     Game, PlayerWindow,
 };
 use libcraft::anvil::player::PlayerAbilities;
 use libcraft::biome::BiomeList;
 use libcraft::EntityKind;
 use libcraft::{Gamemode, Inventory, Position, Text};
+use quill::ChatBox;
+use quill::chat::{ChatPreference, ChatKind};
 use quill::components::{self, EntityInventory, EntityPosition, EntityUuid, PlayerGamemode};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityWorld, Health, Instabreak,

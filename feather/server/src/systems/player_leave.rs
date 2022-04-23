@@ -1,10 +1,11 @@
 use num_traits::cast::ToPrimitive;
 
 use common::entities::player::HotbarSlot;
-use common::{chat::ChatKind, Game};
+use common::Game;
 use libcraft::anvil::entity::{AnimalData, BaseEntityData};
 use libcraft::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
 use libcraft::{Gamemode, Inventory, Position, Text};
+use quill::chat::ChatKind;
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityInventory, EntityPosition,
     Health, Instabreak, Invulnerable, Name, PlayerGamemode, PreviousGamemode, WalkSpeed,
