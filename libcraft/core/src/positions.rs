@@ -356,6 +356,16 @@ impl BlockPosition {
         }
     }
 
+    pub fn adjacent(self, face: BlockFace) -> Self {
+        match face {
+            BlockFace::Bottom => self.down(),
+            BlockFace::Top => self.up(),
+            BlockFace::North => self.north(),
+            BlockFace::South => self.south(),
+            BlockFace::West => self.west(),
+            BlockFace::East => self.east(),
+        }
+    }
     /// Returns `true` if the [`BlockPosition`] is valid.
     ///
     /// Minecraft defines a valid block position with the following limits:
@@ -602,5 +612,17 @@ mod tests {
         let block_position = BlockPosition::new(0, -39483298, 0);
 
         <BlockPosition as TryInto<ValidBlockPosition>>::try_into(block_position).unwrap();
+    }
+}
+impl BlockFace {
+    pub fn opposite(self) -> Self {
+        match self {
+            BlockFace::Bottom => BlockFace::Top,
+            BlockFace::Top => BlockFace::Bottom,
+            BlockFace::North => BlockFace::South,
+            BlockFace::South => BlockFace::North,
+            BlockFace::West => BlockFace::East,
+            BlockFace::East => BlockFace::West,
+        }
     }
 }

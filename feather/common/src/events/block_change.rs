@@ -29,6 +29,10 @@ impl BlockChangeEvent {
         }
     }
 
+    pub fn try_single<T: TryInto<ValidBlockPosition>>(pos: T) -> Result<Self, T::Error> {
+        Ok(Self::single(pos.try_into()?))
+    }
+
     /// Creates an event corresponding to a block update
     /// that fills an entire chunk section with the same block.
     pub fn fill_chunk_section(chunk: ChunkPosition, section: u32, world: WorldId) -> Self {

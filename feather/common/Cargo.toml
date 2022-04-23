@@ -24,3 +24,4 @@ utils = { path = "../utils", package = "feather-utils" }
 uuid = { version = "0.8", features = [ "v4" ] }
 vane = { path = "../../vane" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
+vek = "0.14"
