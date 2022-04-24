@@ -80,6 +80,10 @@ impl RegionThreadPool {
         });
 
         self.threads[*thread]
+            .num_open_regions
+            .fetch_add(1, Ordering::Relaxed);
+
+        self.threads[*thread]
             .sender
             .send(Task {
                 key,
@@ -205,7 +209,7 @@ impl WorkerThread {
         if initial_len != self.open_regions.len() {
             let closed = initial_len - self.open_regions.len();
             log::debug!(
-                "Closed {} region files ({} left open)",
+                "Closed {} region files ({} left open on this thread)",
                 closed,
                 self.open_regions.len()
             );
