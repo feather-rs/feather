@@ -135,8 +135,8 @@ struct OpenRegion {
     last_used: Instant,
 }
 
-const FLUSH_INTERVAL: Duration = Duration::from_secs(120);
-const REGION_CACHE_TIME: Duration = Duration::from_secs(120);
+const FLUSH_INTERVAL: Duration = Duration::from_secs(60);
+const REGION_CACHE_TIME: Duration = Duration::from_secs(60);
 
 impl WorkerThread {
     pub fn new(shared: Arc<Shared>, handle: Arc<ThreadHandle>) -> Self {
