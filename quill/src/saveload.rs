@@ -4,7 +4,7 @@ use std::{collections::VecDeque, time::Duration};
 
 use libcraft::{dimension::DimensionInfo, ChunkPosition};
 
-use crate::{ChunkHandle, Game};
+use crate::{ChunkHandle, Game, WorldId};
 
 pub mod worldgen;
 
@@ -160,5 +160,6 @@ pub trait WorldSourceFactory: 'static {
         game: &dyn Game,
         params: &toml::Value,
         dimension_info: &DimensionInfo,
+        world_id: WorldId,
     ) -> anyhow::Result<Box<dyn WorldSource>>;
 }

@@ -1,4 +1,5 @@
 use common::Game;
+use feather_world_format_plugin::FeatherWorldFormat;
 use quill::Plugin;
 use tokio::runtime::Runtime;
 use vane::SystemExecutor;
@@ -13,14 +14,17 @@ pub struct ServerBuilder {
 impl ServerBuilder {
     pub fn new() -> anyhow::Result<Self> {
         let runtime = build_tokio_runtime();
-        let handle = runtime.handle().clone();
-        let game = handle.block_on(async move { crate::init::create_game(runtime).await })?;
+        let game = crate::init::create_game(runtime)?;
         let plugin_loader = PluginLoader::new("plugins.toml")?;
 
         Ok(Self {
             game,
             plugin_loader,
         })
+    }
+
+    pub fn register_default_plugins(self) -> Self {
+        self.register_plugin(FeatherWorldFormat)
     }
 
     pub fn register_plugin<P: Plugin>(mut self, plugin: P) -> Self {

@@ -12,18 +12,16 @@ use quill::game::{WorldNotFound, WorldSourceFactoryNotFound};
 use quill::saveload::WorldSourceFactory;
 use quill::threadpool::ThreadPool;
 use quill::world::WorldDescriptor;
-use quill::{World as _, WorldId, ChatBox};
+use quill::{ChatBox, World as _, WorldId};
 use tokio::runtime::{self, Runtime};
 use vane::{
     Entities, Entity, EntityBuilder, EntityDead, HasEntities, HasResources, Resources, SysResult,
     SystemExecutor,
 };
 
+use crate::chunk::entities::ChunkEntities;
 use crate::events::PlayerRespawnEvent;
 use crate::world::World;
-use crate::{
-    chunk::entities::ChunkEntities,
-};
 
 type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, EntityKind)>;
 

@@ -7,12 +7,12 @@ use tokio::runtime::Runtime;
 
 use crate::{config::Config, logging, Server};
 use common::{Game, TickLoop};
-use libcraft::biome::{ BiomeList};
+use libcraft::biome::BiomeList;
 use vane::SystemExecutor;
 
 const CONFIG_PATH: &str = "config.toml";
 
-pub async fn create_game(runtime: Runtime) -> anyhow::Result<Game> {
+pub fn create_game(runtime: Runtime) -> anyhow::Result<Game> {
     let crate::config::ConfigContainer {
         config,
         was_config_created,
@@ -25,7 +25,7 @@ pub async fn create_game(runtime: Runtime) -> anyhow::Result<Game> {
 
     log::info!("Creating server");
     let options = config.to_options();
-    let server = Server::bind(options).await?;
+    let server = runtime.block_on(async move { Server::bind(options).await })?;
 
     let mut game = init_game(server, &config, runtime)?;
     game.insert_resource(config);
@@ -69,6 +69,7 @@ fn launch(mut game: Game) -> anyhow::Result<()> {
     let tick_loop = create_tick_loop(game);
     log::debug!("Launching the game loop");
     tick_loop.run();
+
     Ok(())
 }
 
@@ -89,6 +90,8 @@ fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
             })?
             .clone();
 
+        let id = WorldId::new_random(); // TODO persist
+
         let source_factory = game
             .world_source_factory(&world.source.typ)
             .with_context(|| format!("unknown world source in world '{}'", world_name))?;
@@ -97,6 +100,7 @@ fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
                 game,
                 &toml::Value::Table(world.source.params),
                 &dimension_info,
+                id,
             )
             .with_context(|| {
                 format!(
@@ -105,7 +109,6 @@ fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
                 )
             })?;
 
-        let id = WorldId::new_random(); // TODO persist
         let desc = WorldDescriptor {
             id,
             source,
@@ -136,11 +139,24 @@ fn init_worlds(game: &mut Game) -> anyhow::Result<()> {
 }
 
 fn create_tick_loop(mut game: Game) -> TickLoop {
+    let (shutdown_sender, shutdown) = flume::bounded(1);
+    ctrlc::set_handler(move || {
+        shutdown_sender.send(()).ok();
+    })
+    .expect("failed to set shutdown handler");
+
     TickLoop::new(move || {
         let systems = Rc::clone(&game.system_executor);
         systems.borrow_mut().run(&mut game);
         game.tick_count += 1;
 
-        false
+        let should_shutdown = shutdown.try_recv().is_ok();
+        if should_shutdown {
+            log::info!("Server shutting down");
+            for mut world in game.worlds_mut() {
+                world.shutdown();
+            }
+        }
+        should_shutdown
     })
 }

@@ -90,6 +90,10 @@ impl ChunkMap {
     pub fn contains(&self, pos: ChunkPosition) -> bool {
         self.inner.contains_key(&pos)
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = ChunkPosition> + '_ {
+        self.inner.keys().copied()
+    }
 }
 
 fn check_coords(pos: BlockPosition, world_height: WorldHeight, min_y: i32) -> Option<()> {

@@ -1,0 +1,16 @@
+[package]
+name = "feather-world-format-plugin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ahash = "0.7"
+anyhow = "1"
+feather-world-format = { path = "../../feather/world-format" }
+flume = "0.10"
+log = "0.4"
+num_cpus = "1"
+parking_lot = "0.12"
+quill = { path = "../../quill" }
+serde = { version = "1", features = [ "derive" ] }
+toml = "0.5"

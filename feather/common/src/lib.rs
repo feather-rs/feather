@@ -27,11 +27,11 @@ pub mod entities;
 
 pub mod interactable;
 
-pub mod world_sources;
 pub mod block;
+pub mod world_sources;
 
 pub use game::Game;
-pub use world::World; 
+pub use world::World;
 
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
@@ -47,4 +47,5 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         "worldgen",
         Box::new(world_sources::worldgen::WorldgenWorldSourceFactory),
     );
+    game.register_world_source_factory("empty", Box::new(world_sources::EmptyWorldSourceFactory));
 }

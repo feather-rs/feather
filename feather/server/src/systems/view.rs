@@ -4,11 +4,8 @@
 //! determined based on the player's [`common::view::View`].
 
 use common::{events::ViewUpdateEvent, Game};
-use quill::{
-    components::{EntityPosition},
-
-};
-use vane::{ SysResult, SystemExecutor};
+use quill::components::EntityPosition;
+use vane::{SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
 
@@ -34,12 +31,7 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
     Ok(())
 }
 
-fn update_chunks(
-
-    client: &mut Client,
-    event: &ViewUpdateEvent,
-
-) -> SysResult {
+fn update_chunks(client: &mut Client, event: &ViewUpdateEvent) -> SysResult {
     // Send chunks that are in the new view but not the old view.
     for &pos in &event.new_chunks {
         client.queue_send_chunk(pos);

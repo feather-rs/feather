@@ -2,7 +2,7 @@
 //! of Anvil region files.
 
 use std::borrow::Cow;
-use std::collections::{BTreeMap};
+use std::collections::BTreeMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
@@ -16,16 +16,15 @@ use libcraft_blocks::{BlockKind, BlockState};
 use libcraft_chunk::biome::{BiomeId, BiomeList};
 use libcraft_chunk::paletted_container::{Paletteable, PalettedContainer};
 use libcraft_chunk::{
-    Chunk, ChunkSection,  LightStore, PackedArray,
-    BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
+    Chunk, ChunkSection, LightStore, PackedArray, BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
 };
+use libcraft_core::REGION_SIZE;
 use libcraft_core::{ChunkPosition, WorldHeight, ANVIL_VERSION_RANGE};
 use serde::{Deserialize, Serialize};
 
 use super::{block_entity::BlockEntityData, entity::EntityData};
 
-/// The length and width of a region, in chunks.
-const REGION_SIZE: usize = 32;
+pub use libcraft_core::RegionPosition;
 
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
@@ -998,24 +997,6 @@ impl ChunkLocation {
     /// in a region file or not.
     pub fn exists(self) -> bool {
         self.0.offset != 0 && self.0.count != 0
-    }
-}
-
-/// A region contains a 32x32 grid of chunk columns.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct RegionPosition {
-    x: i32,
-    z: i32,
-}
-
-impl RegionPosition {
-    /// Returns the coordinates of the region corresponding
-    /// to the specified chunk position.
-    pub fn from_chunk(chunk_coords: ChunkPosition) -> Self {
-        Self {
-            x: chunk_coords.x >> 5,
-            z: chunk_coords.z >> 5,
-        }
     }
 }
 

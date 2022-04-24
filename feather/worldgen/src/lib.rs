@@ -8,7 +8,7 @@
 use libcraft::biome::BiomeList;
 pub use superflat::SuperflatWorldGenerator;
 
-use libcraft::{ WorldHeight};
+use libcraft::WorldHeight;
 mod superflat;
 pub struct VoidWorldGenerator;
 

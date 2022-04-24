@@ -20,6 +20,7 @@ base64ct = "1"
 colored = "2"
 common = { path = "../common", package = "feather-common" }
 const_format = "0.2.22"
+ctrlc = "3"
 crossbeam-utils = "0.8"
 either = "1.6.1"
 fern = "0.6"
@@ -55,6 +56,9 @@ ureq = { version = "2", features = [ "json" ] }
 utils = { path = "../utils", package = "feather-utils" }
 uuid = "0.8"
 vane = { path = "../../vane" }
+
+# Built-in plugins
+feather-world-format-plugin = { path = "../../builtin-plugins/world-format" }
 
 [features]
 # Use zlib-ng for faster compression. Requires CMake.

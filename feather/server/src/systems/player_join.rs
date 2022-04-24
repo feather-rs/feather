@@ -3,24 +3,19 @@ use std::sync::Arc;
 use common::entities::player::PlayerProfile;
 
 use common::events::PlayerRespawnEvent;
-use common::{
-    entities::player::HotbarSlot,
-    view::View,
-    window::BackingWindow,
-     Game, PlayerWindow,
-};
+use common::{entities::player::HotbarSlot, view::View, window::BackingWindow, Game, PlayerWindow};
 use libcraft::anvil::player::PlayerAbilities;
 use libcraft::biome::BiomeList;
 use libcraft::EntityKind;
 use libcraft::{Gamemode, Inventory, Position, Text};
-use quill::ChatBox;
-use quill::chat::{ChatPreference, ChatKind};
+use quill::chat::{ChatKind, ChatPreference};
 use quill::components::{self, EntityInventory, EntityPosition, EntityUuid, PlayerGamemode};
 use quill::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, EntityWorld, Health, Instabreak,
     Invulnerable, PreviousGamemode, WalkSpeed,
 };
 use quill::events::GamemodeEvent;
+use quill::ChatBox;
 use vane::{SysResult, SystemExecutor};
 
 use crate::config::Config;

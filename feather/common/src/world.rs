@@ -1,4 +1,9 @@
-use std::{collections::VecDeque, sync::Arc, time::Instant};
+use std::{
+    cell::RefCell,
+    collections::VecDeque,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use ahash::AHashSet;
 use libcraft::{
@@ -20,6 +25,8 @@ mod chunk_map;
 pub mod systems;
 mod tickets;
 
+const CACHE_PURGE_INTERVAL: Duration = Duration::from_secs(10);
+
 pub struct World {
     id: WorldId,
     name: Option<String>,
@@ -37,8 +44,16 @@ pub struct World {
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
 
+    save_retries: VecDeque<SaveRetry>,
+
+    /// The set of chunks that have been modified since they were last saved.
+    dirty_chunks: RefCell<AHashSet<ChunkPosition>>,
+
     /// If true, has a different void fog and horizon at y=min
     flat: bool,
+
+    last_save_time: Instant,
+    last_cache_purge: Instant,
 }
 
 impl World {
@@ -71,11 +86,45 @@ impl World {
             tickets: ChunkTickets::new(),
             unload_queue: UnloadQueue::default(),
             loading_chunks: AHashSet::new(),
+            dirty_chunks: RefCell::new(AHashSet::new()),
             canceled_chunk_loads: AHashSet::new(),
             source: desc.source,
             dimension_info: desc.dimension_info,
             flat: desc.flat,
+            save_retries: VecDeque::new(),
+            last_cache_purge: Instant::now(),
+            last_save_time: Instant::now(),
         }
+    }
+
+    /// Should be called when the server is shutdown.
+    ///
+    /// This method saves all chunks, waiting for all
+    /// saving tasks to complete before returning.
+    pub fn shutdown(&mut self) {
+        if !matches!(
+            &self.settings.save_strategy,
+            &WorldSaveStrategy::SaveIncrementally { .. },
+        ) {
+            return;
+        }
+
+        log::info!("Saving all chunks in world '{}'", self.display_name());
+        for chunk in self.chunk_map.iter().collect::<Vec<_>>() {
+            self.unload_chunk(chunk);
+        }
+
+        while !self.chunk_cache.is_empty() {
+            self.update_saving_chunks();
+            self.chunk_cache.purge_old_unused();
+            if !self.chunk_cache.is_empty() {
+                std::thread::sleep(Duration::from_secs(1));
+            }
+        }
+
+        log::info!("Saved all chunks in world '{}'", self.display_name());
+        assert_eq!(self.chunk_map.len(), 0);
+        assert!(self.chunk_cache.is_empty());
     }
 
     /// Should be called on each tick.
@@ -104,8 +153,20 @@ impl World {
             }
         }
 
-        self.chunk_cache.purge_old_unused();
-
+        self.update_saving_chunks();
+        self.do_periodic_saving();
+        if self.last_cache_purge.elapsed() > CACHE_PURGE_INTERVAL {
+            let num_purged = self.chunk_cache.purge_old_unused();
+            self.last_cache_purge = Instant::now();
+            if num_purged > 0 {
+                log::debug!(
+                    "Purged {} cached chunks for world {} (total cached chunks left: {})",
+                    num_purged,
+                    self.display_name(),
+                    self.chunk_cache.len()
+                );
+            }
+        }
         self.load_chunks()
     }
 
@@ -122,6 +183,94 @@ impl World {
             self.chunk_map.insert_chunk(chunk);
         } else if self.loading_chunks.insert(pos) {
             self.source.queue_load_chunk(pos);
+        }
+    }
+
+    fn do_periodic_saving(&mut self) {
+        if let WorldSaveStrategy::SaveIncrementally { save_interval } = &self.settings.save_strategy
+        {
+            if self.last_save_time.elapsed() > *save_interval {
+                let mut dirty_chunks = self.dirty_chunks.borrow_mut();
+                let num_chunks = dirty_chunks.len();
+                let chunks = dirty_chunks.drain().collect::<Vec<_>>();
+                drop(dirty_chunks);
+                for chunk in chunks {
+                    self.save_chunk(chunk);
+                }
+
+                if num_chunks > 0 {
+                    log::debug!(
+                        "Auto-saving {} chunks for world {}",
+                        num_chunks,
+                        self.display_name()
+                    );
+                }
+
+                self.last_save_time = Instant::now();
+            }
+        }
+    }
+
+    fn save_chunk(&mut self, pos: ChunkPosition) {
+        if let Some(chunk) = self.chunk_map.chunk_handle_at(pos) {
+            self.source.queue_save_chunk(StoredChunk { pos, chunk });
+        }
+    }
+
+    fn update_saving_chunks(&mut self) {
+        self.poll_saved_chunks();
+        self.retry_chunk_saves();
+    }
+
+    fn poll_saved_chunks(&mut self) {
+        if self.source.supports_saving() {
+            let mut num_saved = 0;
+            while let Some(result) = self.source.poll_saved_chunk() {
+                match result.result {
+                    Ok(_) => {
+                        self.chunk_cache.mark_saved(result.pos);
+                        num_saved += 1;
+                    }
+                    Err(e) => {
+                        log::error!(
+                            "Failed to save chunk {:?} in world {}: {:?}",
+                            result.pos,
+                            self.display_name(),
+                            e.error
+                        );
+                        log::error!("Retrying in {:.1?}", e.retry_in);
+                        self.save_retries.push_back(SaveRetry {
+                            chunk: result.pos,
+                            retry_at: Instant::now() + e.retry_in,
+                        });
+                    }
+                }
+            }
+
+            if num_saved > 0 {
+                log::debug!(
+                    "Saved {} chunks for world {}",
+                    num_saved,
+                    self.display_name()
+                );
+            }
+        }
+    }
+
+    fn retry_chunk_saves(&mut self) {
+        while let Some(entry) = self.save_retries.get(0) {
+            if entry.retry_at < Instant::now() {
+                log::info!(
+                    "Retrying chunk save at {:?} in world {}",
+                    entry.chunk,
+                    self.display_name()
+                );
+                let chunk = entry.chunk;
+                self.save_chunk(chunk);
+                self.save_retries.pop_front();
+            } else {
+                return;
+            }
         }
     }
 
@@ -188,17 +337,17 @@ impl World {
             // thread
             handle.set_unloaded().ok();
 
-            if !matches!(
+            let needs_saving = matches!(
                 &self.settings.save_strategy,
-                &WorldSaveStrategy::DropChanges
-            ) {
+                &WorldSaveStrategy::SaveIncrementally { .. }
+            );
+            if needs_saving {
                 self.source.queue_save_chunk(StoredChunk {
                     pos,
                     chunk: Arc::clone(&handle),
                 });
             }
-
-            self.chunk_cache.insert(pos, handle);
+            self.chunk_cache.insert(pos, handle, !needs_saving);
         }
 
         if self.is_chunk_loading(pos) {
@@ -228,6 +377,7 @@ impl quill::World for World {
 
     fn set_block_at(&self, pos: BlockPosition, block: BlockState) -> Result<(), ChunkNotLoaded> {
         if self.chunk_map.set_block_at(pos, block) {
+            self.dirty_chunks.borrow_mut().insert(pos.chunk());
             Ok(())
         } else {
             Err(ChunkNotLoaded(pos.chunk()))
@@ -300,4 +450,10 @@ impl UnloadQueue {
             None => None,
         }
     }
+}
+
+#[derive(Debug)]
+struct SaveRetry {
+    chunk: ChunkPosition,
+    retry_at: Instant,
 }

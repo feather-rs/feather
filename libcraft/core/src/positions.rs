@@ -641,7 +641,45 @@ impl BlockFace {
     pub fn to_cardinal(self) -> Option<Self> {
         match self {
             BlockFace::Top | BlockFace::Bottom => None,
-            f => Some(f), 
+            f => Some(f),
+        }
+    }
+}
+
+pub const REGION_SIZE: usize = 32;
+
+/// A region contains a 32x32 grid of chunk columns.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub struct RegionPosition {
+    pub x: i32,
+    pub z: i32,
+}
+
+impl RegionPosition {
+    /// Returns the coordinates of the region corresponding
+    /// to the specified chunk position.
+    pub fn from_chunk(chunk_coords: ChunkPosition) -> Self {
+        Self {
+            x: chunk_coords.x >> 5,
+            z: chunk_coords.z >> 5,
+        }
+    }
+
+    /// Returns the offset of the given chunk within this region.
+    pub fn chunk_offset(self, chunk: ChunkPosition) -> Option<(u32, u32)> {
+        let x = chunk.x - self.x * REGION_SIZE as i32;
+        let z = chunk.z - self.z * REGION_SIZE as i32;
+        if x >= 0 && z >= 0 && x < REGION_SIZE as i32 && z < REGION_SIZE as i32 {
+            Some((x as u32, z as u32))
+        } else {
+            None
+        }
+    }
+
+    pub fn chunk(self, chunk_x: u32, chunk_z: u32) -> ChunkPosition {
+        ChunkPosition {
+            x: self.x * REGION_SIZE as i32 + chunk_x as i32,
+            z: self.z * REGION_SIZE as i32 + chunk_z as i32,
         }
     }
 }

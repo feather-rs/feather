@@ -16,7 +16,11 @@ members = [
     # Quill
     "quill",
 
-    # Feather (common and server)
+    # Built-in plugins
+    "builtin-plugins/world-format",
+
+    # Feather
+    "feather/world-format",
     "feather/utils",
     "feather/datapacks",
     "feather/worldgen",

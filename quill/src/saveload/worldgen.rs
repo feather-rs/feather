@@ -34,13 +34,13 @@ pub struct WorldGeneratorWorldSource {
 
 impl WorldGeneratorWorldSource {
     pub fn new(
-        inner: impl WorldSource,
+        inner: Box<dyn WorldSource>,
         generator: Arc<dyn WorldGenerator>,
         compute_pool: &ThreadPool,
     ) -> Self {
         let (generated_chunks_sender, generated_chunks_receiver) = flume::unbounded();
         Self {
-            inner: Box::new(inner),
+            inner,
             generator,
             generated_chunks_sender,
             generated_chunks_receiver,

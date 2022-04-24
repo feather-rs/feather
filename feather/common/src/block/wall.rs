@@ -1,7 +1,6 @@
 use libcraft::BlockPosition;
 use quill::World;
 
-
 /// General function that connects all walls, fences, glass panes, iron bars and tripwires and then lowers fence gates to fit into walls.
 pub fn update_wall_connections(_world: &mut dyn World, _pos: BlockPosition) -> Option<()> {
     /* lower_fence_gate(world, pos)?;

@@ -19,8 +19,8 @@ pub use gamerules::GameRules;
 pub use interaction::InteractionType;
 pub use player::Hand;
 pub use positions::{
-    vec3, Aabb, BlockPosition, ChunkPosition, Mat4f, Position, ValidBlockPosition,
-    Vec2d, Vec2f, Vec2i, Vec3d, Vec3f, Vec3i, Vec4d, Vec4f, Vec4i,
+    vec3, Aabb, BlockPosition, ChunkPosition, Mat4f, Position, RegionPosition, ValidBlockPosition,
+    Vec2d, Vec2f, Vec2i, Vec3d, Vec3f, Vec3i, Vec4d, Vec4f, Vec4i, REGION_SIZE,
 };
 
 use num_derive::{FromPrimitive, ToPrimitive};

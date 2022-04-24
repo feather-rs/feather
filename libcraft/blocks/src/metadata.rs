@@ -1,4 +1,4 @@
-use crate::{BlockKind, BlockState, SimplifiedBlockKind, block_data::Lightable};
+use crate::{block_data::Lightable, BlockKind, BlockState, SimplifiedBlockKind};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum PlacementType {

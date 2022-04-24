@@ -8,8 +8,8 @@
 use crate::data::{RawBlockStateProperties, ValidProperties};
 use libcraft_core::block::{
     AttachedFace, Axis, BambooLeaves, BedPart, BellAttachment, BlockFace, BlockHalf, ChestType,
-    ComparatorMode, Instrument, Orientation, PistonType, RailShape, SlabType, StairShape,
-    StructureBlockMode, WallConnection, DoorHinge,
+    ComparatorMode, DoorHinge, Instrument, Orientation, PistonType, RailShape, SlabType,
+    StairShape, StructureBlockMode, WallConnection,
 };
 use libcraft_macros::BlockData;
 
