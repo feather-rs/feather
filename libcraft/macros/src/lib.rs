@@ -90,6 +90,7 @@ fn impl_getters_and_setters(name: &Ident, fields: &[Field]) -> TokenStream2 {
         let ty = field.ty;
         let set_ident = format_ident!("set_{}", ident);
         let valid_ident = format_ident!("valid_{}", ident);
+        let with_ident = format_ident!("with_{}", ident);
         getters_setters.push(quote! {
             pub fn #ident (&self) -> #ty {
                 self.#ident
@@ -106,6 +107,11 @@ fn impl_getters_and_setters(name: &Ident, fields: &[Field]) -> TokenStream2 {
 
             pub fn #valid_ident (&self) -> &[#ty] {
                 &self.valid_properties.#ident
+            }
+
+            pub fn #with_ident (mut self, value: #ty) -> Self {
+                self.#set_ident(value);
+                self
             }
         })
     }

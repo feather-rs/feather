@@ -28,19 +28,19 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
         (
             client_id,
             name,
-            position,
-            gamemode,
-            previous_gamemode,
-            health,
-            walk_speed,
-            fly_speed,
-            can_fly,
-            is_flying,
-            can_build,
-            instabreak,
-            invulnerable,
-            hotbar_slot,
-            inventory,
+            _position,
+            _gamemode,
+            _previous_gamemode,
+            _health,
+            _walk_speed,
+            _fly_speed,
+            _can_fly,
+            _is_flying,
+            _can_build,
+            _instabreak,
+            _invulnerable,
+            _hotbar_slot,
+            _inventory,
         ),
     ) in game
         .ecs
@@ -84,6 +84,7 @@ fn broadcast_player_leave(game: &Game, username: &Name) {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(unused)]
 fn create_player_data(
     position: Position,
     gamemode: Gamemode,

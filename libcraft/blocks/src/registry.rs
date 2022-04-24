@@ -61,9 +61,16 @@ impl BlockState {
     pub fn set_data<T: BlockData>(&mut self, data: T) {
         let mut raw = self.raw().properties.clone();
         data.apply(&mut raw);
-        if let Some(new_block) = Self::from_raw(&raw) {
+        if let Some(new_block) = Self::from_raw(&raw, self.kind()) {
             *self = new_block;
         }
+    }
+
+    /// Returns a new block state with the given property values applied.
+    pub fn with_data<T: BlockData>(self, data: T) -> Self {
+        let mut copy = self;
+        copy.set_data(data);
+        copy
     }
 
     /// Returns whether this is the default block state for
@@ -134,8 +141,8 @@ impl BlockState {
     }
 
     /// Creates a block state from its raw properties.
-    pub(crate) fn from_raw(raw: &RawBlockStateProperties) -> Option<Self> {
-        let id = REGISTRY.id_for_state(raw)?;
+    pub(crate) fn from_raw(raw: &RawBlockStateProperties, kind: BlockKind) -> Option<Self> {
+        let id = REGISTRY.id_for_state(raw, kind)?;
         Some(Self { id })
     }
 }
@@ -188,7 +195,7 @@ type PropertyValues = Vec<(SmartStr, SmartStr)>;
 
 struct BlockRegistry {
     states: Vec<RawBlockState>,
-    id_mapping: AHashMap<RawBlockStateProperties, u16>,
+    id_mapping: AHashMap<(BlockKind, RawBlockStateProperties), u16>,
     valid_properties: AHashMap<BlockKind, ValidProperties>,
     default_states: AHashMap<BlockKind, BlockState>,
     default_property_values: AHashMap<BlockKind, PropertyValues>,
@@ -228,7 +235,7 @@ impl BlockRegistry {
 
         let id_mapping = states
             .iter()
-            .map(|state| (state.properties.clone(), state.id))
+            .map(|state| ((state.kind, state.properties.clone()), state.id))
             .collect();
 
         let valid_properties = properties
@@ -283,8 +290,8 @@ impl BlockRegistry {
         self.states.get(id as usize)
     }
 
-    fn id_for_state(&self, state: &RawBlockStateProperties) -> Option<u16> {
-        self.id_mapping.get(state).copied()
+    fn id_for_state(&self, state: &RawBlockStateProperties, kind: BlockKind) -> Option<u16> {
+        self.id_mapping.get(&(kind, state.clone())).copied()
     }
 
     fn default_state(&self, kind: BlockKind) -> BlockState {

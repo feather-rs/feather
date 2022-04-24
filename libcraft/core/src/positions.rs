@@ -13,7 +13,7 @@ use thiserror::Error;
 
 use std::convert::TryFrom;
 
-use crate::CHUNK_WIDTH;
+use crate::{BlockFace, CHUNK_WIDTH};
 
 pub type Vec2i = Vec2<i32>;
 pub type Vec3i = Vec3<i32>;
@@ -356,14 +356,14 @@ impl BlockPosition {
         }
     }
 
-    pub fn adjacent(self, face: BlockDirection) -> Self {
+    pub fn adjacent(self, face: BlockFace) -> Self {
         match face {
-            BlockDirection::Bottom => self.down(),
-            BlockDirection::Top => self.up(),
-            BlockDirection::North => self.north(),
-            BlockDirection::South => self.south(),
-            BlockDirection::West => self.west(),
-            BlockDirection::East => self.east(),
+            BlockFace::Bottom => self.down(),
+            BlockFace::Top => self.up(),
+            BlockFace::North => self.north(),
+            BlockFace::South => self.south(),
+            BlockFace::West => self.west(),
+            BlockFace::East => self.east(),
         }
     }
     /// Returns `true` if the [`BlockPosition`] is valid.
@@ -379,17 +379,17 @@ impl BlockPosition {
     }
 }
 
-impl Add<BlockDirection> for BlockPosition {
+impl Add<BlockFace> for BlockPosition {
     type Output = Self;
 
-    fn add(self, rhs: BlockDirection) -> Self::Output {
+    fn add(self, rhs: BlockFace) -> Self::Output {
         match rhs {
-            BlockDirection::Bottom => self.down(),
-            BlockDirection::Top => self.up(),
-            BlockDirection::North => self.north(),
-            BlockDirection::South => self.south(),
-            BlockDirection::West => self.west(),
-            BlockDirection::East => self.east(),
+            BlockFace::Bottom => self.down(),
+            BlockFace::Top => self.up(),
+            BlockFace::North => self.north(),
+            BlockFace::South => self.south(),
+            BlockFace::West => self.west(),
+            BlockFace::East => self.east(),
         }
     }
 }
@@ -461,16 +461,6 @@ impl From<BlockPosition> for ChunkPosition {
             z: pos.z.div_euclid(CHUNK_WIDTH as i32),
         }
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub enum BlockDirection {
-    Bottom,
-    Top,
-    North,
-    South,
-    West,
-    East,
 }
 
 /// Validated position of a block.
@@ -614,15 +604,44 @@ mod tests {
         <BlockPosition as TryInto<ValidBlockPosition>>::try_into(block_position).unwrap();
     }
 }
-impl BlockDirection {
+impl BlockFace {
     pub fn opposite(self) -> Self {
         match self {
-            BlockDirection::Bottom => BlockDirection::Top,
-            BlockDirection::Top => BlockDirection::Bottom,
-            BlockDirection::North => BlockDirection::South,
-            BlockDirection::South => BlockDirection::North,
-            BlockDirection::West => BlockDirection::East,
-            BlockDirection::East => BlockDirection::West,
+            BlockFace::Bottom => BlockFace::Top,
+            BlockFace::Top => BlockFace::Bottom,
+            BlockFace::North => BlockFace::South,
+            BlockFace::South => BlockFace::North,
+            BlockFace::West => BlockFace::East,
+            BlockFace::East => BlockFace::West,
+        }
+    }
+
+    pub fn left(self) -> Self {
+        match self {
+            BlockFace::Bottom => BlockFace::Bottom,
+            BlockFace::Top => BlockFace::Top,
+            BlockFace::North => BlockFace::West,
+            BlockFace::South => BlockFace::East,
+            BlockFace::West => BlockFace::South,
+            BlockFace::East => BlockFace::North,
+        }
+    }
+
+    pub fn right(self) -> Self {
+        match self {
+            BlockFace::Bottom => BlockFace::Bottom,
+            BlockFace::Top => BlockFace::Top,
+            BlockFace::North => BlockFace::East,
+            BlockFace::South => BlockFace::West,
+            BlockFace::West => BlockFace::North,
+            BlockFace::East => BlockFace::South,
+        }
+    }
+
+    pub fn to_cardinal(self) -> Option<Self> {
+        match self {
+            BlockFace::Top | BlockFace::Bottom => None,
+            f => Some(f), 
         }
     }
 }

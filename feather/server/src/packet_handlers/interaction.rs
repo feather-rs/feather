@@ -1,16 +1,17 @@
+use common::block::placement::item_to_block;
 use common::entities::player::HotbarSlot;
 use common::events::BlockChangeEvent;
 use common::interactable::InteractableRegistry;
 use common::{Game, PlayerWindow};
 use libcraft::anvil::inventory_consts::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use libcraft::{BlockDirection as LibcraftBlockFace, BlockPosition, Hand};
+use libcraft::{Area, BlockFace as LibcraftBlockFace, Hand};
 use libcraft::{BlockKind, BlockState};
 use libcraft::{InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
-use quill::components::{EntityWorld, Sneaking};
+use quill::components::{EntityInventory, EntityPosition, EntityWorld, Sneaking};
 use quill::events::{
     BlockInteractEvent, BlockPlacementEvent, HeldItemChangeEvent, InteractEntityEvent,
 };
@@ -43,12 +44,12 @@ pub fn handle_player_block_placement(
     };
 
     let face = match packet.face {
-        BlockFace::North => BlockDirection::North,
-        BlockFace::South => BlockDirection::South,
-        BlockFace::East => BlockDirection::East,
-        BlockFace::West => BlockDirection::West,
-        BlockFace::Top => BlockDirection::Top,
-        BlockFace::Bottom => BlockDirection::Bottom,
+        BlockFace::North => LibcraftBlockFace::North,
+        BlockFace::South => LibcraftBlockFace::South,
+        BlockFace::East => LibcraftBlockFace::East,
+        BlockFace::West => LibcraftBlockFace::West,
+        BlockFace::Top => LibcraftBlockFace::Top,
+        BlockFace::Bottom => LibcraftBlockFace::Bottom,
     };
 
     let cursor_position = Vec3f::new(
@@ -95,16 +96,17 @@ pub fn handle_player_block_placement(
 
         game.ecs.insert_entity_event(player, event)?;
     } else {
-        server
-            .clients
-            .get(*game.ecs.get::<ClientId>(player)?)
-            .unwrap()
-            .send_block_change(
-                (BlockPosition::from(packet.position) + face).try_into()?,
-                BlockState::new(BlockKind::Air),
-            );
-
         // Handle this as a block placement
+        let item = {
+            let inventory = game.ecs.get::<EntityInventory>(player)?;
+            let slot = game.ecs.get::<HotbarSlot>(player)?;
+            let item = inventory.item(Area::Hotbar, slot.get());
+            item.and_then(|slot| slot.item_kind())
+        };
+        let block = match item.and_then(item_to_block) {
+            Some(block) => block,
+            None => return Ok(()),
+        };
         let event = BlockPlacementEvent {
             hand,
             location: packet.position.into(),
@@ -113,7 +115,27 @@ pub fn handle_player_block_placement(
             inside_block: packet.inside_block,
         };
 
+        let mut block_change_events = Vec::new();
+        {
+            let mut world = game.world_mut(game.ecs.get::<EntityWorld>(player)?.0)?;
+            let light_level = 15;
+
+            common::block::placement::place_block(
+                game,
+                &mut *world,
+                game.ecs.get::<EntityPosition>(player)?.0,
+                block,
+                &event,
+                light_level,
+                &mut block_change_events,
+            );
+        }
+
         game.ecs.insert_entity_event(player, event)?;
+
+        for event in block_change_events {
+            game.ecs.insert_event(event);
+        }
     }
 
     Ok(())

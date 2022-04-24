@@ -58,3 +58,10 @@ fn default_state() {
     assert_eq!(block.id(), 18_549);
     dbg!(block);
 }
+
+#[test]
+fn stairs() {
+    let block =
+        BlockState::new(BlockKind::from_namespaced_id("minecraft:nether_brick_stairs").unwrap());
+    assert_eq!(block.kind(), BlockKind::NetherBrickStairs);
+}

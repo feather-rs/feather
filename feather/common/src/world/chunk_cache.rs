@@ -28,24 +28,6 @@ impl ChunkCache {
         }
     }
 
-    /// Purges all unused chunk handles. Handles that exist elswhere in the memory are not removed.
-    pub fn purge_unused(&mut self) {
-        let mut to_remove: Vec<ChunkPosition> = vec![];
-        for (pos, (_, arc)) in self.map.iter() {
-            if Arc::strong_count(arc) == 1 {
-                to_remove.push(*pos)
-            }
-        }
-        for i in to_remove {
-            self.map.remove(&i);
-        }
-    }
-
-    /// Purges all chunk handles in the cache, including those that exist elswhere.
-    pub fn purge_all(&mut self) {
-        self.map.clear();
-        self.unload_queue.clear();
-    }
 
     fn ref_count(&self, pos: &ChunkPosition) -> Option<usize> {
         self.map.get(pos).map(|(_, arc)| Arc::strong_count(arc))
@@ -89,26 +71,18 @@ impl ChunkCache {
             .map(|(_, handle)| handle)
     }
 
-    /// Inserts a chunk handle into the cache. Reads the chunk's position by locking it. Blocks.
-    pub fn insert_read_pos(&mut self, handle: ChunkHandle) -> Option<ChunkHandle> {
-        let pos = handle.read().position();
-        self.insert(pos, handle)
-    }
 
     /// Removes the chunk handle at the given position, returning the handle if it was cached.
     pub fn remove(&mut self, pos: ChunkPosition) -> Option<ChunkHandle> {
         self.map.remove(&pos).map(|(_, handle)| handle)
     }
 
-    /// Returns the chunk handle at the given position, if there was one.
-    pub fn get(&mut self, pos: ChunkPosition) -> Option<ChunkHandle> {
-        self.map.get(&pos).map(|(_, handle)| handle.clone())
-    }
 
     pub fn len(&self) -> usize {
         self.map.len()
     }
 
+    #[allow(dead_code )]
     pub fn is_empty(&self) -> bool {
         self.map.is_empty()
     }

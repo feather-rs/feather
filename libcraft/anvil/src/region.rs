@@ -2,13 +2,11 @@
 //! of Anvil region files.
 
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap};
 use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::io::{SeekFrom, Write};
-use std::iter::FromIterator;
-use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::{fs, io, iter};
 
@@ -18,7 +16,7 @@ use libcraft_blocks::{BlockKind, BlockState};
 use libcraft_chunk::biome::{BiomeId, BiomeList};
 use libcraft_chunk::paletted_container::{Paletteable, PalettedContainer};
 use libcraft_chunk::{
-    Chunk, ChunkSection, Heightmap, HeightmapStore, LightStore, PackedArray,
+    Chunk, ChunkSection,  LightStore, PackedArray,
     BIOMES_PER_CHUNK_SECTION, SECTION_VOLUME,
 };
 use libcraft_core::{ChunkPosition, WorldHeight, ANVIL_VERSION_RANGE};

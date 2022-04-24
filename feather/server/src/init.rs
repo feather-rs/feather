@@ -1,15 +1,13 @@
-use std::path::PathBuf;
 use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use anyhow::{anyhow, bail, Context};
-use libcraft::dimension::DimensionInfo;
 use quill::world::{WorldDescriptor, WorldSettings};
 use quill::{Game as _, WorldId};
 use tokio::runtime::Runtime;
 
 use crate::{config::Config, logging, Server};
 use common::{Game, TickLoop};
-use libcraft::biome::{BiomeGeneratorInfo, BiomeList};
+use libcraft::biome::{ BiomeList};
 use vane::SystemExecutor;
 
 const CONFIG_PATH: &str = "config.toml";
@@ -39,7 +37,7 @@ pub fn run(game: Game) -> anyhow::Result<()> {
     launch(game)
 }
 
-fn init_game(server: Server, config: &Config, runtime: Runtime) -> anyhow::Result<Game> {
+fn init_game(server: Server, _config: &Config, runtime: Runtime) -> anyhow::Result<Game> {
     let mut game = Game::new(runtime);
     init_systems(&mut game, server);
     init_biomes(&mut game);

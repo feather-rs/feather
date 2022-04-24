@@ -1,7 +1,6 @@
+use libcraft::BlockFace;
 use libcraft::BlockPosition;
 use vane::SysResult;
-use libcraft::BlockDirection;
-use utils::continue_on_none;
 
 use crate::{events::BlockChangeEvent, Game};
 
@@ -12,17 +11,19 @@ pub fn block_update(game: &mut Game) -> SysResult {
         let mut world = game.world_mut(event.world())?;
         for pos in event.iter_changed_blocks().map(Into::<BlockPosition>::into) {
             for adjacent in [
-                BlockDirection::East,
-                BlockDirection::West,
-                BlockDirection::North,
-                BlockDirection::South,
-                BlockDirection::Bottom,
+                BlockFace::East,
+                BlockFace::West,
+                BlockFace::North,
+                BlockFace::South,
+                BlockFace::Bottom,
             ]
             .iter()
-            .map(|&d| [pos.adjacent(d), pos.adjacent(BlockDirection::Bottom).adjacent(d)])
+            .map(|&d| [pos.adjacent(d), pos.adjacent(BlockFace::Bottom).adjacent(d)])
             .flatten()
             {
-                continue_on_none!(update_wall_connections(&mut world, adjacent));
+                if update_wall_connections(&mut *world, adjacent).is_none() {
+                    continue;
+                }
             }
         }
     }

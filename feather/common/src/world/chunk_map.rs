@@ -76,11 +76,6 @@ impl ChunkMap {
             .is_some()
     }
 
-    /// Returns an iterator over chunks.
-    pub fn iter_chunks(&self) -> impl IntoIterator<Item = &ChunkHandle> {
-        self.inner.values()
-    }
-
     /// Inserts a new chunk into the chunk map.
     pub fn insert_chunk(&mut self, chunk: ChunkHandle) {
         let pos = chunk.read().position();

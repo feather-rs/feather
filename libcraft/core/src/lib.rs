@@ -11,6 +11,7 @@ mod positions;
 
 use std::fmt::Formatter;
 
+pub use block::BlockFace;
 pub use consts::*;
 pub use entity::EntityKind;
 pub use gamemode::Gamemode;
@@ -18,7 +19,7 @@ pub use gamerules::GameRules;
 pub use interaction::InteractionType;
 pub use player::Hand;
 pub use positions::{
-    vec3, Aabb, BlockDirection, BlockPosition, ChunkPosition, Mat4f, Position, ValidBlockPosition,
+    vec3, Aabb, BlockPosition, ChunkPosition, Mat4f, Position, ValidBlockPosition,
     Vec2d, Vec2f, Vec2i, Vec3d, Vec3f, Vec3i, Vec4d, Vec4f, Vec4i,
 };
 

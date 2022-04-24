@@ -29,8 +29,11 @@ impl BlockChangeEvent {
         }
     }
 
-    pub fn try_single<T: TryInto<ValidBlockPosition>>(pos: T) -> Result<Self, T::Error> {
-        Ok(Self::single(pos.try_into()?))
+    pub fn try_single<T: TryInto<ValidBlockPosition>>(
+        pos: T,
+        world: WorldId,
+    ) -> Result<Self, T::Error> {
+        Ok(Self::single(pos.try_into()?, world))
     }
 
     /// Creates an event corresponding to a block update

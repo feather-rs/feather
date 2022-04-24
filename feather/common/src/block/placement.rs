@@ -1,80 +1,32 @@
 use std::convert::TryInto;
 
-use super::util::{is_door, AdjacentBlockHelper};
+use super::util::AdjacentBlockHelper;
 use super::wall::update_wall_connections;
-use crate::chunk::entities::ChunkEntities;
-use crate::entities::player::HotbarSlot;
 use crate::events::BlockChangeEvent;
-use crate::{Game, World};
-use libcraft::{
-    Area, BlockState , BlockPosition, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic,
-    Gamemode, HalfTopBottom, HalfUpperLower, Hinge, Inventory, Item, ItemStack, Position,
-    SimplifiedBlockKind, SlabKind, Vec3d,
+use crate::Game;
+use libcraft::block::{AttachedFace, BedPart, BlockHalf, DoorHinge, SlabType};
+use libcraft::blocks::SimplifiedBlockKind;
+use libcraft::{BlockFace, BlockKind, BlockPosition, BlockState, Item, ItemStack, Position, Vec3d};
+use quill::block_data::{
+    Bed, Campfire, Directional, Door, FaceAttachable, Orientable, Slab, Waterlogged,
 };
-use blocks::BlockKind;
-use ecs::{Ecs, SysResult};
-use libcraft_core::{BlockFace, EntityKind};
-use libcraft_items::InventorySlot;
-use quill_common::components::CanBuild;
-use quill_common::events::BlockPlacementEvent;
-use utils::continue_on_none;
+use quill::components::{EntityKindComponent, EntityPosition};
+use quill::events::BlockPlacementEvent;
+use quill::InventorySlot;
+use quill::World;
 use vek::Rect3;
-/// A system that handles block placement events.
-pub fn block_placement(game: &mut Game) -> SysResult {
-    let mut events = vec![];
-    for (_, (event, gamemode, inv, hotbar, player_pos, can_build)) in game
-        .ecs
-        .query::<(
-            &BlockPlacementEvent,
-            &Gamemode,
-            &mut Inventory,
-            &HotbarSlot,
-            &Position,
-            &CanBuild,
-        )>()
-        .iter()
-    {
-        // Get selected slot
-        let mut slot = match event.hand {
-            libcraft_core::Hand::Main => inv.item(Area::Hotbar, hotbar.get()),
-            libcraft_core::Hand::Offhand => inv.item(Area::Offhand, 0),
-        }
-        .unwrap();
-        // Check that the player has an item in hand and can build
-        if !can_build.0 || slot.is_empty() {
-            continue;
-        }
-        let block = continue_on_none!(item_to_block(slot.item_kind().unwrap()));
-        continue_on_none!(place_block(
-            &mut game.world,
-            &game.chunk_entities,
-            &game.ecs,
-            *player_pos,
-            block,
-            event,
-            0,
-            &mut events
-        ));
-        if matches!(*gamemode, Gamemode::Survival | Gamemode::Adventure) {
-            decrease_slot(&mut slot)
-        }
-    }
-    for e in events {
-        game.ecs.insert_event(e);
-    }
-    Ok(())
-}
+
 /// Check if the block has a bed portion that can be placed placed in the world. `None` means that while the block has a head, it cannot be placed
 fn should_place_bed_head(
-    world: &World,
-    block: BlockId,
+    world: &dyn World,
+    block: BlockState,
     placement_pos: BlockPosition,
 ) -> Option<bool> {
     if bed_head(block).is_none() {
         return Some(false);
     }
     if world
-        .adjacent_block_cardinal(placement_pos, block.facing_cardinal()?)?
+        .adjacent_block(placement_pos, block.data_as::<Directional>()?.facing())?
         .is_replaceable()
     {
         Some(true)
@@ -84,33 +36,28 @@ fn should_place_bed_head(
 }
 /// Check if the block has an upper half that can be placed in the world. `None` means that while the block has an upper half, it cannot be placed
 fn should_place_upper_half(
-    world: &World,
-    block: BlockId,
+    world: &dyn World,
+    block: BlockState,
     placement_pos: BlockPosition,
 ) -> Option<bool> {
     if top_half(block).is_none() {
         return Some(false);
     }
-    if world.block_at(placement_pos.up())?.is_replaceable() {
+    if world.block_at(placement_pos.up()).ok()?.is_replaceable() {
         Some(true)
     } else {
         None
     }
 }
 /// Check if the block collides with any entity.
-/// This works but there is a discrepancy between when the place block event is fired and getting the entity location.
-/// that makes it possible to place a block at the right exact moment and have the server believe it wasn't blocked.
-fn entity_collisions_ok(
-    chunk_entities: &ChunkEntities,
-    ecs: &Ecs,
-    placement_pos: BlockPosition,
-) -> bool {
-    !chunk_entities
+fn entity_collisions_ok(game: &Game, placement_pos: BlockPosition) -> bool {
+    !game
+        .chunk_entities
         .entities_in_chunk(placement_pos.chunk())
         .iter()
         .any(|&entity| {
-            let entity_position = ecs.get::<Position>(entity).unwrap();
-            let entity_kind = *ecs.get::<EntityKind>(entity).unwrap();
+            let entity_position = game.ecs.get::<EntityPosition>(entity).unwrap().0;
+            let _entity_kind = game.ecs.get::<EntityKindComponent>(entity).unwrap().0;
             let block_rect: Rect3<f64, f64> = vek::Rect3 {
                 x: placement_pos.x.into(),
                 y: placement_pos.y.into(),
@@ -120,7 +67,15 @@ fn entity_collisions_ok(
                 d: 1.0,
             };
 
-            let mut entity_rect = entity_kind.bounding_box().into_rect3();
+            // TODO use entity-specific bounding box
+            let mut entity_rect = Rect3 {
+                x: 0.,
+                y: 0.,
+                z: 0.,
+                w: 0.5,
+                h: 2.0,
+                d: 0.5,
+            };
             entity_rect.x = entity_position.x - (entity_rect.w / 2.0);
             entity_rect.y = entity_position.y;
             entity_rect.z = entity_position.z - (entity_rect.d / 2.0);
@@ -130,88 +85,86 @@ fn entity_collisions_ok(
 }
 /// Place multiple blocks and generate corresponding events.
 fn multi_place(
-    world: &mut World,
-    placements: &[(BlockId, BlockPosition)],
+    world: &mut dyn World,
+    placements: &[(BlockState, BlockPosition)],
     event_buffer: &mut Vec<BlockChangeEvent>,
 ) {
     for &(block, pos) in placements {
         event_buffer.push(BlockChangeEvent::single(
             pos.try_into().expect("valid block positions only"),
+            world.id(),
         ));
-        assert!(world.set_block_at(pos, block), "block has to be loaded");
+        world
+            .set_block_at(pos, block)
+            .expect("block has to be loaded");
     }
 }
 /// Try placing the block by merging (=placing to the same position as the target block). Includes merging slabs, waterlogging and replacing blocks like grass.
 /// Only one of the following conditions can be met at a time, so short-circuiting is ok.
 /// The combinations include top slab & bottom slab, waterloggable block & water and any block & a replaceable block
-fn basic_place(block: &mut BlockId, target_block: BlockId) -> bool {
-    merge_slabs_in_place(block, target_block)
+fn basic_place(block: &mut BlockState, target_block: BlockState, face: BlockFace) -> bool {
+    merge_slabs_in_place(block, target_block, face)
         || waterlog(block, target_block)
         || can_replace(*block, target_block)
 }
 /// Check if `block` can replace `target`.
-fn can_replace(block: BlockId, target: BlockId) -> bool {
+fn can_replace(block: BlockState, target: BlockState) -> bool {
     (block.kind() != target.kind()) && target.is_replaceable()
 }
 /// Blocks get changed if they are getting waterlogged or when they are slabs turning into full blocks.
 /// Blocks get replaced in-place when possible, while changing an adjacent block has a lower priority.
-#[allow(clippy::too_many_arguments)]
-fn place_block(
-    world: &mut World,
-    chunk_entities: &ChunkEntities,
-    ecs: &Ecs,
+pub fn place_block(
+    game: &Game,
+    world: &mut dyn World,
     player_pos: Position,
-    mut block: BlockId,
+    mut block: BlockState,
     placement: &BlockPlacementEvent,
     light_level: u8,
     event_buffer: &mut Vec<BlockChangeEvent>,
 ) -> Option<()> {
     let target1 = placement.location;
-    let target_block1 = world.block_at(target1)?;
+    let target_block1 = world.block_at(target1).ok()?;
     let target2 = target1.adjacent(placement.face);
     let target_block2 = world.block_at(target2);
     // Cannot build on air
-    if target_block1.is_air() {
+    if target_block1.kind().is_air() {
         return None;
     }
     let player_dir_ordered = ordered_directions(player_pos.direction());
     slab_to_place(&mut block, target_block1, placement);
     // Select where to place the block
-    let target = if basic_place(&mut block, target_block1) {
+    let target = if basic_place(&mut block, target_block1, placement.face) {
         target1
-    } else if basic_place(&mut block, target_block2?) {
+    } else if basic_place(&mut block, target_block2.ok()?, placement.face) {
         target2
     } else {
         // Cannot place block
         return None;
     };
     set_face(&mut block, &player_dir_ordered, placement);
-    rotate_8dir(&mut block, player_pos.yaw);
+    // rotate_8dir(&mut block, player_pos.yaw);
     door_hinge(&mut block, target, &placement.cursor_position, world);
-    if !entity_collisions_ok(chunk_entities, ecs, target)
-        || !world.check_block_stability(block, target, light_level)?
+    if !entity_collisions_ok(game, target)
+        || !(&*world).check_block_stability(block, target, light_level)?
     {
         return None;
     }
     let primary_placement = (block, target);
     if should_place_upper_half(world, block, target)? {
-        let secondary_placement = (
-            block.with_half_upper_lower(HalfUpperLower::Upper),
-            target.up(),
-        );
+        let top_block =
+            block.with_data(block.data_as::<Door>().unwrap().with_half(BlockHalf::Upper));
+        let secondary_placement = (top_block, target.up());
         multi_place(
             world,
             &[primary_placement, secondary_placement],
             event_buffer,
         )
     } else if should_place_bed_head(world, block, target)? {
-        let face = match block.facing_cardinal()? {
-            FacingCardinal::North => BlockFace::North,
-            FacingCardinal::South => BlockFace::South,
-            FacingCardinal::West => BlockFace::West,
-            FacingCardinal::East => BlockFace::East,
-        };
-        let secondary_placement = (block.with_part(base::Part::Head), target.adjacent(face));
+        let face = block.data_as::<Directional>().unwrap().facing();
+        let secondary_placement = (
+            block.with_data(block.data_as::<Bed>().unwrap().with_part(BedPart::Head)),
+            target.adjacent(face),
+        );
         multi_place(
             world,
             &[primary_placement, secondary_placement],
@@ -226,98 +179,111 @@ fn place_block(
 /// Sets the hinge position on a door block. The door attempts to connect to other doors first, then to solid blocks. Otherwise, the hinge position is determined by the click position.
 #[allow(clippy::float_cmp)]
 fn door_hinge(
-    block: &mut BlockId,
+    block: &mut BlockState,
     pos: BlockPosition,
     cursor_pos: &[f32],
-    world: &World,
+    world: &dyn World,
 ) -> Option<()> {
-    let cardinal = block.facing_cardinal()?;
-    let left = cardinal.left();
-    let right = cardinal.right();
-    let lb = world.adjacent_block_cardinal(pos, left)?;
-    let rb = world.adjacent_block_cardinal(pos, right)?;
-    if is_door(lb) && lb.kind() == block.kind() {
-        block.set_hinge(Hinge::Right);
-        return Some(());
-    }
-    if is_door(rb) && rb.kind() == block.kind() {
-        block.set_hinge(Hinge::Left);
-        return Some(());
-    }
-    let lt = world.adjacent_block_cardinal(pos.up(), left)?;
-    let rt = world.adjacent_block_cardinal(pos.up(), right)?;
-    let solid_left = is_block_solid(lb) || is_block_solid(lt);
-    let solid_right = is_block_solid(rb) || is_block_solid(rt);
-    if solid_left && !solid_right {
-        block.set_hinge(Hinge::Left);
-        return Some(());
-    }
-    if solid_right && !solid_left {
-        block.set_hinge(Hinge::Right);
-        return Some(());
-    }
-    let relevant_axis = match cardinal {
-        FacingCardinal::North => cursor_pos[0],
-        FacingCardinal::South => 1.0 - cursor_pos[0],
-        FacingCardinal::West => 1.0 - cursor_pos[2],
-        FacingCardinal::East => cursor_pos[2],
-    };
-    let hinge = if relevant_axis < 0.5 {
-        Hinge::Left
+    if let Some(facing) = block.data_as::<Directional>().map(|dir| dir.facing()) {
+        let left = facing.left();
+        let right = facing.right();
+        let lb = world.adjacent_block(pos, left)?;
+        let rb = world.adjacent_block(pos, right)?;
+
+        if let Some(door) = block.data_as::<Door>() {
+            if lb.kind() == block.kind() {
+                block.set_data(door.with_hinge(DoorHinge::Right));
+                return Some(());
+            } else if rb.kind() == block.kind() {
+                block.set_data(door.with_hinge(DoorHinge::Left));
+                return Some(());
+            }
+
+            let lt = world.adjacent_block(pos.up(), left)?;
+            let rt = world.adjacent_block(pos.up(), right)?;
+            let solid_left = is_block_solid(lb) || is_block_solid(lt);
+            let solid_right = is_block_solid(rb) || is_block_solid(rt);
+            if solid_left && !solid_right {
+                block.set_data(door.with_hinge(DoorHinge::Left));
+                return Some(());
+            }
+            if solid_right && !solid_left {
+                block.set_data(door.with_hinge(DoorHinge::Right));
+                return Some(());
+            }
+            let relevant_axis = match facing {
+                BlockFace::North => cursor_pos[0],
+                BlockFace::South => 1.0 - cursor_pos[0],
+                BlockFace::West => 1.0 - cursor_pos[2],
+                BlockFace::East => cursor_pos[2],
+                _ => unreachable!(),
+            };
+            let hinge = if relevant_axis < 0.5 {
+                DoorHinge::Left
+            } else {
+                DoorHinge::Right
+            };
+            block.set_data(door.with_hinge(hinge));
+        }
+
+        Some(())
     } else {
-        Hinge::Right
-    };
-    block.set_hinge(hinge);
-    Some(())
+        None
+    }
 }
 
-fn is_block_solid(block: BlockId) -> bool {
-    block.is_solid()
+fn is_block_solid(block: BlockState) -> bool {
+    block.kind().solid()
         && !matches!(
-            block.slab_kind(),
-            Some(SlabKind::Bottom) | Some(SlabKind::Top)
+            block.data_as::<Slab>().map(|s| s.slab_type()),
+            Some(SlabType::Bottom) | Some(SlabType::Top)
         )
 }
 
 /// Gets the top half of the block. Works with doors, flowers, tall grass etc.
-fn top_half(block: BlockId) -> Option<BlockId> {
-    if block.has_half_upper_lower() {
-        Some(block.with_half_upper_lower(HalfUpperLower::Upper))
+fn top_half(block: BlockState) -> Option<BlockState> {
+    if let Some(door) = block.data_as::<Door>() {
+        Some(block.with_data(door.with_half(BlockHalf::Upper)))
     } else {
         None
     }
 }
 
 /// If applicable, this function returns a matching bed head to its foot part.
-fn bed_head(block: BlockId) -> Option<BlockId> {
-    if block.has_part() {
-        Some(block.with_part(base::Part::Head))
+fn bed_head(block: BlockState) -> Option<BlockState> {
+    if let Some(bed) = block.data_as::<Bed>() {
+        Some(block.with_data(bed.with_part(BedPart::Head)))
     } else {
         None
     }
 }
 
+/*
 /// If applicable, rotates 8-directional blocks like banners and signs. The yaw is a property of the placing entity.
-fn rotate_8dir(block: &mut BlockId, yaw: f32) {
+fn rotate_8dir(block: &mut BlockState, yaw: f32) {
+    if let Some(mut rot) = block.data_as::<Rotatable>() {
+
+    }
     block.set_rotation(((yaw + 180.0) / 22.5).round() as i32);
 }
+*/
 
 /// Orders all the cubic directions(`FacingCubic`) by how well they represent the direction.
-pub fn ordered_directions(direction: Vec3d) -> [FacingCubic; 6] {
+pub fn ordered_directions(direction: Vec3d) -> [BlockFace; 6] {
     let x_dir = if direction[0] > 0.0 {
-        FacingCubic::East
+        BlockFace::East
     } else {
-        FacingCubic::West
+        BlockFace::West
     };
     let y_dir = if direction[1] > 0.0 {
-        FacingCubic::Up
+        BlockFace::Top
     } else {
-        FacingCubic::Down
+        BlockFace::Bottom
     };
     let z_dir = if direction[2] > 0.0 {
-        FacingCubic::South
+        BlockFace::South
     } else {
-        FacingCubic::North
+        BlockFace::North
     };
     let abs_x = direction[0].abs();
     let abs_y = direction[1].abs();
@@ -343,14 +309,20 @@ pub fn ordered_directions(direction: Vec3d) -> [FacingCubic; 6] {
 }
 
 // Attempts to merge the two blocks, in place.
-fn merge_slabs_in_place(block: &mut BlockId, target: BlockId) -> bool {
+fn merge_slabs_in_place(block: &mut BlockState, target: BlockState, face: BlockFace) -> bool {
     if block.kind() != target.kind() {
         return false;
     }
-    let opt = match (block.slab_kind(), target.slab_kind()) {
-        (Some(slab1), Some(slab2)) => match (slab1, slab2) {
-            (SlabKind::Top, SlabKind::Bottom) | (SlabKind::Bottom, SlabKind::Top) => {
-                Some(block.with_slab_kind(SlabKind::Double))
+    let opt = match block
+        .data_as::<Slab>()
+        .and_then(|s1| target.data_as::<Slab>().map(move |s2| (s1, s2)))
+    {
+        Some((slab, target_slab)) => match (slab.slab_type(), target_slab.slab_type()) {
+            (SlabType::Top, SlabType::Bottom) if face == BlockFace::Top => {
+                Some(block.with_data(slab.with_slab_type(SlabType::Double)))
+            }
+            (SlabType::Bottom, SlabType::Top) if face == BlockFace::Bottom => {
+                Some(block.with_data(slab.with_slab_type(SlabType::Double)))
             }
 
             _ => None,
@@ -360,41 +332,49 @@ fn merge_slabs_in_place(block: &mut BlockId, target: BlockId) -> bool {
     *block = opt.unwrap_or(*block);
     opt.is_some()
 }
-/// Determine what kind of slab to place. Returns `true` if the slab placed would be merged with the other slab. `try_merge_slabs` should always succeed if this function returns `true`.
+/// Determine what kind of slab to place. Returns `true` if the slab
+/// placed would be merged with the other slab.
+/// `try_merge_slabs` should always succeed if this function returns `true`.
 #[allow(clippy::float_cmp)]
-fn slab_to_place(block: &mut BlockId, target: BlockId, placement: &BlockPlacementEvent) -> bool {
-    let (slab_kind, place_adjacent) = match placement.cursor_position[1] {
-        y if y == 0.5 => {
-            if let Some(k) = target.slab_kind() {
+fn slab_to_place(
+    block: &mut BlockState,
+    target: BlockState,
+    placement: &BlockPlacementEvent,
+) -> bool {
+    if let Some(mut slab) = target.data_as::<Slab>() {
+        let k = slab.slab_type();
+        let (slab_kind, place_adjacent) = match placement.cursor_position[1] {
+            y if y == 0.5 => {
                 if block.kind() != target.kind() {
                     match k {
-                        SlabKind::Top => (SlabKind::Top, false),
-                        SlabKind::Bottom => (SlabKind::Bottom, false),
-                        SlabKind::Double => return false,
+                        SlabType::Top => (SlabType::Top, false),
+                        SlabType::Bottom => (SlabType::Bottom, false),
+                        SlabType::Double => return false,
                     }
                 } else {
                     match k {
-                        SlabKind::Top => (SlabKind::Bottom, true),
-                        SlabKind::Bottom => (SlabKind::Top, true),
-                        SlabKind::Double => return false,
+                        SlabType::Top => (SlabType::Bottom, true),
+                        SlabType::Bottom => (SlabType::Top, true),
+                        SlabType::Double => return false,
                     }
                 }
-            } else {
-                return false;
             }
-        }
-        y if y == 0.0 => (SlabKind::Top, false),
-        y if matches!(placement.face, BlockFace::Top) || y == 1.0 => (SlabKind::Bottom, false),
-        y if y < 0.5 => (SlabKind::Bottom, false),
-        y if y < 1.0 => (SlabKind::Top, false),
-        _ => return false,
-    };
-    block.set_slab_kind(slab_kind);
-    place_adjacent
+            y if y == 0.0 => (SlabType::Top, false),
+            y if matches!(placement.face, BlockFace::Top) || y == 1.0 => (SlabType::Bottom, false),
+            y if y < 0.5 => (SlabType::Bottom, false),
+            y if y < 1.0 => (SlabType::Top, false),
+            _ => return false,
+        };
+        slab.set_slab_type(slab_kind);
+        block.set_data(slab);
+        place_adjacent
+    } else {
+        false
+    }
 }
 
 /// This function determines the result of combining the 2 blocks. If one is water and the other is waterloggable, the target is waterlogged. Has no effect otherwise.
-fn waterlog(target_block: &mut BlockId, to_place: BlockId) -> bool {
+fn waterlog(target_block: &mut BlockState, to_place: BlockState) -> bool {
     // Select the non-water block or return
     let mut waterloggable = if matches!(target_block.kind(), BlockKind::Water) {
         to_place
@@ -404,19 +384,21 @@ fn waterlog(target_block: &mut BlockId, to_place: BlockId) -> bool {
         return false;
     };
     // Refuse to waterlog double slabs and blocks that are already waterlogged
-    if waterloggable
-        .slab_kind()
-        .map(|e| matches!(e, SlabKind::Double))
-        .unwrap_or(false)
-        | waterloggable.waterlogged().unwrap_or(false)
-    {
-        return false;
+    if let Some(slab) = waterloggable.data_as::<Slab>() {
+        if slab.slab_type() == SlabType::Double {
+            return false;
+        }
     }
+    if let Some(mut waterlogged) = waterloggable.data_as::<Waterlogged>() {
+        if waterlogged.waterlogged() {
+            return false;
+        }
 
-    if waterloggable.set_waterlogged(true) {
-        *target_block = waterloggable;
-        // Campfires are extinguished when waterlogged
-        target_block.set_lit(false);
+        waterlogged.set_waterlogged(true);
+        waterloggable.set_data(waterlogged);
+        if let Some(campfire) = target_block.data_as::<Campfire>() {
+            target_block.set_data(campfire.with_lit(false));
+        }
         true
     } else {
         false
@@ -476,132 +458,133 @@ fn is_reverse_placed(kind: SimplifiedBlockKind) -> bool {
     )
 }
 
-/// Changes the block facing as necessary. This includes calling `make_wall_block`, determining how the block is placed, setting its facing, cubic, cardinal, cardinal&down, top/bottom and the xyz axis.
+/// Changes the block facing as necessary. This includes calling `make_wall_block`,
+/// determining how the block is placed, setting its
+/// facing, cubic, cardinal, cardinal&down, top/bottom and the xyz axis.
 /// Blocks have only one of these orientations.
 fn set_face(
-    block: &mut BlockId,
-    player_directions: &[FacingCubic],
+    block: &mut BlockState,
+    player_directions: &[BlockFace],
     placement: &BlockPlacementEvent,
 ) {
     if !matches!(placement.face, BlockFace::Top) {
         make_wall_block(block);
     }
     let player_relative = is_player_relative(block.simplified_kind());
-    let cubic_facing = match player_relative {
+    let facing = match player_relative {
         true => player_directions[0].opposite(),
-        false => match placement.face {
-            BlockFace::Bottom => FacingCubic::Down,
-            BlockFace::Top => FacingCubic::Up,
-            BlockFace::North => FacingCubic::North,
-            BlockFace::South => FacingCubic::South,
-            BlockFace::West => FacingCubic::West,
-            BlockFace::East => FacingCubic::East,
-        },
+        false => placement.face,
     };
-    let cubic_facing = {
-        if is_reverse_placed(block.simplified_kind()) {
-            cubic_facing.opposite()
-        } else {
-            cubic_facing
-        }
+    let facing = if is_reverse_placed(block.simplified_kind()) {
+        facing.opposite()
+    } else {
+        facing
     };
-    block.set_face(match placement.face {
-        BlockFace::Bottom => Face::Ceiling,
-        BlockFace::Top => Face::Floor,
-        BlockFace::North => Face::Wall,
-        BlockFace::South => Face::Wall,
-        BlockFace::West => Face::Wall,
-        BlockFace::East => Face::Wall,
-    });
-    let cardinal = cubic_facing.to_facing_cardinal().unwrap_or_else(|| {
+    if let Some(attach) = block.data_as::<FaceAttachable>() {
+        block.set_data(attach.with_attached_face(match placement.face {
+            BlockFace::Bottom => AttachedFace::Ceiling,
+            BlockFace::Top => AttachedFace::Floor,
+            BlockFace::North => AttachedFace::Wall,
+            BlockFace::South => AttachedFace::Wall,
+            BlockFace::West => AttachedFace::Wall,
+            BlockFace::East => AttachedFace::Wall,
+        }));
+    }
+
+    let facing_cardinal = facing.to_cardinal().unwrap_or_else(|| {
         if player_relative {
             if is_reverse_placed(block.simplified_kind()) {
                 player_directions[1]
             } else {
                 player_directions[1].opposite()
             }
-            .to_facing_cardinal()
+            .to_cardinal()
             .unwrap()
         } else {
             player_directions[0]
-                .to_facing_cardinal()
-                .unwrap_or_else(|| player_directions[1].to_facing_cardinal().unwrap())
+                .to_cardinal()
+                .unwrap_or_else(|| player_directions[1].to_cardinal().unwrap())
         }
     });
-    block.set_facing_cardinal(match block.simplified_kind() {
-        SimplifiedBlockKind::Anvil => cardinal.left(),
-        _ => cardinal,
-    });
-    block.set_axis_xyz(cubic_facing.axis());
-    block.set_facing_cardinal_and_down(
-        cubic_facing
-            .opposite()
-            .to_facing_cardinal_and_down()
-            .unwrap_or(FacingCardinalAndDown::Down),
-    );
-    block.set_facing_cubic(cubic_facing);
-    block.set_half_top_bottom(match placement.face {
-        BlockFace::Top => HalfTopBottom::Bottom,
-        BlockFace::Bottom => HalfTopBottom::Top,
-        _ => match placement.cursor_position[1] {
-            y if y <= 0.5 => HalfTopBottom::Bottom,
-            _ => HalfTopBottom::Top,
-        },
-    });
+    if let Some(mut dir) = block.data_as::<Directional>() {
+        if !dir.valid_facing().contains(&BlockFace::Top) {
+            block.set_data(dir.with_facing(match block.simplified_kind() {
+                SimplifiedBlockKind::Anvil => facing_cardinal.left(),
+                _ => facing_cardinal,
+            }));
+        } else {
+            dir.set_facing(facing);
+        }
+    }
+
+    if let Some(orient) = block.data_as::<Orientable>() {
+        block.set_data(orient.with_axis(facing.axis()));
+    }
+
+    if let Some(door) = block.data_as::<Door>() {
+        block.set_data(door.with_half(match placement.face {
+            BlockFace::Top => BlockHalf::Lower,
+            BlockFace::Bottom => BlockHalf::Upper,
+            _ => match placement.cursor_position[1] {
+                y if y <= 0.5 => BlockHalf::Lower,
+                _ => BlockHalf::Upper,
+            },
+        }));
+    }
 }
 
 /// If possible, turns a free standing block to its wall mounted counterpart, as they are considered different. This applies to torches, signs and banners.
-fn make_wall_block(block: &mut BlockId) {
+fn make_wall_block(block: &mut BlockState) {
     *block = match block.kind() {
-        BlockKind::Torch => BlockId::wall_torch(),
-        BlockKind::RedstoneTorch => BlockId::redstone_wall_torch(),
-        BlockKind::SoulTorch => BlockId::soul_wall_torch(),
-        BlockKind::OakSign => BlockId::oak_wall_sign(),
-        BlockKind::BirchSign => BlockId::birch_wall_sign(),
-        BlockKind::AcaciaSign => BlockId::acacia_wall_sign(),
-        BlockKind::JungleSign => BlockId::jungle_wall_sign(),
-        BlockKind::SpruceSign => BlockId::spruce_wall_sign(),
-        BlockKind::WarpedSign => BlockId::warped_wall_sign(),
-        BlockKind::CrimsonSign => BlockId::crimson_wall_sign(),
-        BlockKind::DarkOakSign => BlockId::dark_oak_wall_sign(),
-        BlockKind::RedBanner => BlockId::red_wall_banner(),
-        BlockKind::BlueBanner => BlockId::blue_wall_banner(),
-        BlockKind::CyanBanner => BlockId::cyan_wall_banner(),
-        BlockKind::GrayBanner => BlockId::gray_wall_banner(),
-        BlockKind::LimeBanner => BlockId::lime_wall_banner(),
-        BlockKind::PinkBanner => BlockId::pink_wall_banner(),
-        BlockKind::BlackBanner => BlockId::black_wall_banner(),
-        BlockKind::BrownBanner => BlockId::brown_wall_banner(),
-        BlockKind::GreenBanner => BlockId::green_wall_banner(),
-        BlockKind::WhiteBanner => BlockId::white_wall_banner(),
-        BlockKind::OrangeBanner => BlockId::orange_wall_banner(),
-        BlockKind::PurpleBanner => BlockId::purple_wall_banner(),
-        BlockKind::YellowBanner => BlockId::yellow_wall_banner(),
-        BlockKind::MagentaBanner => BlockId::magenta_wall_banner(),
-        BlockKind::LightBlueBanner => BlockId::light_blue_wall_banner(),
-        BlockKind::LightGrayBanner => BlockId::light_gray_wall_banner(),
+        BlockKind::Torch => BlockState::new(BlockKind::WallTorch),
+        BlockKind::RedstoneTorch => BlockState::new(BlockKind::RedstoneWallTorch),
+        BlockKind::SoulTorch => BlockState::new(BlockKind::SoulWallTorch),
+        BlockKind::OakSign => BlockState::new(BlockKind::OakWallSign),
+        BlockKind::BirchSign => BlockState::new(BlockKind::BirchWallSign),
+        BlockKind::AcaciaSign => BlockState::new(BlockKind::AcaciaWallSign),
+        BlockKind::JungleSign => BlockState::new(BlockKind::JungleWallSign),
+        BlockKind::SpruceSign => BlockState::new(BlockKind::SpruceWallSign),
+        BlockKind::WarpedSign => BlockState::new(BlockKind::WarpedWallSign),
+        BlockKind::CrimsonSign => BlockState::new(BlockKind::CrimsonWallSign),
+        BlockKind::DarkOakSign => BlockState::new(BlockKind::DarkOakWallSign),
+        BlockKind::RedBanner => BlockState::new(BlockKind::RedWallBanner),
+        BlockKind::BlueBanner => BlockState::new(BlockKind::BlueWallBanner),
+        BlockKind::CyanBanner => BlockState::new(BlockKind::CyanWallBanner),
+        BlockKind::GrayBanner => BlockState::new(BlockKind::GrayWallBanner),
+        BlockKind::LimeBanner => BlockState::new(BlockKind::LimeWallBanner),
+        BlockKind::PinkBanner => BlockState::new(BlockKind::PinkWallBanner),
+        BlockKind::BlackBanner => BlockState::new(BlockKind::BlackWallBanner),
+        BlockKind::BrownBanner => BlockState::new(BlockKind::BrownWallBanner),
+        BlockKind::GreenBanner => BlockState::new(BlockKind::GreenWallBanner),
+        BlockKind::WhiteBanner => BlockState::new(BlockKind::WhiteWallBanner),
+        BlockKind::OrangeBanner => BlockState::new(BlockKind::OrangeWallBanner),
+        BlockKind::PurpleBanner => BlockState::new(BlockKind::PurpleWallBanner),
+        BlockKind::YellowBanner => BlockState::new(BlockKind::YellowWallBanner),
+        BlockKind::MagentaBanner => BlockState::new(BlockKind::MagentaWallBanner),
+        BlockKind::LightBlueBanner => BlockState::new(BlockKind::LightBlueWallBanner),
+        BlockKind::LightGrayBanner => BlockState::new(BlockKind::LightGrayWallBanner),
         _ => *block,
     };
 }
 
 /// Attempts to convert an item to its placeable counterpart. Buckets to their respective contents, redstone dust to redstone wire and string to tripwire
-fn item_to_block(item: Item) -> Option<BlockId> {
+pub fn item_to_block(item: Item) -> Option<BlockState> {
     Some(match item {
-        Item::WaterBucket => BlockId::water(),
-        Item::LavaBucket => BlockId::lava(),
-        Item::Redstone => BlockId::redstone_wire(),
-        Item::FlintAndSteel => BlockId::fire(),
-        Item::String => BlockId::tripwire(),
+        Item::WaterBucket => BlockState::new(BlockKind::Water),
+        Item::LavaBucket => BlockState::new(BlockKind::Lava),
+        Item::Redstone => BlockState::new(BlockKind::RedstoneWire),
+        Item::FlintAndSteel => BlockState::new(BlockKind::Fire),
+        Item::String => BlockState::new(BlockKind::Tripwire),
         i => {
             let mut name = "minecraft:".to_owned();
             name.push_str(i.name());
-            return BlockId::from_identifier(&name);
+            BlockState::new(BlockKind::from_namespaced_id(&name)?)
         }
     })
 }
 
 /// Reduces the amount of items in a slot. Full buckets are emptied instead. There are no checks if the item can be placed.
-fn decrease_slot(slot: &mut InventorySlot) {
+pub fn decrease_slot(slot: &mut InventorySlot) {
     match slot.item_kind().unwrap() {
         Item::WaterBucket | Item::LavaBucket => {
             *slot = InventorySlot::Filled(ItemStack::new(Item::Bucket, 1).unwrap())
@@ -616,7 +599,7 @@ fn decrease_slot(slot: &mut InventorySlot) {
         }
         _ => {
             // Can always take at least one
-            slot.try_take(1);
+            let _ = slot.try_take(1);
         }
     }
 }

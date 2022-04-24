@@ -52,10 +52,6 @@ impl ChunkTickets {
         None
     }
 
-    pub fn should_unload_chunk(&self, pos: ChunkPosition) -> bool {
-        self.chunk_ticket_counts.get(&pos).copied().unwrap_or(0) == 0
-    }
-
     fn next_id(&mut self) -> u64 {
         let id = self.next_id;
         self.next_id += 1;

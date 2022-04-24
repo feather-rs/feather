@@ -3,14 +3,12 @@
 //! The entities and chunks visible to each client are
 //! determined based on the player's [`common::view::View`].
 
-use ahash::AHashMap;
-use common::{events::ViewUpdateEvent, view::View, Game};
-use libcraft::{ChunkPosition, Position};
+use common::{events::ViewUpdateEvent, Game};
 use quill::{
-    components::{EntityPosition, EntityWorld},
-    events::ChunkLoadEvent,
+    components::{EntityPosition},
+
 };
-use vane::{Entity, SysResult, SystemExecutor};
+use vane::{ SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
 
@@ -19,7 +17,7 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 }
 
 fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
-    for (player, (client_id, event, position)) in game
+    for (_player, (client_id, event, _position)) in game
         .ecs
         .query::<(&ClientId, &ViewUpdateEvent, &EntityPosition)>()
         .iter()
@@ -29,7 +27,7 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
         // we need to check if the client is actually still there.
         if let Some(client) = server.clients.get_mut(*client_id) {
             client.update_own_chunk(event.new_view.center());
-            update_chunks(game, player, client, &event, position.0)?;
+            update_chunks(client, &event)?;
         }
     }
 
@@ -37,11 +35,10 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn update_chunks(
-    game: &Game,
-    player: Entity,
+
     client: &mut Client,
     event: &ViewUpdateEvent,
-    position: Position,
+
 ) -> SysResult {
     // Send chunks that are in the new view but not the old view.
     for &pos in &event.new_chunks {

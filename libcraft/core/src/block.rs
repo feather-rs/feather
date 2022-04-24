@@ -12,23 +12,24 @@ use strum_macros::EnumString;
 )]
 #[strum(serialize_all = "snake_case")]
 #[repr(u8)]
+
 pub enum BlockFace {
-    South,
-    SouthSouthwest,
-    Southwest,
-    WestSouthwest,
-    West,
-    WestNorthwest,
-    Northwest,
-    NorthNorthwest,
+    Bottom,
+    Top,
     North,
-    NorthNortheast,
-    Northeast,
-    EastNortheast,
+    South,
+    West,
     East,
-    EastSoutheast,
-    Southeast,
-    SouthSoutheast,
+}
+
+impl BlockFace {
+    pub fn axis(self) -> Axis {
+        match self {
+            BlockFace::East | BlockFace::West => Axis::X,
+            BlockFace::Top | BlockFace::Bottom => Axis::Y,
+            BlockFace::North | BlockFace::South => Axis::Z,
+        }
+    }
 }
 
 /// Size of bamboo leaves.

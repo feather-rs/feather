@@ -8,9 +8,7 @@
 use libcraft::biome::BiomeList;
 pub use superflat::SuperflatWorldGenerator;
 
-use libcraft::chunk::Chunk;
-use libcraft::ChunkPosition;
-use libcraft::{Sections, WorldHeight};
+use libcraft::{ WorldHeight};
 mod superflat;
 pub struct VoidWorldGenerator;
 

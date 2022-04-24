@@ -9,7 +9,7 @@ use crate::data::{RawBlockStateProperties, ValidProperties};
 use libcraft_core::block::{
     AttachedFace, Axis, BambooLeaves, BedPart, BellAttachment, BlockFace, BlockHalf, ChestType,
     ComparatorMode, Instrument, Orientation, PistonType, RailShape, SlabType, StairShape,
-    StructureBlockMode, WallConnection,
+    StructureBlockMode, WallConnection, DoorHinge,
 };
 use libcraft_macros::BlockData;
 
@@ -269,6 +269,7 @@ pub struct Door {
     facing: BlockFace,
     open: bool,
     powered: bool,
+    hinge: DoorHinge,
     valid_properties: &'static ValidProperties,
 }
 

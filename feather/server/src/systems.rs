@@ -79,7 +79,7 @@ fn send_keepalives(_game: &mut Game, server: &mut Server) -> SysResult {
 
 /// Ticks `Client`s.
 fn tick_clients(game: &mut Game, server: &mut Server) -> SysResult {
-    for (player, (client_id, position)) in game.ecs.query::<(&ClientId, &EntityPosition)>().iter() {
+    for (_player, (client_id, position)) in game.ecs.query::<(&ClientId, &EntityPosition)>().iter() {
         if let Some(client) = server.clients.get_mut(*client_id) {
             client.tick(game, position.0)?;
         }
