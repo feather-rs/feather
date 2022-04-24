@@ -39,7 +39,7 @@ hash = ""
 # - keep_loaded: never save or unload chunks; changes are lost on server restart (useful for minigames with small maps)
 save_strategy = { type = "save_incrementally", interval = "1min" }
 dimension_type = "minecraft:overworld"
-# `freg` is the custom, world format used by default in Feather.
+# `freg` is the custom world format used by default in Feather.
 source = { type = "worldgen", generator = "flat", inner = { type = "freg", directory = "world" } }
 flat = true
 

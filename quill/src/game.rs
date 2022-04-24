@@ -6,7 +6,10 @@ use tokio::runtime;
 use vane::{Entities, Entity, EntityBuilder, Resources};
 
 use crate::{
-    saveload::WorldSourceFactory, threadpool::ThreadPool, world::WorldDescriptor, World, WorldId,
+    saveload::{worldgen::WorldGeneratorFactory, WorldSourceFactory},
+    threadpool::ThreadPool,
+    world::WorldDescriptor,
+    World, WorldId,
 };
 
 /// A plugin's primary interface to interacting with the server state.
@@ -52,11 +55,24 @@ pub trait Game: 'static {
     /// Registers a `WorldSourceFactory` that can be referenced in the server config file.
     fn register_world_source_factory(&mut self, name: &str, factory: Box<dyn WorldSourceFactory>);
 
+    /// Registers a `WorldGeneratorFactory` that can be referenced in the server config file.
+    fn register_world_generator_factory(
+        &mut self,
+        name: &str,
+        factory: Box<dyn WorldGeneratorFactory>,
+    );
+
     /// Gets a `WorldSourceFactory` by its name.
     fn world_source_factory(
         &self,
         name: &str,
     ) -> Result<&dyn WorldSourceFactory, WorldSourceFactoryNotFound>;
+
+    /// Gets a `WorldGeneratorFactory` by its name.
+    fn world_generator_factory(
+        &self,
+        name: &str,
+    ) -> Result<&dyn WorldGeneratorFactory, WorldGeneratorFactoryNotFound>;
 
     /// Removes the world with the given ID.
     ///
@@ -122,3 +138,7 @@ pub struct WorldNotFound(pub WorldId);
 #[derive(Debug, thiserror::Error)]
 #[error("world source factory '{0}' was not found")]
 pub struct WorldSourceFactoryNotFound(pub String);
+
+#[derive(Debug, thiserror::Error)]
+#[error("world generator factory '{0}' was not found")]
+pub struct WorldGeneratorFactoryNotFound(pub String);

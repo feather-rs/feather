@@ -3,9 +3,9 @@
 use std::sync::Arc;
 
 use flume::{Receiver, Sender};
-use libcraft::{Chunk, ChunkPosition};
+use libcraft::{Chunk, ChunkPosition, Sections};
 
-use crate::{threadpool::ThreadPool, ChunkHandle, ChunkLock};
+use crate::{threadpool::ThreadPool, ChunkHandle, ChunkLock, Game, WorldId};
 
 use super::{ChunkLoadError, ChunkLoadResult, ChunkSaveResult, StoredChunk, WorldSource};
 
@@ -16,6 +16,20 @@ use super::{ChunkLoadError, ChunkLoadResult, ChunkSaveResult, StoredChunk, World
 pub trait WorldGenerator: Send + Sync + 'static {
     /// Generates the chunk at the given position.
     fn generate_chunk(&self, pos: ChunkPosition) -> Chunk;
+}
+
+/// A factory for a world generator.
+///
+/// Used to initialize a `WorldGenerator` from a config file.
+pub trait WorldGeneratorFactory: 'static {
+    fn create_world_generator(
+        &self,
+        game: &dyn Game,
+        params: &toml::Value,
+        world_id: WorldId,
+        sections: Sections,
+        min_y: i32,
+    ) -> anyhow::Result<Arc<dyn WorldGenerator>>;
 }
 
 /// A `WorldSource` that wraps an inner world source

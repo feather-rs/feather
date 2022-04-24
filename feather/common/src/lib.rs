@@ -32,6 +32,7 @@ pub mod world_sources;
 
 pub use game::Game;
 pub use world::World;
+use world_sources::worldgen::SuperflatWorldGeneratorFactory;
 
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
@@ -48,4 +49,6 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         Box::new(world_sources::worldgen::WorldgenWorldSourceFactory),
     );
     game.register_world_source_factory("empty", Box::new(world_sources::EmptyWorldSourceFactory));
+
+    game.register_world_generator_factory("flat", Box::new(SuperflatWorldGeneratorFactory));
 }

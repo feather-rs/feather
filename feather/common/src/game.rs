@@ -8,7 +8,8 @@ use quill::chat::{ChatKind, ChatMessage};
 use quill::components::EntityPosition;
 use quill::entities::Player;
 use quill::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
-use quill::game::{WorldNotFound, WorldSourceFactoryNotFound};
+use quill::game::{WorldGeneratorFactoryNotFound, WorldNotFound, WorldSourceFactoryNotFound};
+use quill::saveload::worldgen::WorldGeneratorFactory;
 use quill::saveload::WorldSourceFactory;
 use quill::threadpool::ThreadPool;
 use quill::world::WorldDescriptor;
@@ -54,6 +55,8 @@ pub struct Game {
     pub tick_count: u64,
 
     world_source_factories: AHashMap<String, Box<dyn WorldSourceFactory>>,
+    world_generator_factories: AHashMap<String, Box<dyn WorldGeneratorFactory>>,
+
     worlds: AHashMap<WorldId, RefCell<World>>,
     default_world: WorldId,
 
@@ -87,6 +90,7 @@ impl Game {
             chunk_entities: ChunkEntities::default(),
             tick_count: 0,
             world_source_factories: AHashMap::new(),
+            world_generator_factories: AHashMap::new(),
             worlds: AHashMap::new(),
             default_world: WorldId::new_random(), // needs to be set
             entity_spawn_callbacks: Vec::new(),
@@ -258,6 +262,15 @@ impl quill::Game for Game {
         self.world_source_factories.insert(name.to_owned(), factory);
     }
 
+    fn register_world_generator_factory(
+        &mut self,
+        name: &str,
+        factory: Box<dyn WorldGeneratorFactory>,
+    ) {
+        self.world_generator_factories
+            .insert(name.to_owned(), factory);
+    }
+
     fn world_source_factory(
         &self,
         name: &str,
@@ -265,6 +278,16 @@ impl quill::Game for Game {
         self.world_source_factories
             .get(name)
             .ok_or_else(|| WorldSourceFactoryNotFound(name.to_owned()))
+            .map(|b| &**b)
+    }
+
+    fn world_generator_factory(
+        &self,
+        name: &str,
+    ) -> Result<&dyn WorldGeneratorFactory, WorldGeneratorFactoryNotFound> {
+        self.world_generator_factories
+            .get(name)
+            .ok_or_else(|| WorldGeneratorFactoryNotFound(name.to_owned()))
             .map(|b| &**b)
     }
 
