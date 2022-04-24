@@ -6,8 +6,8 @@ use crate::chunk::entities::ChunkEntities;
 use crate::entities::player::HotbarSlot;
 use crate::events::BlockChangeEvent;
 use crate::{Game, World};
-use base::{
-    Area, BlockId, BlockPosition, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic,
+use libcraft::{
+    Area, BlockState , BlockPosition, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic,
     Gamemode, HalfTopBottom, HalfUpperLower, Hinge, Inventory, Item, ItemStack, Position,
     SimplifiedBlockKind, SlabKind, Vec3d,
 };

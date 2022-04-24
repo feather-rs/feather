@@ -1,5 +1,5 @@
-use libcraft::{BlockId, BlockPosition, FacingCardinal, SimplifiedBlockKind};
-use libcraft::BlockFace;
+use libcraft::BlockDirection;
+use libcraft::{block::BlockFace, blocks::SimplifiedBlockKind, BlockPosition, BlockState};
 
 use crate::{
     block::util::{is_wall, AdjacentBlockHelper},
@@ -15,21 +15,21 @@ pub fn update_wall_connections(world: &mut World, pos: BlockPosition) -> Option<
 }
 
 /// Check if this block is a wall/iron bars/glass pane. If true, the block can connect to any other block that satisfies this predicate.
-pub fn is_wall_compatible(block: BlockId) -> bool {
-    use base::SimplifiedBlockKind::*;
+pub fn is_wall_compatible(block: BlockState) -> bool {
+    use libcraft::blocks::SimplifiedBlockKind::*;
     is_wall(block) || matches!(block.simplified_kind(), GlassPane | IronBars)
 }
 fn adjacent_or_default(
     world: &World,
     pos: BlockPosition,
-    face: BlockFace,
-    default: BlockId,
-) -> BlockId {
+    face: BlockDirection,
+    default: BlockState,
+) -> BlockState {
     world.adjacent_block(pos, face).unwrap_or(default)
 }
 /// Checks if this block is a `FenceGate` and has one of its connecting side on the given `BlockFace`
-fn gate_connects_to_face(block: BlockId, face: BlockFace) -> bool {
-    use BlockFace::*;
+fn gate_connects_to_face(block: BlockState, face: BlockDirection) -> bool {
+    use BlockDirection::*;
     block.simplified_kind() == SimplifiedBlockKind::FenceGate
         && matches!(
             (face, block.facing_cardinal().unwrap()),
@@ -39,8 +39,8 @@ fn gate_connects_to_face(block: BlockId, face: BlockFace) -> bool {
 }
 
 /// Uses the appropriate `BlockId::set_#####_connected` function, depending on the given `BlockFace`
-fn set_face_connected(block: &mut BlockId, face: BlockFace, connected: bool) -> bool {
-    use BlockFace::*;
+fn set_face_connected(block: &mut BlockId, face: BlockDirection, connected: bool) -> bool {
+    use BlockDirection::*;
     match face {
         Bottom | Top => false,
         East => block.set_east_connected(connected),
@@ -50,8 +50,8 @@ fn set_face_connected(block: &mut BlockId, face: BlockFace, connected: bool) -> 
     }
 }
 /// Uses the appropriate `BlockId::set_#####_nlt` function, depending on the given `BlockFace`. The given `Nlt` is automatically converted.
-fn set_face_nlt(block: &mut BlockId, face: BlockFace, nlt: Nlt) -> bool {
-    use BlockFace::*;
+fn set_face_nlt(block: &mut BlockId, face: BlockDirection, nlt: Nlt) -> bool {
+    use BlockDirection::*;
     match face {
         Bottom | Top => false,
         East => block.set_east_nlt(nlt.into()),
@@ -61,8 +61,8 @@ fn set_face_nlt(block: &mut BlockId, face: BlockFace, nlt: Nlt) -> bool {
     }
 }
 /// Checks whether the block is a wall and connected to the given `BlockFace`
-fn is_nlt_connected(block: BlockId, face: BlockFace) -> Option<bool> {
-    use BlockFace::*;
+fn is_nlt_connected(block: BlockId, face: BlockDirection) -> Option<bool> {
+    use BlockDirection::*;
     let f = |n: Nlt| matches!(n, Nlt::Low | Nlt::Tall);
     match face {
         Bottom | Top => None,
@@ -73,8 +73,8 @@ fn is_nlt_connected(block: BlockId, face: BlockFace) -> Option<bool> {
     }
 }
 /// Checks if the block is connected to the given `BlockFace`
-fn is_face_connected(block: BlockId, face: BlockFace) -> Option<bool> {
-    use BlockFace::*;
+fn is_face_connected(block: BlockId, face: BlockDirection) -> Option<bool> {
+    use BlockDirection::*;
     match face {
         Bottom | Top => Some(false),
         East => block.east_connected(),
@@ -109,15 +109,15 @@ pub fn lower_fence_gate(world: &mut World, pos: BlockPosition) -> Option<()> {
 pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Option<()> {
     use base::SimplifiedBlockKind::*;
     let mut block = world.block_at(pos)?;
-    let up = adjacent_or_default(world, pos, BlockFace::Top, BlockId::air());
+    let up = adjacent_or_default(world, pos, BlockDirection::Top, BlockId::air());
     let (mut east_connected, mut west_connected, mut north_connected, mut south_connected) =
         (false, false, false, false);
     // Iterate over cardinal directions
     for (block_face, connected_flag) in [
-        (BlockFace::East, &mut east_connected),
-        (BlockFace::West, &mut west_connected),
-        (BlockFace::North, &mut north_connected),
-        (BlockFace::South, &mut south_connected),
+        (BlockDirection::East, &mut east_connected),
+        (BlockDirection::West, &mut west_connected),
+        (BlockDirection::North, &mut north_connected),
+        (BlockDirection::South, &mut south_connected),
     ] {
         let facing = adjacent_or_default(world, pos, block_face, BlockId::air());
         // Walls and fences connect to opaque blocks.
@@ -159,10 +159,10 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
         let up_has_up = up.up().unwrap_or(false);
         // Walls always have a tall post when ending
         let this_ends = [
-            (BlockFace::East, east_connected),
-            (BlockFace::West, west_connected),
-            (BlockFace::North, north_connected),
-            (BlockFace::South, south_connected),
+            (BlockDirection::East, east_connected),
+            (BlockDirection::West, west_connected),
+            (BlockDirection::North, north_connected),
+            (BlockDirection::South, south_connected),
         ]
         .iter()
         .any(|&(f, con)| {
@@ -173,10 +173,10 @@ pub fn connect_neighbours_and_up(world: &mut World, pos: BlockPosition) -> Optio
 
         // Check if there is a wall/fence/etc ending above
         let up_ends = [
-            (BlockFace::East, east_connected),
-            (BlockFace::West, west_connected),
-            (BlockFace::North, north_connected),
-            (BlockFace::South, south_connected),
+            (BlockDirection::East, east_connected),
+            (BlockDirection::West, west_connected),
+            (BlockDirection::North, north_connected),
+            (BlockDirection::South, south_connected),
         ]
         .iter()
         .any(|&(f, con)| {

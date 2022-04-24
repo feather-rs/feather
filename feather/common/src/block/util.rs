@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::World;
+use libcraft::BlockState;
 use libcraft_core::BlockFace;
 use std::convert::TryInto;
 
@@ -46,54 +47,58 @@ impl_conversions!(EastNlt, WestNlt, NorthNlt, SouthNlt);
 
 /// Trait that implements helper function for adjacency. This is an extension to `World` that tries to keep this utility logic away from the main implementation
 pub trait AdjacentBlockHelper {
-    fn adjacent_block(&self, pos: BlockPosition, face: BlockFace) -> Option<BlockId>;
+    fn adjacent_block(&self, pos: BlockPosition, face: BlockFace) -> Option<BlockState>;
 
-    fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockId>;
+    fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockState>;
 
-    fn adjacent_block_cardinal(&self, pos: BlockPosition, dir: FacingCardinal) -> Option<BlockId>;
+    fn adjacent_block_cardinal(
+        &self,
+        pos: BlockPosition,
+        dir: FacingCardinal,
+    ) -> Option<BlockState>;
 
     fn adjacent_block_cardinal_and_down(
         &self,
         pos: BlockPosition,
         dir: FacingCardinalAndDown,
-    ) -> Option<BlockId>;
+    ) -> Option<BlockState>;
 
-    fn get_facing_direction(&self, block: BlockId) -> Option<FacingCubic>;
+    fn get_facing_direction(&self, block: BlockState) -> Option<FacingCubic>;
 
     fn set_block_adjacent_cubic(
         &self,
         pos: BlockPosition,
-        block: BlockId,
+        block: BlockState,
         dir: FacingCubic,
     ) -> bool;
 
     fn set_block_adjacent_cardinal(
         &self,
         pos: BlockPosition,
-        block: BlockId,
+        block: BlockState,
         dir: FacingCardinal,
     ) -> bool;
 
     fn set_block_adjacent_cardinal_and_down(
         &self,
         pos: BlockPosition,
-        block: BlockId,
+        block: BlockState,
         dir: FacingCardinalAndDown,
     ) -> bool;
 
     fn check_block_stability(
         &self,
-        block: BlockId,
+        block: BlockState,
         pos: BlockPosition,
         light_level: u8,
     ) -> Option<bool>;
 }
 impl AdjacentBlockHelper for World {
-    fn adjacent_block(&self, pos: BlockPosition, face: BlockFace) -> Option<BlockId> {
+    fn adjacent_block(&self, pos: BlockPosition, face: BlockFace) -> Option<BlockState> {
         self.block_at(pos.adjacent(face))
     }
 
-    fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockId> {
+    fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockState> {
         self.adjacent_block(
             pos,
             match dir {
@@ -107,7 +112,11 @@ impl AdjacentBlockHelper for World {
         )
     }
 
-    fn adjacent_block_cardinal(&self, pos: BlockPosition, dir: FacingCardinal) -> Option<BlockId> {
+    fn adjacent_block_cardinal(
+        &self,
+        pos: BlockPosition,
+        dir: FacingCardinal,
+    ) -> Option<BlockState> {
         self.adjacent_block_cubic(pos, dir.to_facing_cubic())
     }
 
@@ -115,11 +124,11 @@ impl AdjacentBlockHelper for World {
         &self,
         pos: BlockPosition,
         dir: FacingCardinalAndDown,
-    ) -> Option<BlockId> {
+    ) -> Option<BlockState> {
         self.adjacent_block_cubic(pos, dir.to_facing_cubic())
     }
 
-    fn get_facing_direction(&self, block: BlockId) -> Option<FacingCubic> {
+    fn get_facing_direction(&self, block: BlockState) -> Option<FacingCubic> {
         let dir = if block.has_facing_cardinal() {
             block.facing_cardinal().unwrap().to_facing_cubic()
         } else if block.has_facing_cardinal_and_down() {
@@ -133,7 +142,7 @@ impl AdjacentBlockHelper for World {
     fn set_block_adjacent_cubic(
         &self,
         pos: BlockPosition,
-        block: BlockId,
+        block: BlockState,
         dir: FacingCubic,
     ) -> bool {
         self.set_block_at(
@@ -152,7 +161,7 @@ impl AdjacentBlockHelper for World {
     fn set_block_adjacent_cardinal(
         &self,
         pos: BlockPosition,
-        block: BlockId,
+        block: BlockState,
         dir: FacingCardinal,
     ) -> bool {
         self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
@@ -161,7 +170,7 @@ impl AdjacentBlockHelper for World {
     fn set_block_adjacent_cardinal_and_down(
         &self,
         pos: BlockPosition,
-        block: BlockId,
+        block: BlockState,
         dir: FacingCardinalAndDown,
     ) -> bool {
         self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
@@ -169,7 +178,7 @@ impl AdjacentBlockHelper for World {
 
     fn check_block_stability(
         &self,
-        block: BlockId,
+        block: BlockState,
         pos: BlockPosition,
         light_level: u8,
     ) -> Option<bool> {
@@ -324,7 +333,7 @@ impl AdjacentBlockHelper for World {
 
 /// Checks if the block is a wall. `SimplifiedBlockKind` does not have a common type for walls at this time, making this function neccessary.
 pub fn is_wall(block: BlockId) -> bool {
-    use base::SimplifiedBlockKind::*;
+    use libcraft::blocks::SimplifiedBlockKind::*;
     matches!(
         block.simplified_kind(),
         BrickWall
@@ -347,7 +356,7 @@ pub fn is_wall(block: BlockId) -> bool {
     )
 }
 pub fn is_door(block: BlockId) -> bool {
-    use base::SimplifiedBlockKind::*;
+    use libcraft::blocks::SimplifiedBlockKind::*;
     matches!(
         block.simplified_kind(),
         WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor

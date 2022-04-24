@@ -3,7 +3,7 @@ use common::events::BlockChangeEvent;
 use common::interactable::InteractableRegistry;
 use common::{Game, PlayerWindow};
 use libcraft::anvil::inventory_consts::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use libcraft::{BlockFace as LibcraftBlockFace, BlockPosition, Hand};
+use libcraft::{BlockDirection as LibcraftBlockFace, BlockPosition, Hand};
 use libcraft::{BlockKind, BlockState};
 use libcraft::{InteractionType, Vec3f};
 use protocol::packets::client::{
@@ -43,12 +43,12 @@ pub fn handle_player_block_placement(
     };
 
     let face = match packet.face {
-        BlockFace::North => LibcraftBlockFace::North,
-        BlockFace::South => LibcraftBlockFace::South,
-        BlockFace::East => LibcraftBlockFace::East,
-        BlockFace::West => LibcraftBlockFace::West,
-        BlockFace::Top => LibcraftBlockFace::Top,
-        BlockFace::Bottom => LibcraftBlockFace::Bottom,
+        BlockFace::North => BlockDirection::North,
+        BlockFace::South => BlockDirection::South,
+        BlockFace::East => BlockDirection::East,
+        BlockFace::West => BlockDirection::West,
+        BlockFace::Top => BlockDirection::Top,
+        BlockFace::Bottom => BlockDirection::Bottom,
     };
 
     let cursor_position = Vec3f::new(

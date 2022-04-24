@@ -356,14 +356,14 @@ impl BlockPosition {
         }
     }
 
-    pub fn adjacent(self, face: BlockFace) -> Self {
+    pub fn adjacent(self, face: BlockDirection) -> Self {
         match face {
-            BlockFace::Bottom => self.down(),
-            BlockFace::Top => self.up(),
-            BlockFace::North => self.north(),
-            BlockFace::South => self.south(),
-            BlockFace::West => self.west(),
-            BlockFace::East => self.east(),
+            BlockDirection::Bottom => self.down(),
+            BlockDirection::Top => self.up(),
+            BlockDirection::North => self.north(),
+            BlockDirection::South => self.south(),
+            BlockDirection::West => self.west(),
+            BlockDirection::East => self.east(),
         }
     }
     /// Returns `true` if the [`BlockPosition`] is valid.
@@ -379,17 +379,17 @@ impl BlockPosition {
     }
 }
 
-impl Add<BlockFace> for BlockPosition {
+impl Add<BlockDirection> for BlockPosition {
     type Output = Self;
 
-    fn add(self, rhs: BlockFace) -> Self::Output {
+    fn add(self, rhs: BlockDirection) -> Self::Output {
         match rhs {
-            BlockFace::Bottom => self.down(),
-            BlockFace::Top => self.up(),
-            BlockFace::North => self.north(),
-            BlockFace::South => self.south(),
-            BlockFace::West => self.west(),
-            BlockFace::East => self.east(),
+            BlockDirection::Bottom => self.down(),
+            BlockDirection::Top => self.up(),
+            BlockDirection::North => self.north(),
+            BlockDirection::South => self.south(),
+            BlockDirection::West => self.west(),
+            BlockDirection::East => self.east(),
         }
     }
 }
@@ -464,7 +464,7 @@ impl From<BlockPosition> for ChunkPosition {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub enum BlockFace {
+pub enum BlockDirection {
     Bottom,
     Top,
     North,
@@ -614,15 +614,15 @@ mod tests {
         <BlockPosition as TryInto<ValidBlockPosition>>::try_into(block_position).unwrap();
     }
 }
-impl BlockFace {
+impl BlockDirection {
     pub fn opposite(self) -> Self {
         match self {
-            BlockFace::Bottom => BlockFace::Top,
-            BlockFace::Top => BlockFace::Bottom,
-            BlockFace::North => BlockFace::South,
-            BlockFace::South => BlockFace::North,
-            BlockFace::West => BlockFace::East,
-            BlockFace::East => BlockFace::West,
+            BlockDirection::Bottom => BlockDirection::Top,
+            BlockDirection::Top => BlockDirection::Bottom,
+            BlockDirection::North => BlockDirection::South,
+            BlockDirection::South => BlockDirection::North,
+            BlockDirection::West => BlockDirection::East,
+            BlockDirection::East => BlockDirection::West,
         }
     }
 }
