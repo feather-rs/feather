@@ -121,7 +121,7 @@ impl BlockReportEntry {
         <T as FromStr>::Err: std::fmt::Debug,
     {
         if let Some(vec) = self.properties.get(name) {
-            vec.iter().map(|s| T::from_str(s).ok()).flatten().collect()
+            vec.iter().filter_map(|s| T::from_str(s).ok()).collect()
         } else {
             Vec::new()
         }

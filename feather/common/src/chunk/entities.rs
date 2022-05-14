@@ -1,12 +1,10 @@
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};
 use ecs::{Entity, SysResult, SystemExecutor};
+use quill_common::events::{EntityCreateEvent, EntityRemoveEvent};
 use utils::vec_remove_item;
 
-use crate::{
-    events::{ChunkCrossEvent, EntityCreateEvent, EntityRemoveEvent},
-    Game,
-};
+use crate::{events::ChunkCrossEvent, Game};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.add_system(update_chunk_entities);

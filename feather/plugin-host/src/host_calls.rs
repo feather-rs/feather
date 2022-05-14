@@ -12,6 +12,7 @@ mod block;
 mod component;
 mod entity;
 mod entity_builder;
+mod event;
 mod plugin_message;
 mod query;
 mod system;
@@ -49,6 +50,7 @@ use block::*;
 use component::*;
 use entity::*;
 use entity_builder::*;
+use event::*;
 use plugin_message::*;
 use query::*;
 use system::*;
@@ -57,6 +59,8 @@ host_calls! {
     "register_system" => register_system,
     "entity_get_component" => entity_get_component,
     "entity_set_component" => entity_set_component,
+    "entity_add_event" => entity_add_event,
+    "add_event" => add_event,
     "entity_builder_new_empty" => entity_builder_new_empty,
     "entity_builder_new" => entity_builder_new,
     "entity_builder_add_component" => entity_builder_add_component,

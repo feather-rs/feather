@@ -19,7 +19,7 @@ use protocol::{
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
 };
 use rand::rngs::OsRng;
-use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
+use rsa::{PaddingScheme, PublicKeyParts, RsaPrivateKey};
 use serde::{Deserialize, Serialize};
 use sha1::Sha1;
 use std::convert::TryInto;
@@ -205,8 +205,8 @@ fn offline_mode_uuid(username: &str) -> Uuid {
 const RSA_BITS: usize = 1024;
 
 /// Cached RSA key used by this server instance.
-static RSA_KEY: Lazy<RSAPrivateKey> =
-    Lazy::new(|| RSAPrivateKey::new(&mut OsRng, RSA_BITS).expect("failed to create RSA key"));
+static RSA_KEY: Lazy<RsaPrivateKey> =
+    Lazy::new(|| RsaPrivateKey::new(&mut OsRng, RSA_BITS).expect("failed to create RSA key"));
 static RSA_KEY_ENCODED: Lazy<Vec<u8>> = Lazy::new(|| {
     rsa_der::public_key_to_der(&RSA_KEY.n().to_bytes_be(), &RSA_KEY.e().to_bytes_be())
 });

@@ -198,8 +198,14 @@ host_component_enum! {
         CanBuild = 1020,
         Instabreak = 1021,
         Invulnerable = 1022,
-
-
+        PlayerJoinEvent = 1023,
+        EntityRemoveEvent = 1024,
+        EntityCreateEvent = 1025,
+        GamemodeEvent = 1026,
+        InstabreakEvent = 1027,
+        FlyingAbilityEvent = 1028,
+        BuildingAbilityEvent = 1029,
+        InvulnerabilityEvent = 1030,
     }
 }
 
@@ -363,3 +369,11 @@ bincode_component_impl!(BlockInteractEvent);
 bincode_component_impl!(CreativeFlyingEvent);
 bincode_component_impl!(SneakEvent);
 bincode_component_impl!(SprintEvent);
+bincode_component_impl!(PlayerJoinEvent);
+bincode_component_impl!(EntityRemoveEvent);
+bincode_component_impl!(EntityCreateEvent);
+bincode_component_impl!(GamemodeEvent);
+bincode_component_impl!(InstabreakEvent);
+bincode_component_impl!(FlyingAbilityEvent);
+bincode_component_impl!(BuildingAbilityEvent);
+bincode_component_impl!(InvulnerabilityEvent);

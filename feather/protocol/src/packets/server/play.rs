@@ -1,4 +1,6 @@
-use anyhow::bail;
+use std::io::Cursor;
+
+use anyhow::{anyhow, bail};
 
 use base::{
     BlockState, EntityMetadata, Gamemode, ParticleKind, ProfileProperty, ValidBlockPosition,
@@ -7,7 +9,7 @@ pub use chunk_data::{ChunkData, ChunkDataKind};
 use quill_common::components::PreviousGamemode;
 pub use update_light::UpdateLight;
 
-use crate::{io::VarLong, Readable, Writeable};
+use crate::{io::VarLong, ProtocolVersion, Readable, Writeable};
 
 use super::*;
 
@@ -334,8 +336,7 @@ packets! {
     }
 
     ChangeGameState {
-        reason StateReason;
-        value f32;
+        state_change GameStateChange;
     }
 
     OpenHorseWindow {
@@ -356,22 +357,131 @@ packets! {
     }
 }
 
-def_enum! {
-    StateReason (i8) {
-        0 = NoRespawnBlock,
-        1 = EndRaining,
-        2 = BeginningRain,
-        3 = ChangeGameMode,
-        4 = WinGame,
-        5 = DemoEvent,
-        6 = ArrowHitPlayer,
-        7 = RainLevelChange,
-        8 = ThunderLevelChange,
-        9 = PufferfishSting,
-        10 = ElderGuardianAppearance,
-        11 = EnableRespawnScreen,
+#[derive(Debug, Clone)]
+pub enum GameStateChange {
+    /// Sends block.minecraft.spawn.not_valid to client
+    SendNoRespawnBlockAvailableMessage,
+    EndRaining,
+    BeginRaining,
+    ChangeGamemode {
+        gamemode: Gamemode,
+    },
+    /// Sent when the player enters an end portal from minecraft:the_end to minecraft:overworld
+    WinGame {
+        show_credits: bool,
+    },
+    /// See https://help.minecraft.net/hc/en-us/articles/4408948974989-Minecraft-Java-Edition-Demo-Mode-
+    DemoEvent(DemoEventType),
+    /// Sent when any player is struck by an arrow.
+    ArrowHitAnyPlayer,
+    /// Seems to change both skycolor and lightning.
+    RainLevelChange {
+        /// Possible values are from 0 to 1
+        rain_level: f32,
+    },
+    /// Seems to change both skycolor and lightning (same as Rain level change, but doesn't start rain).
+    /// It also requires rain to render by notchian client.
+    ThunderLevelChange {
+        /// Possible values are from 0 to 1
+        thunder_level: f32,
+    },
+    PlayPufferfishStingSound,
+    PlayElderGuardianAppearance,
+    /// Send when doImmediateRespawn gamerule changes.
+    EnableRespawnScreen {
+        enable: bool,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub enum DemoEventType {
+    ShowWelcomeToDemoScreen,
+    TellMovementControls,
+    TellJumpControl,
+    TellInventoryControl,
+    TellDemoIsOver,
+}
+
+impl Writeable for GameStateChange {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        // Reason
+        match self {
+            GameStateChange::SendNoRespawnBlockAvailableMessage => 0u8,
+            GameStateChange::EndRaining => 1,
+            GameStateChange::BeginRaining => 2,
+            GameStateChange::ChangeGamemode { .. } => 3,
+            GameStateChange::WinGame { .. } => 4,
+            GameStateChange::DemoEvent(_) => 5,
+            GameStateChange::ArrowHitAnyPlayer => 6,
+            GameStateChange::RainLevelChange { .. } => 7,
+            GameStateChange::ThunderLevelChange { .. } => 8,
+            GameStateChange::PlayPufferfishStingSound => 9,
+            GameStateChange::PlayElderGuardianAppearance => 10,
+            GameStateChange::EnableRespawnScreen { .. } => 11,
+        }
+        .write(buffer, version)?;
+
+        // Value
+        match self {
+            GameStateChange::ChangeGamemode { gamemode } => *gamemode as u8 as f32,
+            GameStateChange::WinGame { show_credits } => *show_credits as u8 as f32,
+            GameStateChange::DemoEvent(DemoEventType::ShowWelcomeToDemoScreen) => 0.0,
+            GameStateChange::DemoEvent(DemoEventType::TellMovementControls) => 101.0,
+            GameStateChange::DemoEvent(DemoEventType::TellJumpControl) => 102.0,
+            GameStateChange::DemoEvent(DemoEventType::TellInventoryControl) => 103.0,
+            GameStateChange::DemoEvent(DemoEventType::TellDemoIsOver) => 104.0,
+            GameStateChange::RainLevelChange { rain_level } => *rain_level,
+            GameStateChange::ThunderLevelChange { thunder_level } => *thunder_level,
+            GameStateChange::EnableRespawnScreen { enable } => !enable as u8 as f32,
+            _ => 0.0,
+        }
+        .write(buffer, version)?;
+
+        Ok(())
     }
 }
+
+impl Readable for GameStateChange {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let reason = u8::read(buffer, version)?;
+        let value = f32::read(buffer, version)?;
+        Ok(match reason {
+            0 => GameStateChange::SendNoRespawnBlockAvailableMessage,
+            1 => GameStateChange::EndRaining,
+            2 => GameStateChange::BeginRaining,
+            3 => GameStateChange::ChangeGamemode {
+                gamemode: Gamemode::from_id(value as u8)
+                    .ok_or(anyhow!("Unsupported gamemode ID"))?,
+            },
+            4 => GameStateChange::WinGame {
+                show_credits: value as u8 != 0,
+            },
+            5 => GameStateChange::DemoEvent(match value as u8 {
+                0 => DemoEventType::ShowWelcomeToDemoScreen,
+                101 => DemoEventType::TellMovementControls,
+                102 => DemoEventType::TellJumpControl,
+                103 => DemoEventType::TellInventoryControl,
+                104 => DemoEventType::TellDemoIsOver,
+                other => bail!("Invalid demo event type: {}", other),
+            }),
+            6 => GameStateChange::ArrowHitAnyPlayer,
+            7 => GameStateChange::RainLevelChange { rain_level: value },
+            8 => GameStateChange::ThunderLevelChange {
+                thunder_level: value,
+            },
+            9 => GameStateChange::PlayPufferfishStingSound,
+            10 => GameStateChange::PlayElderGuardianAppearance,
+            11 => GameStateChange::EnableRespawnScreen {
+                enable: value as u8 == 0,
+            },
+            other => bail!("Invalid game state change reason: {}", other),
+        })
+    }
+}
+
 packets! {
     JoinGame {
         entity_id i32;

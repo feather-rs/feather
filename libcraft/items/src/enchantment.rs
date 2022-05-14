@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 /// An enchantment attached to an item.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Enchantment {
+    /// The type of the enchantment.
     #[serde(rename = "id")]
     kind: EnchantmentKind,
+    /// Enchantment level, represented by an `i8` for vanilla compatibility
     #[serde(rename = "lvl")]
     level: i8,
 }
@@ -21,6 +23,8 @@ impl Enchantment {
     ///
     /// The level is capped at `i8::MAX` for compatability
     /// with Vanilla.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn new(kind: EnchantmentKind, level: u32) -> Self {
         Self {
             kind,
@@ -29,11 +33,14 @@ impl Enchantment {
     }
 
     /// Gets the kind of this enchantment.
-    pub fn kind(&self) -> EnchantmentKind {
+    #[must_use]
+    pub const fn kind(&self) -> EnchantmentKind {
         self.kind
     }
 
     /// Gets the level of this enchantment.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
     pub fn level(&self) -> u32 {
         self.level.max(0) as u32
     }
@@ -48,6 +55,7 @@ impl Enchantment {
     /// Sets the level of this enchantment.
     ///
     /// The level is capped to  `i8::MAX`.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn set_level(&mut self, level: u32) {
         self.level = level.min(i8::MAX as u32) as i8;
     }

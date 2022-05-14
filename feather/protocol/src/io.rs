@@ -11,6 +11,7 @@ use libcraft_items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
 use quill_common::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};
+use std::io::ErrorKind;
 use std::{
     borrow::Cow,
     collections::BTreeMap,
@@ -160,31 +161,11 @@ where
 pub struct VarInt(pub i32);
 
 impl Readable for VarInt {
-    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    fn read(buffer: &mut Cursor<&[u8]>, _version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        let mut num_read = 0;
-        let mut result = 0;
-
-        loop {
-            let read = u8::read(buffer, version)?;
-            let value = i32::from(read & 0b0111_1111);
-            result |= value.overflowing_shl(7 * num_read).0;
-
-            num_read += 1;
-
-            if num_read > 5 {
-                bail!(
-                    "VarInt too long (max length: 5, value read so far: {})",
-                    result
-                );
-            }
-            if read & 0b1000_0000 == 0 {
-                break;
-            }
-        }
-        Ok(VarInt(result))
+        Self::read_from(buffer).map_err(Into::into)
     }
 }
 
@@ -214,8 +195,9 @@ impl From<i32> for VarInt {
 }
 
 impl VarInt {
-    pub fn write_to(&self, mut writer: impl Write) -> io::Result<()> {
+    pub fn write_to(&self, mut writer: impl Write) -> io::Result<usize> {
         let mut x = self.0 as u32;
+        let mut i = 0;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
             x >>= 7;
@@ -225,11 +207,35 @@ impl VarInt {
 
             writer.write_all(&[temp])?;
 
+            i += 1;
             if x == 0 {
                 break;
             }
         }
-        Ok(())
+        Ok(i)
+    }
+    pub fn read_from(mut reader: impl Read) -> io::Result<Self> {
+        let mut num_read = 0;
+        let mut result = 0;
+
+        loop {
+            let read = reader.read_u8()?;
+            let value = i32::from(read & 0b0111_1111);
+            result |= value.overflowing_shl(7 * num_read).0;
+
+            num_read += 1;
+
+            if num_read > 5 {
+                return Err(io::Error::new(
+                    ErrorKind::InvalidData,
+                    "VarInt too long (max length: 5)",
+                ));
+            }
+            if read & 0b1000_0000 == 0 {
+                break;
+            }
+        }
+        Ok(VarInt(result))
     }
 }
 
@@ -559,7 +565,7 @@ impl Readable for Slot {
             Ok(Filled(
                 ItemStackBuilder::with_item(item)
                     .count(count)
-                    .apply_damage(tags.map(|t| t.damage).flatten())
+                    .apply_damage(tags.and_then(|t| t.damage))
                     .into(),
             ))
         } else {

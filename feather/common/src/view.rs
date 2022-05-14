@@ -3,11 +3,9 @@ use base::{ChunkPosition, Position};
 use ecs::{SysResult, SystemExecutor};
 use itertools::Either;
 use quill_common::components::Name;
+use quill_common::events::PlayerJoinEvent;
 
-use crate::{
-    events::{PlayerJoinEvent, ViewUpdateEvent},
-    Game,
-};
+use crate::{events::ViewUpdateEvent, Game};
 
 /// Registers systems to update the `View` of a player.
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
