@@ -366,7 +366,15 @@ pub enum ItemStackError {
 
 impl Display for ItemStackError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        let name = match self {
+            ItemStackError::ClientOverflow => "Client overflow",
+            ItemStackError::EmptyStack => "Empty stack",
+            ItemStackError::ExceedsStackSize => "Exceeds stack size",
+            ItemStackError::IncompatibleStacks => "Incompatible stacks",
+            ItemStackError::NotEnoughItems => "Not enough items",
+        };
+
+        write!(f, "{}", name)
     }
 }
 

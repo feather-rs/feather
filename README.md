@@ -1,7 +1,7 @@
-# Feather
+# Feather <img height="20" src="https://user-images.githubusercontent.com/31416064/110449802-7a5b2c80-80ba-11eb-86f4-96d790fc1dc4.png" width="20"/>
+
 [![build](https://github.com/feather-rs/feather/workflows/build/badge.svg)](https://github.com/feather-rs/feather/actions)
 [![Discord](https://img.shields.io/discord/619316022800809995?logo=discord)](https://discordapp.com/invite/4eYmK69)
-
 A Minecraft server implementation written in Rust.
 
 ### Status
