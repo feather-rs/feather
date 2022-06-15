@@ -77,7 +77,7 @@ impl InventorySlot {
             (network - SLOT_HOTBAR_OFFSET) as i8
         } else if network == SLOT_OFFHAND {
             -106
-        } else if (SLOT_ARMOR_MIN..(SLOT_ARMOR_MAX+1)).contains(&network) {
+        } else if (SLOT_ARMOR_MIN..(SLOT_ARMOR_MAX + 1)).contains(&network) {
             ((SLOT_ARMOR_MAX - network) + 100) as i8
         } else if (SLOT_INVENTORY_OFFSET..SLOT_INVENTORY_OFFSET + INVENTORY_SIZE).contains(&network)
         {
