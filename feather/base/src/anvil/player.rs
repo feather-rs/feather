@@ -72,12 +72,12 @@ pub struct InventorySlot {
 impl InventorySlot {
     /// Converts an [`ItemStack`] and network protocol index into an [`InventorySlot`].
     pub fn from_network_index(network: usize, stack: &ItemStack) -> Option<Self> {
-        let slot = if (SLOT_HOTBAR_OFFSET..SLOT_HOTBAR_OFFSET + HOTBAR_SIZE).contains(&network) {
+        let slot = if (SLOT_HOTBAR_OFFSET..(SLOT_HOTBAR_OFFSET + HOTBAR_SIZE)).contains(&network) {
             // Hotbar
             (network - SLOT_HOTBAR_OFFSET) as i8
         } else if network == SLOT_OFFHAND {
             -106
-        } else if (SLOT_ARMOR_MIN..SLOT_ARMOR_MAX).contains(&network) {
+        } else if (SLOT_ARMOR_MIN..(SLOT_ARMOR_MAX+1)).contains(&network) {
             ((SLOT_ARMOR_MAX - network) + 100) as i8
         } else if (SLOT_INVENTORY_OFFSET..SLOT_INVENTORY_OFFSET + INVENTORY_SIZE).contains(&network)
         {
