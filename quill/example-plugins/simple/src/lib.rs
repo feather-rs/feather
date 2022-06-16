@@ -23,14 +23,16 @@ fn test_system(plugin: &mut SimplePlugin, game: &mut Game) {
     for (entity, (position, name, gamemode, uuid)) in
         game.query::<(&Position, &Name, &Gamemode, &Uuid)>()
     {
-        entity.send_message(format!(
-            "[{}] Hi {}. Your gamemode is {:?} and your position is {:.1?} and your UUID is {}",
-            plugin.tick_counter,
-            name,
-            gamemode,
-            position,
-            uuid.to_hyphenated()
-        ));
+        if plugin.tick_counter % 50 == 0 {
+            entity.send_message(format!(
+                "[{}] Hi {}. Your gamemode is {:?} and your position is {:.1?} and your UUID is {}",
+                plugin.tick_counter,
+                name,
+                gamemode,
+                position,
+                uuid.to_hyphenated()
+            ));
+        }
 
         if plugin.tick_counter % 100 == 0 {
             entity.send_message("Spawning a mob on you");
