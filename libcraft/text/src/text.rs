@@ -375,6 +375,23 @@ pub enum TextValue {
     },
 }
 
+impl TextValue{
+    pub fn name_of(&self) -> &'static str {
+        match self {
+            TextValue::Text { .. } => "text",
+            TextValue::Translate { .. } => "translate",
+            TextValue::Score { .. } => "score",
+            TextValue::Selector { .. } => "selector",
+            TextValue::Keybind { .. } => "keybind",
+            TextValue::Nbt { .. } => "nbt",
+        }
+    }
+
+    pub(crate) fn as_ansi(&self) -> String {
+        format!("<Component:{}>", self.name_of()) // TODO
+    }
+}
+
 impl<T> From<T> for TextValue
 where
     T: Into<Cow<'static, str>>,
@@ -965,6 +982,30 @@ impl Text {
 
     pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Text {
         Text::from(TextValue::nbt(nbt))
+    }
+
+    pub fn as_ansi(&self) -> String {
+        let mut ansi = string_builder::Builder::default();
+
+        let component = self.clone().into_component();
+        let mut to_serialize: Vec<TextValue> = Vec::new();
+
+        to_serialize.push(component.value);
+
+        if component.extra.is_some() {
+            for extra in component.extra.unwrap() {
+                to_serialize.push(extra.into_component().value);
+            }
+        }
+
+        for value in to_serialize {
+            ansi.append(value.as_ansi());
+        }
+
+        ansi.string().expect(&*format!(
+            "Failed to convert text to ansi: {}",
+            &serde_json::to_string(self).unwrap()
+        ))
     }
 }
 

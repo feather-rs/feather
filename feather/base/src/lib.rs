@@ -15,6 +15,7 @@ pub mod chunk;
 pub mod chunk_lock;
 pub mod inventory;
 pub mod metadata;
+pub mod ansi;
 
 pub use block::{BlockPositionValidationError, ValidBlockPosition};
 pub use blocks::*;

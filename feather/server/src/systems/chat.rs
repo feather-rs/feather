@@ -38,7 +38,7 @@ fn flush_console_chat_box(game: &mut Game) -> SysResult {
     for (_, (_console, mailbox)) in game.ecs.query::<(&Console, &mut ChatBox)>().iter() {
         for message in mailbox.drain() {
             // TODO: properly display chat message
-            log::info!("{:?}", message.text());
+            log::info!("{:?}", message.text().as_ansi());
         }
     }
 
@@ -55,4 +55,17 @@ fn flush_title_chat_boxes(game: &mut Game, server: &mut Server) -> SysResult {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use base::Text;
+
+    #[test]
+    fn test_ansi_text_serialization() {
+        let text = Text::from("Hello, world!");
+        let ansi_text = text.as_ansi();
+        println!("{} / {}", ansi_text, text);
+        assert_eq!(0, 1);
+    }
 }
