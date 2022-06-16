@@ -15,25 +15,45 @@ impl AnsiStyle {
         AnsiStyle { format: 4 }
     }
 
-    fn format(&self, color: u8) -> String { format!("\033[{};{}m", self.format, color) }
+    fn format(&self, color: u8) -> String {
+        format!("\033[{};{}m", self.format, color)
+    }
 
-    pub fn black(&self) -> String { self.format(30) }
+    pub fn black(&self) -> String {
+        self.format(30)
+    }
 
-    pub fn red(&self) -> String { self.format(31) }
+    pub fn red(&self) -> String {
+        self.format(31)
+    }
 
-    pub fn green(&self) -> String { self.format(32) }
+    pub fn green(&self) -> String {
+        self.format(32)
+    }
 
-    pub fn yellow(&self) -> String { self.format(33) }
+    pub fn yellow(&self) -> String {
+        self.format(33)
+    }
 
-    pub fn blue(&self) -> String { self.format(34) }
+    pub fn blue(&self) -> String {
+        self.format(34)
+    }
 
-    pub fn magenta(&self) -> String { self.format(35) }
+    pub fn magenta(&self) -> String {
+        self.format(35)
+    }
 
-    pub fn cyan(&self) -> String { self.format(36) }
+    pub fn cyan(&self) -> String {
+        self.format(36)
+    }
 
-    pub fn white(&self) -> String { self.format(37) }
+    pub fn white(&self) -> String {
+        self.format(37)
+    }
 
-    pub fn reset(&self) -> &'static str { "\033[0m" }
+    pub fn reset(&self) -> &'static str {
+        "\033[0m"
+    }
 }
 
 #[cfg(test)]

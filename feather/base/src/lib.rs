@@ -9,13 +9,13 @@ use std::time::Duration;
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 
+pub mod ansi;
 pub mod anvil;
 mod block;
 pub mod chunk;
 pub mod chunk_lock;
 pub mod inventory;
 pub mod metadata;
-pub mod ansi;
 
 pub use block::{BlockPositionValidationError, ValidBlockPosition};
 pub use blocks::*;

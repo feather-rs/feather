@@ -375,7 +375,7 @@ pub enum TextValue {
     },
 }
 
-impl TextValue{
+impl TextValue {
     pub fn name_of(&self) -> &'static str {
         match self {
             TextValue::Text { .. } => "text",
