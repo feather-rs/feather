@@ -988,9 +988,7 @@ impl Text {
         let mut ansi = string_builder::Builder::default();
 
         let component = self.clone().into_component();
-        let mut to_serialize: Vec<TextValue> = Vec::new();
-
-        to_serialize.push(component.value);
+        let mut to_serialize: Vec<TextValue> = vec![component.value];
 
         if component.extra.is_some() {
             for extra in component.extra.unwrap() {
