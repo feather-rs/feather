@@ -16,7 +16,7 @@ const CONFIG_PATH: &str = "config.toml";
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     enable_ansi();
-    
+
     let feather_server::config::ConfigContainer {
         config,
         was_config_created,

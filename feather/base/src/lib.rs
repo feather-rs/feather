@@ -18,12 +18,12 @@ pub mod metadata;
 
 pub use block::{BlockPositionValidationError, ValidBlockPosition};
 pub use blocks::*;
-pub use chunk::{Chunk, CHUNK_HEIGHT, CHUNK_WIDTH, ChunkSection};
+pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
 pub use chunk_lock::*;
 
 pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{
-    Biome, BlockPosition, ChunkPosition, EntityKind, Gamemode, position, Position, vec3, Vec3d,
+    position, vec3, Biome, BlockPosition, ChunkPosition, EntityKind, Gamemode, Position, Vec3d,
 };
 pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackError};

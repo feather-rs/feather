@@ -1,11 +1,11 @@
 //! Implementation of the Minecraft chat component format.
 
+use crate::ansi::AnsiStyle;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 use uuid::Uuid;
-use crate::ansi::AnsiStyle;
 
 pub mod markdown;
 
@@ -183,15 +183,15 @@ impl From<Keybind> for String {
             Keybind::Hotbar7 => "hotbar7".to_string(),
             Keybind::Hotbar8 => "hotbar8".to_string(),
             Keybind::Hotbar9 => "hotbar9".to_string(),
-            Keybind::Custom(s) => s.to_string()
+            Keybind::Custom(s) => s.to_string(),
         }
     }
 }
 
 impl Serialize for Keybind {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         serializer.serialize_str(String::from(self).as_ref())
     }
@@ -199,8 +199,8 @@ impl Serialize for Keybind {
 
 impl<'de> Deserialize<'de> for Keybind {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         Ok(Keybind::from(s))
@@ -208,8 +208,8 @@ impl<'de> Deserialize<'de> for Keybind {
 }
 
 impl<T> From<T> for Keybind
-    where
-        T: Into<Cow<'static, str>>,
+where
+    T: Into<Cow<'static, str>>,
 {
     fn from(keybind: T) -> Self {
         let keybind = keybind.into();
@@ -290,7 +290,7 @@ impl From<&Keybind> for String {
             Keybind::Hotbar9 => "key_key.hotbar.9",
             Keybind::Custom(bind) => bind.as_ref(),
         }
-            .into()
+        .into()
     }
 }
 
@@ -303,10 +303,14 @@ pub enum Translate {
 }
 
 impl Translate {
-    fn to_text(&self, args: &Vec<Text>, style: &String) -> String {
+    fn to_text(&self, args: &[Text], style: &str) -> String {
         match self {
-            Translate::ChatTypeText => format!("<{}{}> {}", args[0].as_ansi(), style, args[1].as_ansi()),
-            Translate::MultiplayerPlayerJoined => format!("{}{} joined the game", args[0].as_ansi(), style),
+            Translate::ChatTypeText => {
+                format!("<{}{}> {}", args[0].as_ansi(), style, args[1].as_ansi())
+            }
+            Translate::MultiplayerPlayerJoined => {
+                format!("{}{} joined the game", args[0].as_ansi(), style)
+            }
             Translate::Custom(name) => {
                 let mut args_strings: String = String::new();
 
@@ -316,7 +320,10 @@ impl Translate {
 
                 args_strings.push(' ');
 
-                format!("<Unknown Translation: '{}' with args: [{}]>", name, args_strings)
+                format!(
+                    "<Unknown Translation: '{}' with args: [{}]>",
+                    name, args_strings
+                )
             }
         }
     }
@@ -324,8 +331,8 @@ impl Translate {
 
 impl Serialize for Translate {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         serializer.serialize_str(String::from(self).as_ref())
     }
@@ -333,8 +340,8 @@ impl Serialize for Translate {
 
 impl<'de> Deserialize<'de> for Translate {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         Ok(Translate::from(s))
@@ -342,9 +349,9 @@ impl<'de> Deserialize<'de> for Translate {
 }
 
 impl<T> std::ops::Mul<T> for Translate
-    where
-        T: IntoIterator,
-        T::Item: Into<Text>,
+where
+    T: IntoIterator,
+    T::Item: Into<Text>,
 {
     type Output = Text;
     fn mul(self, rhs: T) -> Text {
@@ -353,8 +360,8 @@ impl<T> std::ops::Mul<T> for Translate
 }
 
 impl<T> From<T> for Translate
-    where
-        T: Into<Cow<'static, str>>,
+where
+    T: Into<Cow<'static, str>>,
 {
     fn from(value: T) -> Translate {
         let value = value.into();
@@ -373,7 +380,7 @@ impl<'a> From<&Translate> for String {
             Translate::MultiplayerPlayerJoined => "multiplayer.player.joined",
             Translate::Custom(key) => key.as_ref(),
         }
-            .into()
+        .into()
     }
 }
 
@@ -451,8 +458,8 @@ impl TextValue {
 }
 
 impl<T> From<T> for TextValue
-    where
-        T: Into<Cow<'static, str>>,
+where
+    T: Into<Cow<'static, str>>,
 {
     fn from(value: T) -> Self {
         Self::text(value.into())
@@ -465,8 +472,8 @@ impl TextValue {
     }
 
     pub fn translate<A>(translate: A) -> Self
-        where
-            A: Into<Translate>,
+    where
+        A: Into<Translate>,
     {
         TextValue::Translate {
             translate: translate.into(),
@@ -475,10 +482,10 @@ impl TextValue {
     }
 
     pub fn translate_with<A, B>(translate: A, with: B) -> Self
-        where
-            A: Into<Translate>,
-            B: IntoIterator,
-            B::Item: Into<Text>,
+    where
+        A: Into<Translate>,
+        B: IntoIterator,
+        B::Item: Into<Text>,
     {
         let with = with.into_iter().map(|e| e.into()).collect();
         TextValue::Translate {
@@ -549,7 +556,7 @@ impl TextComponent {
         TextComponent::from("")
     }
 
-    pub(crate) fn as_ansi(&self) -> String {
+    pub fn as_ansi(&self) -> String {
         let mut style_type = AnsiStyle::regular();
 
         if self.bold.unwrap_or(false) {
@@ -560,7 +567,7 @@ impl TextComponent {
             style_type = AnsiStyle::underline()
         }
 
-        let mut style =style_type.white();
+        let mut style = style_type.white();
 
         if self.color.is_some() {
             let color = self.color.as_ref().unwrap();
@@ -586,22 +593,31 @@ impl TextComponent {
             }
         }
 
-
-        let content = if let TextValue::Text {text} = self.clone().value {
+        let content = if let TextValue::Text { text } = self.clone().value {
             String::from(text)
-        } else if let TextValue::Translate {translate, with} = self.clone().value {
+        } else if let TextValue::Translate { translate, with } = self.clone().value {
             translate.to_text(&with, &style)
-        } else if let TextValue::Score {value, name, objective} = self.clone().value {
+        } else if let TextValue::Score {
+            value,
+            name,
+            objective,
+        } = self.clone().value
+        {
             if value.is_some() {
-                format!("<Score @ {}:{}, Value: {}>", name, objective, value.unwrap())
+                format!(
+                    "<Score @ {}:{}, Value: {}>",
+                    name,
+                    objective,
+                    value.unwrap()
+                )
             } else {
                 format!("<Score @ {}:{}>", objective, name)
             }
-        } else if let TextValue::Selector {selector} = self.clone().value {
+        } else if let TextValue::Selector { selector } = self.clone().value {
             format!("{}", selector)
-        } else if let TextValue::Keybind {keybind} = self.clone().value {
+        } else if let TextValue::Keybind { keybind } = self.clone().value {
             format!("<Keybind: {}>", String::from(keybind))
-        } else if let TextValue::Nbt {nbt} = self.clone().value {
+        } else if let TextValue::Nbt { nbt } = self.clone().value {
             format!("<NBT: {}>", nbt)
         } else {
             panic!("Unsupported TextValue")
@@ -699,9 +715,9 @@ pub trait TextComponentBuilder {
 
     /// Inherited Text; they will inherent the parent's style, color, insertion, on_click, and on_hover.
     fn extra<A>(self, extra: A) -> Self
-        where
-            A: IntoIterator,
-            A::Item: Into<Text>;
+    where
+        A: IntoIterator,
+        A::Item: Into<Text>;
     fn push_extra<A: Into<Text>>(self, extra: A) -> Self;
 
     fn reset_extra(self) -> Self;
@@ -720,8 +736,8 @@ impl IntoTextComponent for TextComponent {
 }
 
 impl<T> TextComponentBuilder for T
-    where
-        T: IntoTextComponent + From<TextComponent>,
+where
+    T: IntoTextComponent + From<TextComponent>,
 {
     fn set_style(self, style: Style, value: Option<bool>) -> Self {
         let mut component = self.into_component();
@@ -965,9 +981,9 @@ impl<T> TextComponentBuilder for T
     }
 
     fn extra<A>(self, extra: A) -> Self
-        where
-            A: IntoIterator,
-            A::Item: Into<Text>,
+    where
+        A: IntoIterator,
+        A::Item: Into<Text>,
     {
         let mut component = self.into_component();
         component.extra = Some(extra.into_iter().map(|e| e.into()).collect());
@@ -1016,8 +1032,8 @@ impl<T> TextComponentBuilder for T
 }
 
 impl<T> From<T> for TextComponent
-    where
-        T: Into<TextValue>,
+where
+    T: Into<TextValue>,
 {
     fn from(value: T) -> Self {
         TextComponent {
@@ -1075,10 +1091,10 @@ impl Text {
     }
 
     pub fn translate_with<A, B>(translate: A, with: B) -> Self
-        where
-            A: Into<Translate>,
-            B: IntoIterator,
-            B::Item: Into<Text>,
+    where
+        A: Into<Translate>,
+        B: IntoIterator,
+        B::Item: Into<Text>,
     {
         Text::from(TextValue::translate_with(translate, with))
     }
@@ -1147,8 +1163,8 @@ impl From<TextValue> for Text {
 }
 
 impl<T> From<T> for Text
-    where
-        T: Into<Cow<'static, str>>,
+where
+    T: Into<Cow<'static, str>>,
 {
     fn from(value: T) -> Self {
         Text::String(value.into())
@@ -1178,8 +1194,8 @@ impl std::ops::Add<Text> for Text {
 
 /// A `Deserialize` impl for `Text` which uses the text markdown format.
 pub fn deserialize_text<'de, D>(deserializer: D) -> Result<Text, D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     let string = String::deserialize(deserializer)?;
 
@@ -1199,8 +1215,8 @@ impl From<TextRoot> for String {
 }
 
 impl<T> From<T> for TextRoot
-    where
-        T: Into<Text>,
+where
+    T: Into<Text>,
 {
     fn from(text: T) -> Self {
         match text.into() {
