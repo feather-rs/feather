@@ -16,7 +16,7 @@ impl AnsiStyle {
     }
 
     fn format(&self, color: u8) -> String {
-        format!("\x1b[{};{}m", self.format, color)
+        format!("\x1B[{};{}m", self.format, color)
     }
 
     pub fn black(&self) -> String {
@@ -51,7 +51,7 @@ impl AnsiStyle {
         self.format(37)
     }
 
-    pub fn reset(&self) -> &'static str {
+    pub fn reset() -> &'static str {
         "\x1b[0m"
     }
 }

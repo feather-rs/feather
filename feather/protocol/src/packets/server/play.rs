@@ -370,7 +370,7 @@ pub enum GameStateChange {
     WinGame {
         show_credits: bool,
     },
-    /// See https://help.minecraft.net/hc/en-us/articles/4408948974989-Minecraft-Java-Edition-Demo-Mode-
+    /// See <https://help.minecraft.net/hc/en-us/articles/4408948974989-Minecraft-Java-Edition-Demo-Mode->
     DemoEvent(DemoEventType),
     /// Sent when any player is struck by an arrow.
     ArrowHitAnyPlayer,
