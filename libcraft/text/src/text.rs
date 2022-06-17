@@ -311,7 +311,7 @@ impl Translate {
             }
             Translate::MultiplayerPlayerJoined => {
                 format!("{}{} joined the game", args[0].as_ansi(), style)
-            },
+            }
             Translate::MultiplayerPlayerLeft => {
                 format!("{}{} left the game", args[0].as_ansi(), style)
             }
