@@ -37,7 +37,7 @@ fn flush_chat_boxes(game: &mut Game, server: &mut Server) -> SysResult {
 fn flush_console_chat_box(game: &mut Game) -> SysResult {
     for (_, (_console, mailbox)) in game.ecs.query::<(&Console, &mut ChatBox)>().iter() {
         for message in mailbox.drain() {
-            log::info!("{}", message.text().as_ansi().replace("\n", ""));
+            log::info!("{}", message.text().as_ansi());
         }
     }
 
@@ -58,13 +58,12 @@ fn flush_title_chat_boxes(game: &mut Game, server: &mut Server) -> SysResult {
 
 #[cfg(test)]
 mod tests {
-    use base::Text;
+    use libcraft_text::{TextComponent, TextComponentBuilder};
 
     #[test]
     fn test_ansi_text_serialization() {
-        let text = Text::from("Hello, world!");
+        let text = TextComponent::from("Hello, world!").red().bold();
         let ansi_text = text.as_ansi();
-        println!("{} / {}", ansi_text, text);
-        assert_eq!(0, 1);
+        assert_eq!("\x1b[1;31mHello, world!\x1b[0m", ansi_text);
     }
 }

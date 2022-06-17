@@ -62,6 +62,8 @@ mod tests {
 
     #[test]
     fn test_ansi_style() {
+        assert_eq!(AnsiStyle::reset(), "\x1b[0m");
+
         let style = AnsiStyle::regular();
         assert_eq!(style.black(), "\x1b[0;30m");
         assert_eq!(style.red(), "\x1b[0;31m");
@@ -71,7 +73,6 @@ mod tests {
         assert_eq!(style.magenta(), "\x1b[0;35m");
         assert_eq!(style.cyan(), "\x1b[0;36m");
         assert_eq!(style.white(), "\x1b[0;37m");
-        assert_eq!(style.reset(), "\x1b[0m");
 
         let style = AnsiStyle::bold();
         assert_eq!(style.black(), "\x1b[1;30m");
@@ -82,7 +83,6 @@ mod tests {
         assert_eq!(style.magenta(), "\x1b[1;35m");
         assert_eq!(style.cyan(), "\x1b[1;36m");
         assert_eq!(style.white(), "\x1b[1;37m");
-        assert_eq!(style.reset(), "\x1b[0m");
 
         let style = AnsiStyle::underline();
         assert_eq!(style.black(), "\x1b[4;30m");
@@ -93,6 +93,5 @@ mod tests {
         assert_eq!(style.magenta(), "\x1b[4;35m");
         assert_eq!(style.cyan(), "\x1b[4;36m");
         assert_eq!(style.white(), "\x1b[4;37m");
-        assert_eq!(style.reset(), "\x1b[0m");
     }
 }
