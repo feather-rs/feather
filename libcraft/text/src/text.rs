@@ -299,6 +299,7 @@ impl From<&Keybind> for String {
 pub enum Translate {
     ChatTypeText,
     MultiplayerPlayerJoined,
+    MultiplayerPlayerLeft,
     Custom(Cow<'static, str>),
 }
 
@@ -310,6 +311,9 @@ impl Translate {
             }
             Translate::MultiplayerPlayerJoined => {
                 format!("{}{} joined the game", args[0].as_ansi(), style)
+            },
+            Translate::MultiplayerPlayerLeft => {
+                format!("{}{} left the game", args[0].as_ansi(), style)
             }
             Translate::Custom(name) => {
                 let mut args_strings: String = String::new();
@@ -368,6 +372,7 @@ where
         match value.as_ref() {
             "chat.type.text" => Translate::ChatTypeText,
             "multiplayer.player.joined" => Translate::MultiplayerPlayerJoined,
+            "multiplayer.player.left" => Translate::MultiplayerPlayerLeft,
             _ => Translate::Custom(value),
         }
     }
@@ -378,6 +383,7 @@ impl<'a> From<&Translate> for String {
         match translate {
             Translate::ChatTypeText => "chat.type.text",
             Translate::MultiplayerPlayerJoined => "multiplayer.player.joined",
+            Translate::MultiplayerPlayerLeft => "multiplayer.player.left",
             Translate::Custom(key) => key.as_ref(),
         }
         .into()
