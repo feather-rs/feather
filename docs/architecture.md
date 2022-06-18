@@ -78,7 +78,7 @@ The component can then be accessed both from Feather and from plugins.
 In Feather, events are components. An entity with the `PlayerJoinEvent` component just joined
 the game, for example.
 
-The event sytsem serves as a mechanism to communicate between different crates and modules.
+The event system serves as a mechanism to communicate between different crates and modules.
 For example, triggering a `BlockChangeEvent` _anywhere_ causes `feather-server` to send block
 update packets to players.
 
