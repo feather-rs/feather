@@ -45,7 +45,7 @@ until the players start to spread out. In the 1,000,000 entities test, it uses 4
 
 ### Running
 We offer precompiled binaries for Windows, Linux, and macOS at [GitHub Actions](https://github.com/feather-rs/feather/actions/workflows/main.yml).
-NB: Do **NOT** use github releases, they are majorly outdated
+NB: Do **NOT** use GitHub Releases, they are majorly outdated
 
 To run Feather:
 * Extract the downloaded archive.
