@@ -340,9 +340,9 @@ impl NearbyBiomes {
         let chunk_x = (x / 16) as usize;
         let chunk_z = (z / 16) as usize;
 
-        let mut local_x = (ox % 16).abs() as usize;
-        let local_y = (oy % 16).abs() as usize;
-        let mut local_z = (oz % 16).abs() as usize;
+        let mut local_x = (ox % 16).unsigned_abs();
+        let local_y = (oy % 16).unsigned_abs();
+        let mut local_z = (oz % 16).unsigned_abs();
 
         if ox < 0 {
             local_x = 16 - local_x;

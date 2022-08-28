@@ -1,3 +1,4 @@
+#![allow(clippy::octal_escapes)]
 use std::str::FromStr;
 
 use anyhow::bail;
@@ -50,7 +51,7 @@ mod tests {
     fn extract_bungeecord_data_normal() {
         let handshake = Handshake {
            protocol_version: PROTOCOL_VERSION,
-           server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+           server_address: "192.168.1.87\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2\x00[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
            server_port: 25565,
            next_state: HandshakeState::Login,
         };
@@ -74,7 +75,7 @@ mod tests {
     fn extract_bungeecord_data_too_short() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2"
+            server_address: "192.168.1.87\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2"
                 .to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
@@ -87,8 +88,9 @@ mod tests {
     fn extract_bungeecord_data_too_long() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0a\0b"
-                .to_string(),
+            server_address:
+                "192.168.1.87\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2\x00a\x00b"
+                    .to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
@@ -100,7 +102,7 @@ mod tests {
     fn extract_bungeecord_data_localhost_host_ip() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "localhost\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_address: "localhost\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2\x00[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
@@ -124,7 +126,7 @@ mod tests {
     fn extract_bungeecord_data_localhost_client_ip() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\0localhost\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_address: "192.168.1.87\x00localhost\x00905c7e4fb96b45139645d123225575e2\x00[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
@@ -148,7 +150,7 @@ mod tests {
     fn extract_bungeecord_data_invalid_uuid() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\0192.168.1.67\005c7e4fb9675e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_address: "192.168.1.87\x00192.168.1.67\x0005c7e4fb9675e2\x00[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
@@ -160,7 +162,7 @@ mod tests {
     fn extract_bungeecord_data_invalid_properties() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"sinature\":\"textures_signature\"}]".to_string(),
+            server_address: "192.168.1.87\x00192.168.1.67\x00905c7e4fb96b45139645d123225575e2\x00[{\"name\":\"textures\",\"value\":\"textures_value\",\"sinature\":\"textures_signature\"}]".to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };

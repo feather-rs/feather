@@ -199,7 +199,7 @@ impl ChunkMap {
     /// Retrieves a handle to the chunk at the given
     /// position, or `None` if it is not loaded.
     pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
-        self.0.get(&pos).map(|lock| lock.write()).flatten()
+        self.0.get(&pos).and_then(|lock| lock.write())
     }
 
     /// Returns an `Arc<RwLock<Chunk>>` at the given position.
@@ -212,8 +212,7 @@ impl ChunkMap {
 
         let (x, y, z) = chunk_relative_pos(pos.into());
         self.chunk_at(pos.chunk())
-            .map(|chunk| chunk.block_at(x, y, z))
-            .flatten()
+            .and_then(|chunk| chunk.block_at(x, y, z))
     }
 
     pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
