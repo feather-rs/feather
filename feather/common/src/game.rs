@@ -1,11 +1,11 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, ChunkPosition, Position, Text, Title, ValidBlockPosition};
+use base::{BlockId, ChunkPosition, Gamemode, Position, Text, Title, ValidBlockPosition};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,
 };
-use quill_common::events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
+use quill_common::events::{EntityCreateEvent, EntityRemoveEvent, GamemodeEvent, PlayerJoinEvent};
 use quill_common::{entities::Player, entity_init::EntityInit};
 
 use crate::{
@@ -229,6 +229,11 @@ impl Game {
     /// necessary block updates.
     pub fn break_block(&mut self, pos: ValidBlockPosition) -> bool {
         self.set_block(pos, BlockId::air())
+    }
+
+    pub fn set_gamemode(&mut self, player: Entity, new: Gamemode) -> SysResult {
+        self.ecs.insert_entity_event(player, GamemodeEvent(new))?;
+        Ok(())
     }
 }
 

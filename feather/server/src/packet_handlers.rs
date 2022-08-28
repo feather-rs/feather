@@ -1,4 +1,4 @@
-use base::{Position, Text};
+use base::{Gamemode, Position, Text};
 use common::{chat::ChatKind, Game};
 use ecs::{Entity, EntityRef, SysResult};
 use interaction::{
@@ -45,7 +45,7 @@ pub fn handle_packet(
 
         ClientPlayPacket::Animation(packet) => handle_animation(server, player, packet),
 
-        ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player, packet),
+        ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player_id, packet),
 
         ClientPlayPacket::PlayerDigging(packet) => {
             handle_player_digging(game, server, packet, player_id)
@@ -132,8 +132,16 @@ fn handle_animation(
     Ok(())
 }
 
-fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessage) -> SysResult {
-    let name = player.get::<Name>()?;
+fn handle_chat_message(game: &mut Game, player: Entity, packet: client::ChatMessage) -> SysResult {
+    if let m @ ("c" | "s") = &*packet.message {
+        if m == "c" {
+            game.set_gamemode(player, Gamemode::Creative)?;
+        } else {
+            game.set_gamemode(player, Gamemode::Survival)?;
+        }
+    }
+
+    let name = game.ecs.get::<Name>(player)?;
     let message = Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
     game.broadcast_chat(ChatKind::PlayerChat, message);
     Ok(())

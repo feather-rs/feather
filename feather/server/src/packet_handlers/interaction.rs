@@ -1,7 +1,5 @@
 use crate::{ClientId, NetworkId, Server};
 use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
-use base::Gamemode;
-use common::block_break::{ActiveBreaker, BlockBreaker, DestroyStateChange};
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::{Game, Window};
@@ -121,84 +119,39 @@ pub fn handle_player_digging(
 ) -> SysResult {
     log::trace!("Got player digging with status {:?}", packet.status);
     let client = server.clients.get(*game.ecs.get(player)?).unwrap();
+    use PlayerDiggingStatus::*;
+    if matches!(packet.status, StartDigging | CancelDigging | FinishDigging)
+        && game.block(packet.position).is_none()
+    {
+        client.disconnect("Cannot interact with unloaded block!");
+        anyhow::bail!("Cannot interact with unloaded block!")
+    }
     match packet.status {
         PlayerDiggingStatus::StartDigging => {
-            if matches!(
-                *game.ecs.get::<Gamemode>(player)?,
-                Gamemode::Creative | Gamemode::Spectator
-            ) {
-                game.break_block(packet.position);
-            } else {
-                let mut breaker = game.ecs.get_mut::<BlockBreaker>(player)?;
-                let window = game.ecs.get::<Window>(player)?;
-                let hotbar_slot = game.ecs.get::<HotbarSlot>(player)?.get();
-                let main_hand = window.item(SLOT_HOTBAR_OFFSET + hotbar_slot)?;
-                *breaker = BlockBreaker::Active(
-                    ActiveBreaker::new(&mut game.world, packet.position, main_hand.option_ref())
-                        .unwrap(),
-                );
-            }
-            let block = match game.block(packet.position) {
-                Some(s) => s,
-                None => return Ok(()),
-            };
+            let success = common::block_break::start_digging(game, player, packet.position)?;
             client.acknowledge_player_digging(
                 packet.position,
-                block,
+                game.block(packet.position).unwrap(),
                 protocol::packets::server::PlayerDiggingStatus::Started,
-                true,
+                success,
             );
             Ok(())
         }
         PlayerDiggingStatus::CancelDigging => {
-            let success = {
-                let mut breaker = game.ecs.get_mut::<BlockBreaker>(player)?;
-                let a = breaker.matches_position(packet.position);
-                breaker.cancel();
-                a
-            };
-            game.ecs
-                .insert_entity_event(player, DestroyStateChange(packet.position, 10))?;
-            let block = match game.block(packet.position) {
-                Some(s) => s,
-                None => return Ok(()),
-            };
+            let success = common::block_break::cancel_digging(game, player, packet.position)?;
             client.acknowledge_player_digging(
                 packet.position,
-                block,
+                game.block(packet.position).unwrap(),
                 protocol::packets::server::PlayerDiggingStatus::Cancelled,
                 success,
             );
             Ok(())
         }
         PlayerDiggingStatus::FinishDigging => {
-            let mut finished = None;
-            let success = {
-                let mut breaker = game.ecs.get_mut::<BlockBreaker>(player)?;
-                let success = if let Some(f) = breaker.try_finish() {
-                    finished = Some(f);
-                    breaker.cancel();
-                    true
-                } else {
-                    if let BlockBreaker::Active(a) = &mut *breaker {
-                        a.fake_finished = true;
-                    }
-                    false
-                };
-                success && breaker.matches_position(packet.position)
-            };
-            if success {
-                finished.unwrap().break_block(game)?;
-            }
-            game.ecs
-                .insert_entity_event(player, DestroyStateChange(packet.position, 10))?;
-            let block = match game.block(packet.position) {
-                Some(s) => s,
-                None => return Ok(()),
-            };
+            let success = common::block_break::finish_digging(game, player, packet.position)?;
             client.acknowledge_player_digging(
                 packet.position,
-                block,
+                game.block(packet.position).unwrap(),
                 protocol::packets::server::PlayerDiggingStatus::Finished,
                 success,
             );
