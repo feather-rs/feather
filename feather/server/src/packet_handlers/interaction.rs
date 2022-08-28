@@ -134,7 +134,7 @@ pub fn handle_player_digging(
                 let hotbar_slot = game.ecs.get::<HotbarSlot>(player)?.get();
                 let main_hand = window.item(SLOT_HOTBAR_OFFSET + hotbar_slot)?;
                 *breaker = BlockBreaker::Active(
-                    ActiveBreaker::new(&mut game.world, packet.position, main_hand.item_stack())
+                    ActiveBreaker::new(&mut game.world, packet.position, main_hand.option_ref())
                         .unwrap(),
                 );
             }

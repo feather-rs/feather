@@ -3,7 +3,7 @@ use serde_with::{serde_as, DisplayFromStr};
 use target_lexicon::Triple;
 
 /// A plugin's metadata, stored alongside its WASM module.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PluginMetadata {
     /// Plugin name, no spaces
     pub name: String,

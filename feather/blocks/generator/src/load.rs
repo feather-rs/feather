@@ -133,7 +133,7 @@ impl PropertyStore {
 
     fn update_name(name: &str) -> &str {
         match NAME_OVERRIDES.get(&name) {
-            Some(x) => *x,
+            Some(x) => x,
             None => name,
         }
     }

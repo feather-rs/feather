@@ -43,7 +43,7 @@ impl<'a> PluginFile<'a> {
     /// this is the contents of the shared library
     /// containing the plugin.
     pub fn module(&self) -> &[u8] {
-        &*self.module
+        &self.module
     }
 
     pub fn metadata(&self) -> &PluginMetadata {

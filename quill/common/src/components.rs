@@ -45,7 +45,7 @@ impl Name {
     }
 
     pub fn as_str(&self) -> &str {
-        &*self
+        self
     }
 }
 
@@ -73,7 +73,7 @@ impl CustomName {
     }
 
     pub fn as_str(&self) -> &str {
-        &*self
+        self
     }
 
     pub fn as_mut_str(&mut self) -> &mut str {

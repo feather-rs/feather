@@ -180,29 +180,16 @@ impl ActiveBreaker {
             .iter()
             .find_map(|(item, speed)| {
                 equipped_item
-                    .map(|e| {
-                        if e.item() == *item {
-                            Some(*speed)
-                        } else {
-                            None
-                        }
+                    .and_then(|e| {
+                        bool::then_some(e.item() == *item, *speed)
                     })
-                    .flatten()
             })
             .unwrap_or(1.0);
         let effi_level = equipped_item
-            .map(ItemStack::metadata)
-            .flatten()
-            .map(|meta| {
-                meta.enchantments().iter().find_map(|ench| {
-                    if ench.kind() == EnchantmentKind::Efficiency {
-                        Some(ench.level())
-                    } else {
-                        None
-                    }
-                })
-            })
-            .flatten();
+            .and_then(ItemStack::metadata)
+            .and_then(|meta| {
+                meta.get_enchantment_level(EnchantmentKind::Efficiency)
+            });
         let effi_speed = effi_level.map(|level| level * level + 1).unwrap_or(0) as f32;
         let damage = if harvestable {
             (dig_multiplier + effi_speed) / block.hardness() / 30.0

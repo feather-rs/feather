@@ -32,7 +32,7 @@ impl NamespacedId {
 }
 
 /// Error returned when a namespaced ID was formatted incorrectly.
-#[derive(Debug, thiserror::Error, PartialEq)]
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {
     #[error("'{0}' is not a valid character for namespaces")]
     InvalidNamespaceChar(char),

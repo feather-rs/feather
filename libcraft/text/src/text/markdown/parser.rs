@@ -9,7 +9,7 @@ use nom::{Err, IResult};
 
 pub mod events;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct DynamicSpan {
     pub fragment: String,
     pub col: usize,

@@ -352,6 +352,7 @@ impl ItemStack {
         self.item.stack_size()
     }
 
+    #[must_use]
     pub fn metadata(&self) -> Option<&ItemStackMeta> {
         self.meta.as_ref()
     }
@@ -403,9 +404,11 @@ impl ItemStackMeta {
             self.enchantments.push(Enchantment::new(ench, level));
         }
     }
+    #[must_use]
     pub fn enchantments(&self) -> &[Enchantment] {
         &self.enchantments
     }
+    #[must_use]
     pub fn enchantments_mut(&mut self) -> &mut Vec<Enchantment> {
         &mut self.enchantments
     }

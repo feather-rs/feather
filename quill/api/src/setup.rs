@@ -24,6 +24,7 @@ impl<Plugin> Setup<Plugin> {
     ///
     /// The function should take as parameters your
     /// plugin instance and an `&mut Game` and return nothing.
+    #[allow(clippy::type_complexity)]
     pub fn add_system<T: FnMut(&mut Plugin, &mut Game)>(&mut self, system: T) -> &mut Self {
         let system: Box<dyn FnMut(&mut Plugin, &mut Game)> = Box::new(system);
         let system_data = Box::leak(Box::new(system)) as *mut Box<_> as *mut u8;
