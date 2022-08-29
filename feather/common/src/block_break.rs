@@ -99,6 +99,7 @@ impl ActiveBreaker {
         block_pos: ValidBlockPosition,
         equipped_item: Option<&ItemStack>,
     ) -> anyhow::Result<Self> {
+        // https://minecraft.fandom.com/wiki/Breaking
         let block = world
             .block_at(block_pos)
             .context("Block is not loaded")?
