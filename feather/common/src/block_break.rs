@@ -8,9 +8,9 @@ pub struct DestroyStateChange(pub ValidBlockPosition, pub u8);
 
 use crate::{entities::player::HotbarSlot, Game, Window, World};
 
-// Comparing to 0.7 ensures good feeling in the client
 pub const BREAK_THRESHOLD: f32 = 0.7;
 
+/// Handle a player's request to start digging the block at `position`. Adds an `ActiveBreaker` component to `player`.
 pub fn start_digging(
     game: &mut Game,
     player: Entity,
@@ -30,6 +30,7 @@ pub fn start_digging(
     }
     Ok(true)
 }
+/// Handle a player's request to stop digging the block at `position`. Removes `ActiveBreaker` from `player`.
 pub fn cancel_digging(
     game: &mut Game,
     player: Entity,
@@ -43,6 +44,10 @@ pub fn cancel_digging(
         .insert_entity_event(player, DestroyStateChange(position, 10))?;
     Ok(true)
 }
+/// Handle a player's request to finish digging the block at `position`.
+/// This is called when the block breaking finishes at the player's side.
+///
+/// Will return `false` if the system hasn't finished breaking the block yet.
 pub fn finish_digging(
     game: &mut Game,
     player: Entity,
@@ -65,6 +70,8 @@ pub fn finish_digging(
         .insert_entity_event(player, DestroyStateChange(position, 10))?;
     Ok(success)
 }
+/// Main component for the block breaking system.
+/// Tracks the position of the block being mined, whether it will drop an item and the current progress.
 #[derive(Clone)]
 pub struct ActiveBreaker {
     pub position: ValidBlockPosition,
@@ -73,6 +80,7 @@ pub struct ActiveBreaker {
     pub damage: f32,
 }
 impl ActiveBreaker {
+    /// Advance block breaking by one tick.
     pub fn tick(&mut self) -> (bool, bool) {
         let before = self.destroy_stage();
         self.progress += self.damage;
@@ -85,19 +93,23 @@ impl ActiveBreaker {
     pub fn can_break(&self) -> bool {
         self.progress >= BREAK_THRESHOLD - self.damage / 2.0
     }
+    /// Start breaking a block. Returns an error if the block at `block_pos` is unloaded or not diggable.
     pub fn new(
         world: &mut World,
         block_pos: ValidBlockPosition,
         equipped_item: Option<&ItemStack>,
-    ) -> Option<Self> {
-        let block = world.block_at(block_pos)?.kind();
+    ) -> anyhow::Result<Self> {
+        let block = world
+            .block_at(block_pos)
+            .context("Block is not loaded")?
+            .kind();
         if !block.diggable() || block == BlockKind::Air {
-            return None;
+            anyhow::bail!("Block is not diggable")
         }
         let harvestable = match (block.harvest_tools(), equipped_item) {
             (None, None | Some(_)) => true,
             (Some(_), None) => false,
-            (Some(tools), Some(tool)) => tools.contains(&tool.item()),
+            (Some(valid_tools), Some(equipped)) => valid_tools.contains(&equipped.item()),
         };
         let dig_multiplier = block // TODO: calculate with Haste effect
             .dig_multipliers()
@@ -115,9 +127,9 @@ impl ActiveBreaker {
         } else {
             1.0 / block.hardness() / 100.0
         };
-        Some(Self {
+        Ok(Self {
             position: block_pos,
-            drop_item: true,
+            drop_item: harvestable,
             progress: damage,
             damage,
         })
