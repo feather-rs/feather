@@ -327,7 +327,7 @@ pod_component_impl!(Position);
 
 /**
 If you are using this macro and you get the error:
-```
+```norun
     error[E0599]: no variant or associated item named `...` found for enum `HostComponent` in the current scope.
 ```
 Then you need to go to the top of the file were this macro is defined. There you find the HostCompoent enum, that

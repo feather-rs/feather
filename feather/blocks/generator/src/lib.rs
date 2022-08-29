@@ -369,7 +369,8 @@ fn generate_block_fns(blocks: &Blocks) -> TokenStream {
         }
 
         for (name, value) in default_state {
-            doc.push_str(&format!("* `{}`: {}\n", name, value));
+            use core::fmt::Write as _;
+            let _ = writeln!(doc, "* `{}`: {}", name, value);
         }
 
         fns.push(quote! {
