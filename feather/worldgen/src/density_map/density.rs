@@ -7,6 +7,7 @@ use crate::{block_index, noise, DensityMapGenerator, NearbyBiomes, NoiseLerper};
 use base::{Biome, ChunkPosition};
 use bitvec::order::LocalBits;
 use bitvec::vec::BitVec;
+use const_soft_float::soft_f32::SoftF32;
 use once_cell::sync::Lazy;
 use simdnoise::NoiseBuilder;
 
@@ -155,21 +156,34 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
     result
 }
 
-/// Elevation height field, used to weight
-/// the averaging of nearby biome heights.
-static ELEVATION_WEIGHT: Lazy<[[f32; 19]; 19]> = Lazy::new(|| {
-    let mut array = [[0.0; 19]; 19];
-    for (x, values) in array.iter_mut().enumerate() {
-        for (z, value) in values.iter_mut().enumerate() {
+const fn elevation() -> [[f32; 19]; 19] {
+    let mut array = [[0.0f32; 19]; 19];
+    let mut x = 0;
+    while x < 19 {
+        let mut z = 0;
+        while z < 19 {
             let mut x_squared = x as i32 - 9;
             x_squared *= x_squared;
             let mut z_sqaured = z as i32 - 9;
             z_sqaured *= z_sqaured;
-            *value = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
+            array[x][z] = SoftF32(10.0)
+                .div(
+                    (SoftF32(x_squared as f32)
+                        .add(SoftF32(z_sqaured as f32))
+                        .add(SoftF32(0.2)))
+                    .sqrt(),
+                )
+                .to_f32();
+            z += 1;
         }
+        x += 1;
     }
     array
-});
+}
+
+/// Elevation height field, used to weight
+/// the averaging of nearby biome heights.
+static ELEVATION_WEIGHT: [[f32; 19]; 19] = elevation();
 
 /// Computes the target amplitude and midpoint for the
 /// given column, using a 9x9 grid of biomes
@@ -259,4 +273,28 @@ fn lerp(a: f32, b: f32, weight: f32) -> f32 {
     }
 
     a + (b - a) * weight
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn lazy_static_equality() {
+        static ELEVATION_WEIGHT_TEST: Lazy<[[f32; 19]; 19]> = Lazy::new(|| {
+            let mut array = [[0.0; 19]; 19];
+            for (x, values) in array.iter_mut().enumerate() {
+                for (z, value) in values.iter_mut().enumerate() {
+                    let mut x_squared = x as i32 - 9;
+                    x_squared *= x_squared;
+                    let mut z_sqaured = z as i32 - 9;
+                    z_sqaured *= z_sqaured;
+                    *value = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
+                }
+            }
+            array
+        });
+
+        assert_eq!(*ELEVATION_WEIGHT_TEST, ELEVATION_WEIGHT)
+    }
 }
