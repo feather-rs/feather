@@ -41,5 +41,5 @@ impl<T> ThreadPinned<T> {
     }
 }
 
-unsafe impl<T> Send for ThreadPinned<T> {}
-unsafe impl<T> Sync for ThreadPinned<T> {}
+unsafe impl<T: Send> Send for ThreadPinned<T> {}
+unsafe impl<T: Sync> Sync for ThreadPinned<T> {}
