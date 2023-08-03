@@ -27,8 +27,8 @@ unsafe impl Send for SyncFn {}
 /// Fake wrapper which causes a value to become `Send` and `Sync`.
 struct UnsafeSendSync<T>(T);
 
-unsafe impl<T> Send for UnsafeSendSync<T> {}
-unsafe impl<T> Sync for UnsafeSendSync<T> {}
+unsafe impl<T: Send> Send for UnsafeSendSync<T> {}
+unsafe impl<T: Sync> Sync for UnsafeSendSync<T> {}
 
 /// Global task manager.
 static TASK_MANAGER: OnceCell<TaskManager> = OnceCell::new();
