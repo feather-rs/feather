@@ -118,7 +118,7 @@ fn face_facing_offset(id: BlockId) -> BlockPosition {
 use feather_core::blocks::SimplifiedBlockKind::*;
 
 fn check_block_support_at(id: BlockId, game: &Game, pos: BlockPosition) -> Option<bool> {
-    // TODO leaves are technically a full block, but e.g. torches can't be placed on them https://minecraft.gamepedia.com/Opacity/Placement
+    // TODO leaves are technically a full block, but e.g. torches can't be placed on them https://minecraft.wiki/w/Opacity/Placement
     let block_down = game.block_at(pos + DOWN);
     let block_facing = if id.has_facing_cardinal() {
         game.block_at(pos + id.facing_cardinal().unwrap().opposite().offset())

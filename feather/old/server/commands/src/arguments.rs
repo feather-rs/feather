@@ -36,7 +36,7 @@ impl ArgumentKind<CommandCtx> for EntitySelector {
     fn parse<'a>(ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
         let head = input.advance_until(" ");
 
-        // See https://minecraft.gamepedia.com/Commands#Target_selectors
+        // See https://minecraft.wiki/w/Commands#Target_selectors
         let entities = find_selected_entities(ctx, head)?;
 
         Ok(EntitySelector { entities })
@@ -168,7 +168,7 @@ pub enum CoordinatesParseError {
 }
 
 /// Parses a position (<x> <y> <z>, but also with support for relative
-/// positions as per https://minecraft.gamepedia.com/Commands#Tilde_and_caret_notation).
+/// positions as per https://minecraft.wiki/w/Commands#Tilde_and_caret_notation).
 #[derive(Copy, Clone, Debug)]
 pub struct Coordinates {
     pub x: Coordinate,

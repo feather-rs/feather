@@ -22,7 +22,7 @@ impl Default for LootTableSet {
     }
 }
 
-/// See https://minecraft.gamepedia.com/Loot_table
+/// See https://minecraft.wiki/w/Loot_table
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LootTable {
     #[serde(rename = "type")]
