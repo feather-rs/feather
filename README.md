@@ -4,9 +4,7 @@
 
 A Minecraft server implementation written in Rust.
 
-### Status
-
-The project is in an **early stage**. Many, many features are unimplemented. We welcome help from anyone willing to contribute!
+__Note__: This project is currently inactive. Consider contributing to [`valence`](https://github.com/valence-rs/valence) instead.
 
 ### Supported Minecraft versions
 
