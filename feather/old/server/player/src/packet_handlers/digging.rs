@@ -156,7 +156,7 @@ pub fn advance_dig_progress(game: &mut Game, world: &mut World) {
         world.inner_mut(),
         |(mut digging, inventory, held_item)| {
             // Advance progress depends on tool and the
-            // block kind: https://minecraft.gamepedia.com/Breaking#Speed
+            // block kind: https://minecraft.wiki/w/Breaking#Speed
             // * If the block requires some tool to harvest (i.e. it requires a tool to get the item after it breaks),
             // then if that tool is not held, progress is hindered by a factor of 5. Otherwise, the hindrance
             // is only a factor of 1.5.

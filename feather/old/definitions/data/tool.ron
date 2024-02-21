@@ -54,7 +54,7 @@ Multiple([
         on: "item",
         name: "durability",
         type: u32,
-        // https://minecraft.gamepedia.com/Item_durability
+        // https://minecraft.wiki/w/Item_durability
         mapping: {
             "leather_helmet": 55,
             "leather_chestplate": 80,

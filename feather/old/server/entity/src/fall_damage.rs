@@ -46,7 +46,7 @@ pub fn update_blocks_fallen(game: &mut Game, world: &mut World) {
     for entity in landed.into_inner() {
         let blocks_fallen = world.get::<BlocksFallen>(entity).0;
 
-        // https://minecraft.gamepedia.com/Damage#Fall_damage
+        // https://minecraft.wiki/w/Damage#Fall_damage
         let damage = (blocks_fallen - 3.0).max(0.0).round() as u32;
 
         if damage != 0 {
