@@ -46,6 +46,7 @@ members = [
     # Other
     "proxy",
 ]
+resolver = "2"
 
 # No longer need to use release for "development":
 [profile.dev.package."*"]
