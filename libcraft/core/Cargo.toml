@@ -1,6 +1,7 @@
 [package]
 name = "libcraft-core"
 version = "0.1.0"
+license = "Apache-2.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 

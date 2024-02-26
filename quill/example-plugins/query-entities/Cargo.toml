@@ -1,6 +1,7 @@
 [package]
 name = "query-entities"
 version = "0.1.0"
+license = "Apache-2.0"
 authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
 edition = "2018"
 

@@ -1,6 +1,7 @@
 [package]
 name = "libcraft-items"
 version = "0.1.0"
+license = "Apache-2.0"
 authors = ["Kalle Kankaanpää", "Pau Machetti <paumachetti@gmail.com>"]
 edition = "2018"
 
