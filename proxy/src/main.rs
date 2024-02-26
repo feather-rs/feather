@@ -2,11 +2,10 @@ use std::fmt::{Display, Formatter};
 use std::io::{Read, Write};
 use std::net::SocketAddr;
 use std::net::{TcpListener, TcpStream};
-use std::num::ParseIntError;
 use std::sync::{Arc, Mutex};
 
 use anyhow::Context;
-use clap::{ArgEnum, Parser};
+use argh::FromArgs;
 use colored::Colorize;
 use log::{Level, LevelFilter};
 use time::macros::format_description;
@@ -20,48 +19,53 @@ use feather_protocol::{
 };
 
 /// A simple proxy server that logs transmitted packets
-#[derive(Parser)]
-#[clap(about, version)]
+#[derive(FromArgs)]
 struct Args {
-    /// The Minecraft server address (ip:port)
-    #[clap(short = 'a', long)]
+    /// the Minecraft server address (ip:port)
+    #[argh(option, short = 'a')]
     server_address: SocketAddr,
-    /// The address that the proxy should listen on (ip:port)
-    #[clap(short, long)]
+    /// the address that the proxy should listen on (ip:port)
+    #[argh(option, short = 'p')]
     proxy_address: SocketAddr,
-    /// Only log clientside/serverside packets
-    #[clap(arg_enum, short, long, default_value_t)]
+    /// only log clientside/serverside packets
+    #[argh(option, short = 's', default = "ConnectionSide::Both")]
     side: ConnectionSide,
-    /// Show the contents of the packets. `-vv` will also display hexdump
-    #[clap(short, long, parse(from_occurrences))]
+    /// show the contents of the packets. `-v1` will also display hexdump
+    #[argh(option, short = 'v')]
     verbose: usize,
-    /// Don't log packets with the specified IDs (hexadecimal, comma-separated)
-    #[clap(short, long, use_delimiter = true, parse(try_from_str = parse_hex), conflicts_with = "whitelist")]
+    /// don't log packets with the specified IDs (hexadecimal, comma-separated)
+    #[argh(option, short = 'w', from_str_fn(idlist))]
     blacklist: Option<Vec<u32>>,
-    /// Log only packets with the specified IDs (hexadecimal, comma-separated)
-    #[clap(short, long, use_delimiter = true, parse(try_from_str = parse_hex), conflicts_with = "blacklist")]
+    /// log only packets with the specified IDs (hexadecimal, comma-separated)
+    #[argh(option, short = 'w', from_str_fn(idlist))]
     whitelist: Option<Vec<u32>>,
 }
-
-fn parse_hex(src: &str) -> Result<u32, ParseIntError> {
-    u32::from_str_radix(src, 16)
+fn idlist(src: &str) -> Result<Vec<u32>, String> {
+    src.split(',')
+        .map(|n| u32::from_str_radix(n, 16).map_err(|e| e.to_string()))
+        .collect()
 }
 
-#[derive(ArgEnum, Copy, Clone)]
+#[derive(Copy, Clone)]
 enum ConnectionSide {
     Client,
     Server,
     Both,
 }
-
-impl Default for ConnectionSide {
-    fn default() -> Self {
-        ConnectionSide::Both
+impl core::str::FromStr for ConnectionSide {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "client" => Ok(Self::Client),
+            "server" => Ok(Self::Server),
+            "both" => Ok(Self::Both),
+            _ => Err("expected 'client', 'server', or 'both'"),
+        }
     }
 }
 
 fn main() {
-    let args: Args = Args::parse();
+    let args: Args = argh::from_env();
     fern::Dispatch::new()
         .format(|out, message, record| {
             let level_string = match record.level() {

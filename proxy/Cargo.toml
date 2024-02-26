@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 feather-protocol = { path = "../feather/protocol" }
-clap = { version = "3.0.5", features = ["derive"] }
+argh = "0.1"
 pretty-hex = "0.2.1"
 log = "0.4.14"
 fern = "0.6.0"
