@@ -90,7 +90,7 @@ fn basic_composition_for_solid_biome(
         }
 
         if !skip {
-            if y <= rng.gen_range(0, 4) {
+            if y <= rng.gen_range(0..4) {
                 block = BlockId::bedrock();
             } else {
                 block = if is_solid {
