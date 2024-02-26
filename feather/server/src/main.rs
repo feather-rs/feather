@@ -64,7 +64,7 @@ fn init_world_source(game: &mut Game, config: &Config) {
     // world otherwise. This is a placeholder:
     // we don't have proper world generation yet.
 
-    let seed = 42; // FIXME: load from the level file
+    let seed = worldgen::seed_from_string(&config.world.seed);
 
     let generator: Arc<dyn WorldGenerator> = match &config.world.generator[..] {
         "flat" => Arc::new(SuperflatWorldGenerator::new(
