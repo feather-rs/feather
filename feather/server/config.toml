@@ -13,6 +13,8 @@ motd = "A Feather server"
 max_players = 16
 default_gamemode = "creative"
 view_distance = 12
+tablist_header = "A Feather Server"
+tablist_footer = ""
 
 [log]
 # If you prefer less verbose logs, switch this to "info".

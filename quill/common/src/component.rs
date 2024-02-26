@@ -206,6 +206,7 @@ host_component_enum! {
         FlyingAbilityEvent = 1028,
         BuildingAbilityEvent = 1029,
         InvulnerabilityEvent = 1030,
+        TablistExtrasUpdateEvent = 1031,
     }
 }
 
@@ -377,3 +378,4 @@ bincode_component_impl!(InstabreakEvent);
 bincode_component_impl!(FlyingAbilityEvent);
 bincode_component_impl!(BuildingAbilityEvent);
 bincode_component_impl!(InvulnerabilityEvent);
+bincode_component_impl!(TablistExtrasUpdateEvent);

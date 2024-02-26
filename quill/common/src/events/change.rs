@@ -64,3 +64,7 @@ pub struct BuildingAbilityEvent(pub bool);
 /// This event is called when player's invulnerability property changes.
 #[derive(Debug, Serialize, Deserialize, Clone, Deref)]
 pub struct InvulnerabilityEvent(pub bool);
+
+/// Raise this event to resend tablist extras to all players
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TablistExtrasUpdateEvent;

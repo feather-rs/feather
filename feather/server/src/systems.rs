@@ -31,7 +31,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     view::register(game, systems);
     crate::chunk_subscriptions::register(systems);
     player_leave::register(systems);
-    tablist::register(systems);
+    tablist::register(game, systems);
     block::register(systems);
     entity::register(game, systems);
     chat::register(game, systems);

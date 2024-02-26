@@ -29,23 +29,25 @@ async fn main() -> anyhow::Result<()> {
     let options = config.to_options();
     let server = Server::bind(options).await?;
 
-    let game = init_game(server, &config)?;
+    let game = init_game(server, config)?;
 
     run(game);
 
     Ok(())
 }
 
-fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
+fn init_game(server: Server, config: Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
-    init_systems(&mut game, server);
-    init_world_source(&mut game, config);
+    init_world_source(&mut game, &config);
+    init_systems(&mut game, server, config);
     init_plugin_manager(&mut game)?;
     Ok(game)
 }
 
-fn init_systems(game: &mut Game, server: Server) {
+fn init_systems(game: &mut Game, server: Server, config: Config) {
     let mut systems = SystemExecutor::new();
+
+    game.insert_resource(config);
 
     // Register common before server code, so
     // that packet broadcasting happens after

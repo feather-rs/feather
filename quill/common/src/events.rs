@@ -1,7 +1,7 @@
 pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
 pub use change::{
     BuildingAbilityEvent, CreativeFlyingEvent, FlyingAbilityEvent, GamemodeEvent, InstabreakEvent,
-    InvulnerabilityEvent, SneakEvent, SprintEvent,
+    InvulnerabilityEvent, SneakEvent, SprintEvent, TablistExtrasUpdateEvent,
 };
 pub use entity::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent};
 pub use interact_entity::InteractEntityEvent;

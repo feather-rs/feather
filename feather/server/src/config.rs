@@ -3,7 +3,7 @@
 use std::{fs, net::IpAddr, path::Path, str::FromStr};
 
 use anyhow::Context;
-use base::Gamemode;
+use base::{Gamemode, Text};
 use serde::{Deserialize, Deserializer};
 
 use crate::{favicon::Favicon, Options};
@@ -90,6 +90,8 @@ pub struct ServerConfig {
     pub max_players: u32,
     pub default_gamemode: Gamemode,
     pub view_distance: u32,
+    pub tablist_header: Text,
+    pub tablist_footer: Text,
 }
 
 #[derive(Debug, Deserialize)]
