@@ -8,7 +8,7 @@ use quill_common::Component;
 
 use crate::{
     query::{Query, QueryIter},
-    EntityBuilder,
+    ComponentBundle, EntityBuilder,
 };
 use crate::{Entity, EntityId};
 
@@ -96,6 +96,15 @@ impl Game {
             )
         };
         EntityBuilder::new(id)
+    }
+
+    /// Spawns a new [`Entity`] with the supllied components.
+    ///
+    /// The builder is not initialized with any default components.
+    pub fn spawn(&self, components: impl ComponentBundle) -> Entity {
+        let mut builder = self.create_empty_entity_builder();
+        components.add_to_builder(&mut builder);
+        builder.finish()
     }
 
     /// Returns an iterator over all entities
