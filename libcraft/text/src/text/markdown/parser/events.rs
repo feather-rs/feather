@@ -4,13 +4,13 @@ pub enum EventParseError<'a> {
     InvalidEventAction(&'a str),
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum EventType {
     OnHover,
     OnClick,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum EventAction {
     ShowText,
     OpenUrl,

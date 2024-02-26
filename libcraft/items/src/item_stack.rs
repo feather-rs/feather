@@ -351,6 +351,11 @@ impl ItemStack {
     pub fn stack_size(&self) -> u32 {
         self.item.stack_size()
     }
+
+    #[must_use]
+    pub fn metadata(&self) -> Option<&ItemStackMeta> {
+        self.meta.as_ref()
+    }
 }
 
 /// An error type that may be returned when performing
@@ -398,6 +403,14 @@ impl ItemStackMeta {
         } else {
             self.enchantments.push(Enchantment::new(ench, level));
         }
+    }
+    #[must_use]
+    pub fn enchantments(&self) -> &[Enchantment] {
+        &self.enchantments
+    }
+    #[must_use]
+    pub fn enchantments_mut(&mut self) -> &mut Vec<Enchantment> {
+        &mut self.enchantments
     }
 }
 

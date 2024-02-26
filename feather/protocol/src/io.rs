@@ -480,7 +480,7 @@ impl<'a> Readable for LengthInferredVecU8<'a> {
 
 impl<'a> Writeable for LengthInferredVecU8<'a> {
     fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
-        buffer.extend_from_slice(&*self.0);
+        buffer.extend_from_slice(&self.0);
         Ok(())
     }
 }

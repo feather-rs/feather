@@ -16,7 +16,7 @@ pub enum TextConversionError {
     InvalidStyle(String),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Color {
     DarkRed,
@@ -304,7 +304,7 @@ where
     }
 }
 
-impl<'a> From<&Translate> for String {
+impl From<&Translate> for String {
     fn from(translate: &Translate) -> Self {
         match translate {
             Translate::ChatTypeText => "chat.type.text",

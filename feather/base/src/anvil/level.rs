@@ -149,7 +149,7 @@ pub struct SuperflatLayer {
 }
 
 /// The type of world generator for a level.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum LevelGeneratorType {
     Default,
     Flat,

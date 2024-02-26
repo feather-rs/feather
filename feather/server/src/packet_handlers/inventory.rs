@@ -56,7 +56,7 @@ pub fn handle_click_window(
     }
     client.set_cursor_slot(window.cursor_item());
 
-    client.send_window_items(&*window);
+    client.send_window_items(&window);
 
     result
 }

@@ -118,9 +118,43 @@ pub fn handle_player_digging(
     player: Entity,
 ) -> SysResult {
     log::trace!("Got player digging with status {:?}", packet.status);
+    let client = server.clients.get(*game.ecs.get(player)?).unwrap();
+    use PlayerDiggingStatus::*;
+    if matches!(packet.status, StartDigging | CancelDigging | FinishDigging)
+        && game.block(packet.position).is_none()
+    {
+        client.disconnect("Cannot interact with unloaded block!");
+        anyhow::bail!("Cannot interact with unloaded block!")
+    }
     match packet.status {
-        PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
-            game.break_block(packet.position);
+        PlayerDiggingStatus::StartDigging => {
+            let success = common::block_break::start_digging(game, player, packet.position)?;
+            client.acknowledge_player_digging(
+                packet.position,
+                game.block(packet.position).unwrap(),
+                protocol::packets::server::PlayerDiggingStatus::Started,
+                success,
+            );
+            Ok(())
+        }
+        PlayerDiggingStatus::CancelDigging => {
+            let success = common::block_break::cancel_digging(game, player, packet.position)?;
+            client.acknowledge_player_digging(
+                packet.position,
+                game.block(packet.position).unwrap(),
+                protocol::packets::server::PlayerDiggingStatus::Cancelled,
+                success,
+            );
+            Ok(())
+        }
+        PlayerDiggingStatus::FinishDigging => {
+            let success = common::block_break::finish_digging(game, player, packet.position)?;
+            client.acknowledge_player_digging(
+                packet.position,
+                game.block(packet.position).unwrap(),
+                protocol::packets::server::PlayerDiggingStatus::Finished,
+                success,
+            );
             Ok(())
         }
         PlayerDiggingStatus::SwapItemInHand => {
@@ -145,7 +179,9 @@ pub fn handle_player_digging(
 
             Ok(())
         }
-        _ => Ok(()),
+        PlayerDiggingStatus::DropItemStack => Ok(()),
+        PlayerDiggingStatus::DropItem => Ok(()),
+        PlayerDiggingStatus::ShootArrow => Ok(()),
     }
 }
 

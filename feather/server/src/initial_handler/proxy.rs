@@ -10,7 +10,7 @@ mod bungeecord;
 mod velocity;
 
 /// IP forwarding data received from the proxy.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ProxyData {
     /// IP address of the proxy.
     pub host: String,

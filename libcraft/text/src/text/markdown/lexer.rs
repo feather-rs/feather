@@ -13,7 +13,7 @@ use std::slice::Iter;
 
 pub type Span<'a> = LocatedSpan<&'a str>;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct LexToken<'a> {
     pub tok: LexTokenType<'a>,
     pub span: Span<'a>,
@@ -34,7 +34,7 @@ pub enum LexTokenType<'a> {
     Word(&'a str),
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Tokens<'a> {
     pub tok: &'a [LexToken<'a>],
     start: usize,
@@ -159,7 +159,7 @@ pub fn lex_control_word(input: Span) -> IResult<Span, LexToken, VerboseError<Spa
 
 pub fn lex_spaces(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(space1, |s: Span| {
-        LexToken::new(s, LexTokenType::Space(*s.fragment()))
+        LexToken::new(s, LexTokenType::Space(s.fragment()))
     })(input)
 }
 
@@ -173,13 +173,13 @@ pub fn valid_word(input: Span) -> IResult<Span, Span, VerboseError<Span>> {
 
 pub fn lex_word(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(valid_word, |s: Span| {
-        LexToken::new(s, LexTokenType::Word(*s.fragment()))
+        LexToken::new(s, LexTokenType::Word(s.fragment()))
     })(input)
 }
 
 pub fn lex_color_code(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(preceded(peek(tag("#")), take(7usize)), |code: Span| {
-        LexToken::new(code, LexTokenType::Word(*code.fragment()))
+        LexToken::new(code, LexTokenType::Word(code.fragment()))
     })(input)
 }
 

@@ -15,7 +15,7 @@
 
 use ahash::AHashMap;
 use base::{chunk::SECTION_VOLUME, position, ChunkPosition, CHUNK_WIDTH};
-use common::{events::BlockChangeEvent, Game};
+use common::{block_break::DestroyStateChange, events::BlockChangeEvent, Game};
 use ecs::{SysResult, SystemExecutor};
 
 use crate::Server;
@@ -23,7 +23,17 @@ use crate::Server;
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems
         .group::<Server>()
-        .add_system(broadcast_block_changes);
+        .add_system(broadcast_block_changes)
+        .add_system(broadcast_block_destroy_stage_change);
+}
+
+fn broadcast_block_destroy_stage_change(game: &mut Game, server: &mut Server) -> SysResult {
+    for (entity, event) in game.ecs.query::<&DestroyStateChange>().iter() {
+        server.broadcast_nearby_with(event.0.position(), |client| {
+            client.block_break_animation(entity.id(), event.0, event.1);
+        });
+    }
+    Ok(())
 }
 
 fn broadcast_block_changes(game: &mut Game, server: &mut Server) -> SysResult {

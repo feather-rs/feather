@@ -103,6 +103,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     client.send_window_items(&window);
 
+    let gamemode = Gamemode::Survival;
+
     builder
         .add(client_id)
         .add(View::new(
