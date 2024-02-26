@@ -68,7 +68,7 @@ impl Build {
             target_dir.push("debug");
         }
 
-        target_dir
+        target_dir.into()
     }
 
     pub fn module_path(&self, cargo_meta: &Metadata, plugin_meta: &PluginMetadata) -> PathBuf {
