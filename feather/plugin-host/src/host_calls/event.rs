@@ -13,7 +13,7 @@ pub fn entity_add_event(
     bytes_ptr: PluginPtr<u8>,
     bytes_len: u32,
 ) -> anyhow::Result<()> {
-    let entity = Entity::from_bits(entity);
+    let entity = Entity::from_bits(entity).context("invalid entity")?;
     let event = HostComponent::from_u32(event).context("invalid component")?;
     let visitor = InsertComponentVisitor {
         cx,

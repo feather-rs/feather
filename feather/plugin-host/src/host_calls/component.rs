@@ -33,7 +33,7 @@ pub fn entity_get_component(
     bytes_len_ptr: PluginPtrMut<u32>,
 ) -> anyhow::Result<()> {
     let component = HostComponent::from_u32(component).context("invalid component")?;
-    let entity = Entity::from_bits(entity);
+    let entity = Entity::from_bits(entity).context("invalid entity")?;
     let visitor = GetComponentVisitor { cx, entity };
     let (bytes_ptr, bytes_len) = component.visit(visitor)?;
 
@@ -87,7 +87,7 @@ pub fn entity_set_component(
     bytes_ptr: PluginPtr<u8>,
     bytes_len: u32,
 ) -> anyhow::Result<()> {
-    let entity = Entity::from_bits(entity);
+    let entity = Entity::from_bits(entity).context("invalid entity")?;
     let component = HostComponent::from_u32(component).context("invalid component")?;
     let visitor = InsertComponentVisitor {
         cx,

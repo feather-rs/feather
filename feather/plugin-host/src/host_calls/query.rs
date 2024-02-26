@@ -3,7 +3,7 @@
 use std::{alloc::Layout, any::TypeId, mem::size_of, ptr};
 
 use anyhow::Context;
-use feather_ecs::{DynamicQuery, DynamicQueryTypes, Ecs};
+use feather_ecs::{Archetype, Ecs};
 use feather_plugin_host_macros::host_function;
 use quill_common::{
     component::{ComponentVisitor, SerializationMethod},
@@ -44,14 +44,16 @@ struct WrittenComponentData {
 /// `ComponentVisitor` implementation used to write
 /// component data to plugin memory.
 struct WriteComponentsVisitor<'a> {
-    query: &'a DynamicQuery<'a>,
+    ecs: &'a Ecs,
+    types: &'a [HostComponent],
     cx: &'a PluginContext,
     num_entities: usize,
 }
 
 impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteComponentsVisitor<'a> {
     fn visit<T: Component>(self) -> anyhow::Result<WrittenComponentData> {
-        let components = self.query.iter_component_slices(TypeId::of::<T>());
+        let components = matching_archetypes(self.ecs, self.types)
+            .map(|archetype| archetype.get::<T>().unwrap());
 
         // Write each component.
         // We use a different strategy depending
@@ -66,7 +68,7 @@ impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteCompone
                     // Copy the components into the buffer.
                     let mut byte_index = 0;
                     for component_slice in components {
-                        for component in component_slice.as_slice::<T>() {
+                        for component in component_slice.iter() {
                             let bytes = component.as_bytes();
 
                             unsafe {
@@ -87,7 +89,7 @@ impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteCompone
 
                 // Write components into the buffer.
                 for component_slice in components {
-                    for component in component_slice.as_slice::<T>() {
+                    for component in component_slice.iter() {
                         component.to_bytes(&mut bytes);
                     }
                 }
@@ -104,15 +106,28 @@ impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteCompone
     }
 }
 
+fn matching_archetypes<'a>(
+    ecs: &'a Ecs,
+    types: &'a [HostComponent],
+) -> impl Iterator<Item = &'a Archetype> + 'a {
+    struct Has<'a>(&'a Archetype);
+    impl ComponentVisitor<bool> for Has<'_> {
+        fn visit<T: Component>(self) -> bool {
+            self.0.has::<T>()
+        }
+    }
+    ecs.archetypes()
+        .filter(move |archetype| types.iter().all(|t| t.visit(Has(archetype))))
+}
+
 fn create_query_data(
     cx: &PluginContext,
     ecs: &Ecs,
     types: &[HostComponent],
 ) -> anyhow::Result<QueryData> {
-    let query_types: Vec<TypeId> = types.iter().copied().map(HostComponent::type_id).collect();
-    let query = ecs.query_dynamic(DynamicQueryTypes::new(&query_types, &[]));
-
-    let num_entities = query.iter_entities().count();
+    let num_entities = matching_archetypes(ecs, types)
+        .map(|archetype| archetype.ids().len())
+        .sum();
     if num_entities == 0 {
         return Ok(QueryData {
             num_entities: 0,
@@ -126,7 +141,8 @@ fn create_query_data(
     let component_lens = cx.bump_allocate(Layout::array::<u32>(types.len())?)?;
     for (i, &typ) in types.iter().enumerate() {
         let data = typ.visit(WriteComponentsVisitor {
-            query: &query,
+            ecs,
+            types,
             cx,
             num_entities,
         })?;
@@ -138,8 +154,16 @@ fn create_query_data(
     }
 
     let entities_ptr = cx.bump_allocate(Layout::array::<EntityId>(num_entities)?)?;
-    for (i, entity) in query.iter_entities().enumerate() {
-        let bits = entity.to_bits();
+    for (i, entity) in matching_archetypes(ecs, types)
+        .flat_map(|archetype| {
+            archetype
+                .ids()
+                .iter()
+                .map(|id| unsafe { ecs.find_entity_from_id(*id) })
+        })
+        .enumerate()
+    {
+        let bits = entity.to_bits().get();
         unsafe {
             cx.write_pod(entities_ptr.cast().add(i), bits)?;
         }

@@ -16,8 +16,8 @@ use hecs::{Component, DynamicBundle, Fetch, Query, World};
 
 #[doc(inline)]
 pub use hecs::{
-    BuiltEntity, ComponentError, DynamicQuery, DynamicQueryTypes, Entity, EntityBuilder,
-    MissingComponent, NoSuchEntity, QueryBorrow, Ref, RefMut,
+    Archetype, BuiltEntity, ComponentError, Entity, EntityBuilder, MissingComponent, NoSuchEntity,
+    QueryBorrow, Ref, RefMut,
 };
 
 mod system;
@@ -151,9 +151,17 @@ impl Ecs {
         self.world.query()
     }
 
-    /// Performs a dynamic query. Used for plugins.
-    pub fn query_dynamic<'q>(&'q self, types: DynamicQueryTypes<'q>) -> DynamicQuery<'q> {
-        self.world.query_dynamic(types)
+    pub fn archetypes(&self) -> impl Iterator<Item = &Archetype> {
+        self.world.archetypes()
+    }
+
+    ///
+    /// # Safety
+    ///
+    /// `id` must correspond to a currently live [`Entity`].
+    /// A despawned or never-allocated `id` will produce undefined behavior.
+    pub unsafe fn find_entity_from_id(&self, id: u32) -> Entity {
+        self.world.find_entity_from_id(id)
     }
 
     /// Sets the index of the currently executing system,

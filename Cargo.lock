@@ -1160,15 +1160,6 @@ checksum = "78cc372d058dcf6d5ecd98510e7fbc9e5aec4d21de70f65fea8fecebcd881bd4"
 
 [[package]]
 name = "hashbrown"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
-dependencies = [
- "ahash 0.4.7",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
@@ -1193,10 +1184,12 @@ checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
 
 [[package]]
 name = "hecs"
-version = "0.3.2"
-source = "git+https://github.com/feather-rs/feather-hecs#824712c4e4ab658e75fabf2a91a54f9d1c0b1790"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eafd3028a128921d1c4bf12998217d0f450b6e7492e7606fd7b247a1e464a317"
 dependencies = [
- "hashbrown 0.9.1",
+ "hashbrown",
+ "spin 0.9.2",
 ]
 
 [[package]]
@@ -1243,7 +1236,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "282a6247722caba404c065016bbfa522806e51714c34f5dfc3e4a3a46fcb4223"
 dependencies = [
  "autocfg 1.0.1",
- "hashbrown 0.11.2",
+ "hashbrown",
  "serde",
 ]
 
@@ -2343,7 +2336,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49a37de5dfc60bae2d94961dacd03c7b80e426b66a99fa1b17799570dbdd8f96"
 dependencies = [
  "bytecheck",
- "hashbrown 0.11.2",
+ "hashbrown",
  "ptr_meta",
  "rend",
  "rkyv_derive",
