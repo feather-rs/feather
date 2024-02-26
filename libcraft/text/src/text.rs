@@ -1,5 +1,6 @@
 //! Implementation of the Minecraft chat component format.
 
+use crate::ansi::AnsiStyle;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
@@ -146,6 +147,47 @@ impl From<Keybind> for Text {
     }
 }
 
+impl From<Keybind> for String {
+    fn from(bind: Keybind) -> Self {
+        match bind {
+            Keybind::Attack => "attack".to_string(),
+            Keybind::UseItem => "use".to_string(),
+            Keybind::Forward => "forward".to_string(),
+            Keybind::Left => "left".to_string(),
+            Keybind::Back => "back".to_string(),
+            Keybind::Right => "right".to_string(),
+            Keybind::Jump => "jump".to_string(),
+            Keybind::Sneak => "sneak".to_string(),
+            Keybind::Sprint => "sprint".to_string(),
+            Keybind::Drop => "drop".to_string(),
+            Keybind::Inventory => "inventory".to_string(),
+            Keybind::Chat => "chat".to_string(),
+            Keybind::ListPlayers => "list_players".to_string(),
+            Keybind::PickBlock => "pick_block".to_string(),
+            Keybind::Command => "command".to_string(),
+            Keybind::Screenshot => "screenshot".to_string(),
+            Keybind::Perspective => "perspective".to_string(),
+            Keybind::MouseSmoothing => "mouse_smoothing".to_string(),
+            Keybind::Fullscreen => "fullscreen".to_string(),
+            Keybind::SpectatorOutlines => "spectator_outlines".to_string(),
+            Keybind::SwapHands => "swap_hands".to_string(),
+            Keybind::SaveToolbar => "save_toolbar".to_string(),
+            Keybind::LoadToolbar => "load_toolbar".to_string(),
+            Keybind::Advancements => "advancements".to_string(),
+            Keybind::Hotbar1 => "hotbar1".to_string(),
+            Keybind::Hotbar2 => "hotbar2".to_string(),
+            Keybind::Hotbar3 => "hotbar3".to_string(),
+            Keybind::Hotbar4 => "hotbar4".to_string(),
+            Keybind::Hotbar5 => "hotbar5".to_string(),
+            Keybind::Hotbar6 => "hotbar6".to_string(),
+            Keybind::Hotbar7 => "hotbar7".to_string(),
+            Keybind::Hotbar8 => "hotbar8".to_string(),
+            Keybind::Hotbar9 => "hotbar9".to_string(),
+            Keybind::Custom(s) => s.to_string(),
+        }
+    }
+}
+
 impl Serialize for Keybind {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -257,7 +299,38 @@ impl From<&Keybind> for String {
 pub enum Translate {
     ChatTypeText,
     MultiplayerPlayerJoined,
+    MultiplayerPlayerLeft,
     Custom(Cow<'static, str>),
+}
+
+impl Translate {
+    fn to_text(&self, args: &[Text], style: &str) -> String {
+        match self {
+            Translate::ChatTypeText => {
+                format!("<{}{}> {}", args[0].as_ansi(), style, args[1].as_ansi())
+            }
+            Translate::MultiplayerPlayerJoined => {
+                format!("{}{} joined the game", args[0].as_ansi(), style)
+            }
+            Translate::MultiplayerPlayerLeft => {
+                format!("{}{} left the game", args[0].as_ansi(), style)
+            }
+            Translate::Custom(name) => {
+                let mut args_strings: String = String::new();
+
+                for arg in args {
+                    args_strings = format!("{} '{}{}'", args_strings, arg.as_ansi(), style);
+                }
+
+                args_strings.push(' ');
+
+                format!(
+                    "<Unknown Translation: '{}' with args: [{}]>",
+                    name, args_strings
+                )
+            }
+        }
+    }
 }
 
 impl Serialize for Translate {
@@ -299,6 +372,7 @@ where
         match value.as_ref() {
             "chat.type.text" => Translate::ChatTypeText,
             "multiplayer.player.joined" => Translate::MultiplayerPlayerJoined,
+            "multiplayer.player.left" => Translate::MultiplayerPlayerLeft,
             _ => Translate::Custom(value),
         }
     }
@@ -309,6 +383,7 @@ impl<'a> From<&Translate> for String {
         match translate {
             Translate::ChatTypeText => "chat.type.text",
             Translate::MultiplayerPlayerJoined => "multiplayer.player.joined",
+            Translate::MultiplayerPlayerLeft => "multiplayer.player.left",
             Translate::Custom(key) => key.as_ref(),
         }
         .into()
@@ -373,6 +448,19 @@ pub enum TextValue {
     Nbt {
         nbt: nbt::Blob,
     },
+}
+
+impl TextValue {
+    pub fn name_of(&self) -> &'static str {
+        match self {
+            TextValue::Text { .. } => "text",
+            TextValue::Translate { .. } => "translate",
+            TextValue::Score { .. } => "score",
+            TextValue::Selector { .. } => "selector",
+            TextValue::Keybind { .. } => "keybind",
+            TextValue::Nbt { .. } => "nbt",
+        }
+    }
 }
 
 impl<T> From<T> for TextValue
@@ -472,6 +560,76 @@ pub trait IntoTextComponent {
 impl TextComponent {
     pub fn empty() -> TextComponent {
         TextComponent::from("")
+    }
+
+    pub fn as_ansi(&self) -> String {
+        let mut style_type = AnsiStyle::regular();
+
+        if self.bold.unwrap_or(false) {
+            style_type = AnsiStyle::bold()
+        }
+
+        if self.underlined.unwrap_or(false) {
+            style_type = AnsiStyle::underline()
+        }
+
+        let mut style = style_type.white();
+
+        if self.color.is_some() {
+            let color = self.color.as_ref().unwrap();
+
+            match color {
+                Color::Black => style = style_type.black(),
+                Color::DarkGray => style = style_type.black(),
+                Color::White => style = style_type.white(),
+                Color::Gray => style = style_type.black(),
+                Color::Red => style = style_type.red(),
+                Color::DarkRed => style = style_type.red(),
+                Color::Gold => style = style_type.yellow(),
+                Color::Yellow => style = style_type.yellow(),
+                Color::DarkGreen => style = style_type.green(),
+                Color::Green => style = style_type.green(),
+                Color::Aqua => style = style_type.cyan(),
+                Color::DarkAqua => style = style_type.cyan(),
+                Color::DarkBlue => style = style_type.blue(),
+                Color::Blue => style = style_type.blue(),
+                Color::LightPurple => style = style_type.magenta(),
+                Color::DarkPurple => style = style_type.magenta(),
+                Color::Custom(_) => style = style_type.black(),
+            }
+        }
+
+        let content = if let TextValue::Text { text } = self.clone().value {
+            String::from(text)
+        } else if let TextValue::Translate { translate, with } = self.clone().value {
+            translate.to_text(&with, &style)
+        } else if let TextValue::Score {
+            value,
+            name,
+            objective,
+        } = self.clone().value
+        {
+            if value.is_some() {
+                format!(
+                    "<Score @ {}:{}, Value: {}>",
+                    name,
+                    objective,
+                    value.unwrap()
+                )
+            } else {
+                format!("<Score @ {}:{}>", objective, name)
+            }
+        } else if let TextValue::Selector { selector } = self.clone().value {
+            format!("{}", selector)
+        } else if let TextValue::Keybind { keybind } = self.clone().value {
+            format!("<Keybind: {}>", String::from(keybind))
+        } else if let TextValue::Nbt { nbt } = self.clone().value {
+            format!("<NBT: {}>", nbt)
+        } else {
+            panic!("Unsupported TextValue")
+        };
+
+        format!("{}{}{}", &style, content, AnsiStyle::reset())
     }
 }
 
@@ -965,6 +1123,24 @@ impl Text {
 
     pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Text {
         Text::from(TextValue::nbt(nbt))
+    }
+
+    pub fn as_ansi(&self) -> String {
+        let mut ansi = string_builder::Builder::default();
+
+        let component = self.clone().into_component();
+        ansi.append(component.as_ansi());
+
+        if component.extra.is_some() {
+            for extra in component.extra.unwrap() {
+                ansi.append(extra.as_ansi());
+            }
+        }
+
+        ansi.string().expect(&*format!(
+            "Failed to convert text to ansi: {}",
+            &serde_json::to_string(self).unwrap()
+        ))
     }
 }
 

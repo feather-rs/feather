@@ -1,4 +1,5 @@
 use libcraft_items::InventorySlot;
+use libcraft_text::{IntoTextComponent, TextComponentBuilder};
 use log::debug;
 
 use base::anvil::player::PlayerAbilities;
@@ -143,7 +144,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
 fn broadcast_player_join(game: &mut Game, username: &str) {
     let message = Text::translate_with("multiplayer.player.joined", vec![username.to_owned()]);
-    game.broadcast_chat(ChatKind::System, message);
+    let component = message.into_component().yellow();
+    game.broadcast_chat(ChatKind::System, component);
 }
 
 fn player_abilities_or_default(

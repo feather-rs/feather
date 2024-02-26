@@ -22,6 +22,7 @@ colored = "2"
 common = { path = "../common", package = "feather-common" }
 crossbeam-utils = "0.8"
 ecs = { path = "../ecs", package = "feather-ecs" }
+enable-ansi-support = "0.1.2"
 fern = "0.6"
 flate2 = "1"
 flume = "0.10"
@@ -55,6 +56,7 @@ uuid = "0.8"
 slab = "0.4"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
+libcraft-text = { path = "../../libcraft/text" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 
 [features]

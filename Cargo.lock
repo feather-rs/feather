@@ -714,6 +714,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
+name = "enable-ansi-support"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28d29d3ca9ba14c336417f8d7bc7f373e8c16d10c30cc0794b09d3cecab631ab"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "enumset"
 version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -939,6 +948,7 @@ dependencies = [
  "base64ct",
  "colored",
  "crossbeam-utils",
+ "enable-ansi-support",
  "feather-base",
  "feather-common",
  "feather-ecs",
@@ -953,6 +963,7 @@ dependencies = [
  "hematite-nbt",
  "libcraft-core",
  "libcraft-items",
+ "libcraft-text",
  "log",
  "md-5",
  "num-bigint",
@@ -1430,6 +1441,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
+ "string-builder",
  "thiserror",
  "uuid",
 ]
@@ -2768,6 +2780,12 @@ name = "stdweb-internal-runtime"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "213701ba3370744dcd1a12960caa4843b3d68b4d1c0a5d575e0d65b2ee9d16c0"
+
+[[package]]
+name = "string-builder"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bd10a070fb1f2796a288abec42695db4682a82b6f12ffacd60fb8d5ad3a4a12"
 
 [[package]]
 name = "strsim"

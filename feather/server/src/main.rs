@@ -15,6 +15,8 @@ const CONFIG_PATH: &str = "config.toml";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    enable_ansi();
+
     let feather_server::config::ConfigContainer {
         config,
         was_config_created,
@@ -34,6 +36,15 @@ async fn main() -> anyhow::Result<()> {
     run(game);
 
     Ok(())
+}
+
+fn enable_ansi() {
+    match enable_ansi_support::enable_ansi_support() {
+        Ok(()) => {}
+        Err(_) => {
+            log::warn!("Failed to enable ANSI support, Output will not work properly");
+        }
+    }
 }
 
 fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
