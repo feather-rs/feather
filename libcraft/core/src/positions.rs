@@ -351,6 +351,16 @@ impl BlockPosition {
         }
     }
 
+    pub fn adjacent(self, face: BlockFace) -> Self {
+        match face {
+            BlockFace::Bottom => self.down(),
+            BlockFace::Top => self.up(),
+            BlockFace::North => self.north(),
+            BlockFace::South => self.south(),
+            BlockFace::West => self.west(),
+            BlockFace::East => self.east(),
+        }
+    }
     /// Returns `true` if the [`BlockPosition`] is valid.
     ///
     /// Minecraft defines a valid block position with the following limits:
@@ -433,7 +443,7 @@ impl From<BlockPosition> for ChunkPosition {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum BlockFace {
     Bottom,
     Top,
@@ -441,4 +451,17 @@ pub enum BlockFace {
     South,
     West,
     East,
+}
+
+impl BlockFace {
+    pub fn opposite(self) -> Self {
+        match self {
+            BlockFace::Bottom => BlockFace::Top,
+            BlockFace::Top => BlockFace::Bottom,
+            BlockFace::North => BlockFace::South,
+            BlockFace::South => BlockFace::North,
+            BlockFace::West => BlockFace::East,
+            BlockFace::East => BlockFace::West,
+        }
+    }
 }

@@ -24,3 +24,4 @@ libcraft-items = { path = "../../libcraft/items" }
 rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 rand = "0.8"
+vek = "0.14"

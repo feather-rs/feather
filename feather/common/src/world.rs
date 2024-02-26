@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::{path::PathBuf, sync::Arc};
 
 use ahash::{AHashMap, AHashSet};
@@ -137,16 +138,20 @@ impl World {
     /// if its chunk was not loaded or the coordinates
     /// are out of bounds and thus no operation
     /// was performed.
-    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
-        self.chunk_map.set_block_at(pos, block)
+    pub fn set_block_at(&self, pos: impl TryInto<ValidBlockPosition>, block: BlockId) -> bool {
+        let valid_pos = match pos.try_into() {
+            Ok(valid) => valid,
+            Err(_) => return false,
+        };
+        self.chunk_map.set_block_at(valid_pos, block)
     }
 
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
     /// exists is not loaded or the coordinates
     /// are out of bounds, `None` is returned.
-    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
-        self.chunk_map.block_at(pos)
+    pub fn block_at(&self, pos: impl TryInto<ValidBlockPosition>) -> Option<BlockId> {
+        self.chunk_map.block_at(pos.try_into().ok()?)
     }
 
     /// Returns the chunk map.
@@ -262,8 +267,6 @@ fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use super::*;
 
     #[test]
@@ -273,11 +276,7 @@ mod tests {
             .chunk_map_mut()
             .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));
 
-        assert!(world
-            .block_at(BlockPosition::new(0, -1, 0).try_into().unwrap())
-            .is_none());
-        assert!(world
-            .block_at(BlockPosition::new(0, 0, 0).try_into().unwrap())
-            .is_some());
+        assert!(world.block_at(BlockPosition::new(0, -1, 0)).is_none());
+        assert!(world.block_at(BlockPosition::new(0, 0, 0)).is_some());
     }
 }

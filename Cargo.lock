@@ -840,6 +840,7 @@ dependencies = [
  "rayon",
  "smartstring",
  "uuid",
+ "vek",
 ]
 
 [[package]]

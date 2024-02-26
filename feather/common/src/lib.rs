@@ -32,12 +32,15 @@ pub mod entities;
 
 pub mod interactable;
 
+pub mod block;
+
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     view::register(game, systems);
     chunk::loading::register(game, systems);
     chunk::entities::register(systems);
     interactable::register(game);
+    block::register(systems);
 
     game.add_entity_spawn_callback(entities::add_entity_components);
 }
