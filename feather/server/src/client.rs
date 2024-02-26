@@ -557,7 +557,7 @@ impl Client {
             offset_x: particle.offset_x,
             offset_y: particle.offset_y,
             offset_z: particle.offset_z,
-            particle_data: 0.0,
+            particle_data: particle.data,
             particle_count: particle.count,
         })
     }
